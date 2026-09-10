@@ -19,7 +19,8 @@ function renderNotices(rows){$('notice-date').textContent=cell(rows,0,1)?`${cell
 const add=(title,texts)=>{const entries=texts.filter(Boolean);if(!entries.length)return;const block=el('section',undefined,'notice-block');block.append(el('h3',title));for(const t of entries)block.append(el('p',t));root.append(block);};
 add('本日の予定',[cell(rows,3,2)]);
 add('クラスの連絡',rows.slice(3).map(r=>String(r[11]??'').trim()).filter(v=>v&&!/^[\s・提出物入力行事等]+$/.test(v)));
-add('学年の連絡',rows.slice(3).map(r=>[r[5],r[6]].filter(Boolean).join('　')));
+const grade=rows.slice(3).map(r=>String(r[5]??'').trim()).find(v=>/^\d+年生$/.test(v));
+add(grade?`${grade}の連絡`:'学年の連絡',rows.slice(3).map(r=>String(r[6]??'').trim()));
 add('学校からのお知らせ',rows.slice(4).map(r=>r[2]?[r[2],r[3]?`（${r[3]}）`:''].join(''):''));
 if(!root.children.length)root.append(el('p','連絡事項はありません。'));}
 async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;$('sync').textContent='最新のシートと色の情報を確認しています…';$('sync').classList.remove('error');try{const {readWorkbook}=await import('./workbook.js');const response=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&_=${Date.now()}`,{signal:AbortSignal.timeout(20000),credentials:'omit'});if(!response.ok)throw new Error('sheet unavailable');const next=readWorkbook(await response.arrayBuffer());if(!parseDays(next.sheets['時間割']).length)throw new Error('layout changed');data=next;render();$('sync').textContent=`最終取得 ${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())} · 内容・色をシートから取得`;}catch{$('sync').classList.add('error');$('sync').textContent=data?`最新データを取得できません。${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',dateStyle:'short',timeStyle:'short'}).format(new Date(data.capturedAt))} 取得の内容を表示しています。元のシートもご確認ください。`:'読み込みに失敗しました。「更新」で再試行するか、元のシートをご確認ください。';}finally{loading=false;$('refresh').disabled=false;}}
