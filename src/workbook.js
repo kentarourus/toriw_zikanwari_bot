@@ -16,7 +16,7 @@ export function readWorkbook(bytes){
  const fonts=list(styles.fonts?.font),fills=list(styles.fills?.fill),xfs=list(styles.cellXfs?.xf);
  const shared=list(xml('xl/sharedStrings.xml').sst?.si);
  const relationships=list(xml('xl/_rels/workbook.xml.rels').Relationships?.Relationship);
- const sheets={},formats={};
+ const sheets={},formats={},links={};
  for(const sheet of list(xml('xl/workbook.xml').workbook?.sheets?.sheet)){
   const name=sheet['@name'];if(!['時間割','連絡'].includes(name))continue;
   const target=relationships.find(r=>r['@Id']===sheet['@id'])?.['@Target'];if(!target)throw new Error('Missing worksheet');
@@ -33,10 +33,17 @@ export function readWorkbook(bytes){
    cells[address]={background:fill?.['@patternType']==='solid'?color(fill.fgColor,theme):null,foreground:color(font?.color,theme),richColors:[...new Set(rich)]};
   }
   applyConditions(rows,cells,list(worksheet?.conditionalFormatting),list(styles.dxfs?.dxf),theme);
+  const relPath=path.replace(/\/([^/]+)$/, '/_rels/$1.rels');
+  const sheetRelations=list(xml(relPath).Relationships?.Relationship);
+  links[name]={};
+  for(const hyperlink of list(worksheet?.hyperlinks?.hyperlink)){
+   const target=hyperlink['@location']??sheetRelations.find(relation=>relation['@Id']===hyperlink['@id'])?.['@Target'];
+   if(target)links[name][hyperlink['@ref']]=target;
+  }
   sheets[name]=rows;formats[name]=cells;
  }
  if(!sheets['時間割']||!sheets['連絡'])throw new Error('Missing required sheets');
- return {sheets,formats,capturedAt:new Date().toISOString()};
+ return {sheets,formats,links,capturedAt:new Date().toISOString()};
 }
 function coordinates(address){const m=address.match(/^(\$?)([A-Z]+)(\$?)(\d+)$/);if(!m)return null;let c=0;for(const ch of m[2])c=c*26+ch.charCodeAt(0)-64;return {c:c-1,r:Number(m[4])-1,fixC:!!m[1],fixR:!!m[3]};}
 function addressOf(r,c){let name='';for(let n=c+1;n>0;n=Math.floor((n-1)/26))name=String.fromCharCode(65+(n-1)%26)+name;return name+(r+1);}
