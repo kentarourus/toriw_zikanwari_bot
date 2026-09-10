@@ -15,7 +15,7 @@ else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=day
 renderNotices(data.sheets['連絡']??[]);renderRelatedLinks();}
 function renderRelatedLinks(){const label=cell(data.sheets['連絡']??[],1,3)||'授業時間変更';const href=data.links?.['連絡']?.D2;if(href)$('lesson-change-link').href=href;$('lesson-change-label').textContent=label;}
 function renderNotices(rows){$('notice-date').textContent=cell(rows,0,1)?`${cell(rows,0,1)} の連絡`: '連絡の日付は未記入';const root=$('notice-content');root.replaceChildren();
-const add=(title,texts)=>{const entries=texts.map(v=>String(v??'').trim()).filter(Boolean);const block=el('section',undefined,'notice-block');block.append(el('h3',title));if(entries.length)for(const t of entries)block.append(el('p',t));else block.append(el('p','空','notice-empty'));root.append(block);};
+const add=(title,texts)=>{const entries=texts.map(v=>String(v??'').trim()).filter(Boolean);const block=el('section',undefined,'notice-block');block.append(el('h3',title));if(entries.length)for(const t of entries)block.append(el('p',t));else{const empty=el('p',' ','notice-empty');empty.setAttribute('aria-label','現在、連絡はありません');block.append(empty);}root.append(block);};
 add('本日の予定',[cell(rows,3,2)]);
 add('クラスの連絡',rows.slice(3).map(r=>String(r[11]??'').trim()).filter(v=>v&&!/^[\s・提出物入力行事等]+$/.test(v)));
 const grade=rows.slice(3).map(r=>String(r[5]??'').trim()).find(v=>/^\d+年生$/.test(v));
