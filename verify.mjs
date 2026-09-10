@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {parseDays} from './dist/app.js';
+const data=JSON.parse(fs.readFileSync('dist/snapshot.json','utf8'));
+const days=parseDays(data.sheets['時間割']);
+assert.equal(days.length,4);
+assert.equal(days[0].date,'9月10日');
+assert.equal(days[1].date,'9月11日');
+assert.equal(days[0].lessons[0].subject,'社2B');
+assert.equal(days[1].lessons[6].subject,'LHR');
+assert.equal(days[2].lessons.filter(x=>x.subject).length,0);
+assert.deepEqual(parseDays([]),[]);
+for(const name of ['時間割','連絡']){
+ const url=new URL('https://docs.google.com/spreadsheets/d/1ING0f5O2q2ijcmGuUUL-gZP33CKKEUtc1NH2-kuYu-k/gviz/tq');
+ url.search=new URLSearchParams({sheet:name,headers:'0',tqx:'out:json;responseHandler:verifyCallback',tq:'select *'});
+ const response=await fetch(url);assert.equal(response.status,200);
+ const text=await response.text();assert.ok(text.includes('verifyCallback('));
+ const body=JSON.parse(text.slice(text.indexOf('verifyCallback(')+15,text.lastIndexOf(');')));
+ assert.equal(body.status,'ok');assert.ok(body.table.rows.length>5);
+ const rows=body.table.rows.map(r=>r.c.map(v=>v?.f??v?.v??''));
+ if(name==='時間割')assert.ok(parseDays(rows).length>0);
+ console.log(`${name}: live data and callback verified`);
+}
+console.log('Date parsing, subject mapping, empty days and live feeds passed.');
