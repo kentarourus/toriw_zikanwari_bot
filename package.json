@@ -1,0 +1,16 @@
+{
+  "name": "class-timetable",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/workbook.js --bundle --format=esm --outfile=dist/workbook.js --minify",
+    "test": "node verify.mjs && node verify-colors.mjs"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.11.1",
+    "fflate": "^0.8.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

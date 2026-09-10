@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {readWorkbook} from './src/workbook.js';
+import {legendFrom,labelsFor} from './dist/colors.js';
+import {parseDays} from './dist/app.js';
+const response=await fetch('https://docs.google.com/spreadsheets/d/1ING0f5O2q2ijcmGuUUL-gZP33CKKEUtc1NH2-kuYu-k/export?format=xlsx');
+assert.equal(response.status,200);
+assert.equal(response.headers.get('access-control-allow-origin'),'*');
+const data=readWorkbook(await response.arrayBuffer());
+assert.ok(parseDays(data.sheets['時間割']).length);
+assert.ok(data.sheets['連絡'][0][1].includes('2026'));
+const legend=legendFrom(data);
+assert.deepEqual(legend.map(l=>l.label),['時間変更','振替授業','課題自習','教室変更','公開授業']);
+assert.equal(legend[0].background,'#d9ead3');
+assert.equal(legend[1].foreground,'#6aa84f');
+assert.equal(legend[2].background,'#ffff00');
+assert.equal(legend[3].foreground,'#b45f06');
+assert.equal(legend[4].foreground,'#0000ff');
+for(const entry of legend){assert.ok(labelsFor(entry,legend).some(v=>v.label===entry.label));}
+assert.deepEqual(labelsFor({background:'#f8e287',foreground:'#534600'},legend),[]);
+assert.deepEqual(labelsFor({background:'#ffffff',foreground:'#534600'},legend),[]);
+assert.deepEqual(labelsFor(undefined,legend),[]);
+assert.deepEqual(labelsFor({background:'#d9ead3',foreground:'#b45f06'},legend).map(l=>l.label),['時間変更','教室変更']);
+assert.deepEqual(labelsFor({richColors:['#0000ff']},legend).map(l=>l.label),['公開授業']);
+assert.throws(()=>readWorkbook(new Uint8Array([1,2,3])));
+if(process.argv.includes('--snapshot'))fs.writeFileSync('dist/snapshot.json',JSON.stringify(data));
+console.log('Live XLSX, CORS, five legend categories, normal stripes, combined changes and malformed input passed.');
