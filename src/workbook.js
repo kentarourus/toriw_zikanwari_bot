@@ -21,8 +21,8 @@ export function readWorkbook(bytes){
   const name=sheet['@name'];if(!['時間割','連絡'].includes(name))continue;
   const target=relationships.find(r=>r['@Id']===sheet['@id'])?.['@Target'];if(!target)throw new Error('Missing worksheet');
   const path=target.startsWith('/')?target.slice(1):'xl/'+target;
-  const rows=[],cells={};
-  for(const row of list(xml(path).worksheet?.sheetData?.row))for(const c of list(row.c)){
+  const rows=[],cells={},worksheet=xml(path).worksheet;
+  for(const row of list(worksheet?.sheetData?.row))for(const c of list(row.c)){
    const address=c['@r'],match=address?.match(/^([A-Z]+)(\d+)$/);if(!match)continue;
    let column=0;for(const ch of match[1])column=column*26+ch.charCodeAt(0)-64;
    const r=Number(match[2])-1;rows[r]??=[];
@@ -32,8 +32,30 @@ export function readWorkbook(bytes){
    const rich=list(string?.r).map(run=>color(run.rPr?.color,theme)).filter(Boolean);
    cells[address]={background:fill?.['@patternType']==='solid'?color(fill.fgColor,theme):null,foreground:color(font?.color,theme),richColors:[...new Set(rich)]};
   }
+  applyConditions(rows,cells,list(worksheet?.conditionalFormatting),list(styles.dxfs?.dxf),theme);
   sheets[name]=rows;formats[name]=cells;
  }
  if(!sheets['時間割']||!sheets['連絡'])throw new Error('Missing required sheets');
  return {sheets,formats,capturedAt:new Date().toISOString()};
+}
+function coordinates(address){const m=address.match(/^(\$?)([A-Z]+)(\$?)(\d+)$/);if(!m)return null;let c=0;for(const ch of m[2])c=c*26+ch.charCodeAt(0)-64;return {c:c-1,r:Number(m[4])-1,fixC:!!m[1],fixR:!!m[3]};}
+function addressOf(r,c){let name='';for(let n=c+1;n>0;n=Math.floor((n-1)/26))name=String.fromCharCode(65+(n-1)%26)+name;return name+(r+1);}
+export function applyConditions(rows,cells,conditions,dxfs,theme=[]){
+ const rules=conditions.flatMap(group=>list(group.cfRule).map(rule=>({rule,ranges:String(group['@sqref']??'').split(/\s+/)}))).sort((a,b)=>Number(b.rule['@priority'])-Number(a.rule['@priority']));
+ for(const {rule,ranges} of rules){
+  // Evaluate only the numeric cell-equality rules used by this timetable. Never execute spreadsheet formulas as JavaScript.
+  const match=String(rule.formula??'').match(/^\s*(\$?[A-Z]+\$?\d+)\s*=\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if(rule['@type']!=='expression'||!match)continue;
+  const reference=coordinates(match[1]),anchor=coordinates(ranges[0].split(':')[0]),dxf=dxfs[Number(rule['@dxfId'])];if(!anchor||!reference||!dxf)continue;
+  for(const range of ranges){const [from,to=from]=range.split(':'),start=coordinates(from),end=coordinates(to);if(!start||!end)continue;
+   for(let r=start.r;r<=end.r;r++)for(let c=start.c;c<=end.c;c++){
+    const rr=reference.r+(reference.fixR?0:r-anchor.r),cc=reference.c+(reference.fixC?0:c-anchor.c);
+    const actual=rows[rr]?.[cc];if(actual===undefined||String(actual).trim()===''||Number(actual)!==Number(match[2]))continue;
+    const style=cells[addressOf(r,c)]??={background:null,foreground:null,richColors:[]};
+    const foreground=color(dxf.font?.color,theme),fill=dxf.fill?.patternFill;
+    if(foreground)style.foreground=foreground;
+    if(fill?.['@patternType']==='solid')style.background=color(fill.fgColor??fill.bgColor,theme);
+   }
+  }
+ }
 }

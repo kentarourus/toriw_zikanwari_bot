@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {readWorkbook} from './src/workbook.js';
+import {readWorkbook,applyConditions} from './src/workbook.js';
 import {legendFrom,labelsFor} from './dist/colors.js';
 import {parseDays} from './dist/app.js';
 const response=await fetch('https://docs.google.com/spreadsheets/d/1ING0f5O2q2ijcmGuUUL-gZP33CKKEUtc1NH2-kuYu-k/export?format=xlsx');
@@ -23,5 +23,15 @@ assert.deepEqual(labelsFor(undefined,legend),[]);
 assert.deepEqual(labelsFor({background:'#d9ead3',foreground:'#b45f06'},legend).map(l=>l.label),['時間変更','教室変更']);
 assert.deepEqual(labelsFor({richColors:['#0000ff']},legend).map(l=>l.label),['公開授業']);
 assert.throws(()=>readWorkbook(new Uint8Array([1,2,3])));
+// D6's relative reference C17 becomes C20 for D9 (fourth period).
+const ruleRows=Array.from({length:24},()=>[]);ruleRows[19][2]='2';
+const testCells={D9:{background:'#f8e287',foreground:'#534600'},E9:{background:'#f8e287',foreground:'#534600'}};
+const conditions=[{'@sqref':'D6:G13',cfRule:{'@type':'expression','@priority':'1','@dxfId':'0',formula:'C17=2'}}];
+const dxfs=[{font:{color:{'@rgb':'FF6AA84F'}},fill:{patternFill:{'@patternType':'solid',fgColor:{'@rgb':'FFF4CCCC'}}}}];
+applyConditions(ruleRows,testCells,conditions,dxfs);
+assert.deepEqual(labelsFor(testCells.D9,legend).map(x=>x.label),['振替授業']);
+assert.deepEqual(labelsFor(testCells.E9,legend),[]);
+ruleRows[19][2]='';const cleared={D9:{background:'#f8e287',foreground:'#534600'}};
+applyConditions(ruleRows,cleared,conditions,dxfs);assert.deepEqual(labelsFor(cleared.D9,legend),[]);
 if(process.argv.includes('--snapshot'))fs.writeFileSync('dist/snapshot.json',JSON.stringify(data));
 console.log('Live XLSX, CORS, five legend categories, normal stripes, combined changes and malformed input passed.');
