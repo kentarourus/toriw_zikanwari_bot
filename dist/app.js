@@ -1,4 +1,4 @@
-import {legendFrom,labelsFor,applyColor} from './colors.js';
+import {legendFrom,labelsFor,applyColor,applyChangeColor} from './colors.js';
 const SHEET_ID='1ING0f5O2q2ijcmGuUUL-gZP33CKKEUtc1NH2-kuYu-k';
 const $=id=>document.getElementById(id);
 let data=null,selectedKey=null,loading=false;
@@ -11,7 +11,7 @@ for(const d of days){const b=el('button');b.type='button';b.setAttribute('aria-l
 const chosen=days.find(d=>d.key===selectedKey);$('week').textContent=chosen.week;$('selected-date').textContent=`${chosen.date}（${chosen.weekday}）`;
 const count=chosen.lessons.filter(l=>l.subject).length;$('count').textContent=count?`${count}コマ`:'';$('lessons').replaceChildren();
 if(!count)$('lessons').append(el('li','この日の授業はシートに登録されていません。','empty'));
-else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=days.indexOf(chosen)+3;const column=String.fromCharCode(65+columnIndex);const legend=legendFrom(data);for(const l of chosen.lessons.slice(0,last+1)){const item=el('li',undefined,l.subject?'':'blank');const style=data.formats?.['時間割']?.[`${column}${l.period+5}`];const subject=el('span',l.subject||'未登録','subject');applyColor(subject,style);const details=el('div',undefined,'lesson-detail');details.append(subject);for(const entry of labelsFor(style,legend)){const label=el('span',entry.label,'change-label');applyColor(label,entry);details.append(label);}item.append(el('span',`${l.period}限`,'period'),details);$('lessons').append(item);}}
+else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=days.indexOf(chosen)+3;const column=String.fromCharCode(65+columnIndex);const legend=legendFrom(data);for(const l of chosen.lessons.slice(0,last+1)){const item=el('li',undefined,l.subject?'':'blank');const style=data.formats?.['時間割']?.[`${column}${l.period+5}`];const subject=el('span',l.subject||'未登録','subject');applyChangeColor(subject,style,legend);const details=el('div',undefined,'lesson-detail');details.append(subject);for(const entry of labelsFor(style,legend)){const label=el('span',entry.label,'change-label');applyColor(label,entry);details.append(label);}item.append(el('span',`${l.period}限`,'period'),details);$('lessons').append(item);}}
 renderLegend();
 renderNotices(data.sheets['連絡']??[]);}
 function renderLegend(){const root=$('color-legend');root.replaceChildren();const legend=legendFrom(data);if(!data.formats){root.append(el('p','色の情報は未取得です。更新すると読み込みます。'));return;}root.append(el('h3','色の見方'));const items=el('div',undefined,'legend-items');for(const entry of legend){const tag=el('span',entry.label,'legend-item');applyColor(tag,entry);items.append(tag);}root.append(items);}
