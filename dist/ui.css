@@ -13,3 +13,5 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}button:focus-visible,a:focus
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .notice-block .notice-empty,.notice-block:first-child .notice-empty{min-height:1.95em;color:transparent;font-weight:400;background:transparent;padding:0;margin:0}
 .links #lesson-change-label{color:inherit}
+.lessons li:nth-child(even){background:#f5f7fa}
+.lessons li{padding-left:10px;padding-right:10px}
