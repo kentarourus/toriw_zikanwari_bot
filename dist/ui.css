@@ -12,3 +12,4 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}button:focus-visible,a:focus
 @media(max-width:360px){main{padding-inline:10px}.schedule,.notices{padding:16px}.days{gap:5px}.days button strong{font-size:25px}.source{font-size:12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .notice-block .notice-empty{color:#7a8798;font-weight:400;background:transparent;padding:0}
+.links #lesson-change-label{color:inherit}
