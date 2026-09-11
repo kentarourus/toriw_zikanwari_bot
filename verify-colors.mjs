@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readWorkbook,applyConditions} from './src/workbook.js';
 import {legendFrom,labelsFor} from './dist/colors.js';
 import {parseDays} from './dist/app.js';
-const response=await fetch('https://docs.google.com/spreadsheets/d/1ING0f5O2q2ijcmGuUUL-gZP33CKKEUtc1NH2-kuYu-k/export?format=xlsx');
+const response=await fetch('https://docs.google.com/spreadsheets/d/1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98/export?format=xlsx');
 assert.equal(response.status,200);
 assert.equal(response.headers.get('access-control-allow-origin'),'*');
 const data=readWorkbook(await response.arrayBuffer());

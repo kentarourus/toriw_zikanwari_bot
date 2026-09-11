@@ -17,7 +17,7 @@ assert.equal(days[2].lessons.filter(x=>x.subject).length,0);
 assert.deepEqual(parseDays([]),[]);
 assert.ok(parseDays(data.sheets['時間割']).length>0);
 for(const name of ['時間割','連絡']){
- const url=new URL('https://docs.google.com/spreadsheets/d/1ING0f5O2q2ijcmGuUUL-gZP33CKKEUtc1NH2-kuYu-k/gviz/tq');
+ const url=new URL('https://docs.google.com/spreadsheets/d/1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98/gviz/tq');
  url.search=new URLSearchParams({sheet:name,headers:'0',tqx:'out:json;responseHandler:verifyCallback',tq:'select *'});
  const response=await fetch(url);assert.equal(response.status,200);
  const text=await response.text();assert.ok(text.includes('verifyCallback('));
