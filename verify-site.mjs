@@ -3,6 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 
 const pages=['dist/index.html','dist/classes/index.html','dist/classes/1-5/index.html'];
+assert.match(fs.readFileSync('dist/index.html','utf8'),/hostname\.endsWith\('\.github\.io'\).*classes\//s,'GitHub Pages root redirect is missing');
 for(const page of pages){
   const html=fs.readFileSync(page,'utf8');
   for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){
