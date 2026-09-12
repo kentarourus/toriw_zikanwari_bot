@@ -17,6 +17,7 @@ if(!count)$('lessons').append(el('li',/[土日]/.test(chosen.weekday)?'この日
 else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=days.indexOf(chosen)+3;const column=String.fromCharCode(65+columnIndex);const legend=legendFrom(data);for(const l of chosen.lessons.slice(0,last+1)){const item=el('li',undefined,l.subject?'':'blank');const style=data.formats?.['時間割']?.[`${column}${l.period+5}`];const subject=el('span',l.subject||'未登録','subject');applyChangeColor(subject,style,legend);const details=el('div',undefined,'lesson-detail');details.append(subject);for(const entry of labelsFor(style,legend)){const label=el('span',entry.label,'change-label');applyColor(label,entry);details.append(label);}item.append(el('span',`${l.period}限`,'period'),details);$('lessons').append(item);}}
 renderNotices(data.sheets['連絡']??[]);renderRelatedLinks();}
 function renderRelatedLinks(){const rows=data.sheets['連絡']??[],links=data.links?.['連絡']??{};const entries=[
+ ['source-link',page.sheetUrl,'元のスプレッドシート'],
  ['lesson-change-link',links.D2,cell(rows,1,3)||'授業時間変更'],
  ['health-link',links.G2,cell(rows,1,6)||'健康観察フォーム'],
  ['feedback-link',links.B15,'電子版意見箱']
