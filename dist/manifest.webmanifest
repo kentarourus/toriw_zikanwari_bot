@@ -1,0 +1,16 @@
+{
+  "name": "学校時間割bot",
+  "short_name": "時間割bot",
+  "description": "クラスごとの時間割と連絡事項を確認できます。",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#203f6b",
+  "lang": "ja",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
