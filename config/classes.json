@@ -10,5 +10,11 @@
     "label": "2–3",
     "sheetId": "1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98",
     "snapshot": "dist/data/2-3.json"
+  },
+  {
+    "id": "2-5",
+    "label": "2–5",
+    "sheetId": "1xLCW5r6-bLWVILwdIuCnky7zVA4Ftj6AhOuY4_zQCBw",
+    "snapshot": "dist/data/2-5.json"
   }
 ]
