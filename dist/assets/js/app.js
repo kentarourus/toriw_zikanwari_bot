@@ -1,5 +1,7 @@
 import {legendFrom,labelsFor,applyColor,applyChangeColor} from './colors.js';
-const SHEET_ID='1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98';
+const page=typeof document==='undefined'?{}:document.body.dataset;
+const SHEET_ID=page.sheetId??'1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98';
+const SNAPSHOT=page.snapshot??'data/2-3.json';
 const $=id=>document.getElementById(id);
 let data=null,selectedKey=null,loading=false;
 const cell=(rows,r,c)=>String(rows[r]?.[c]??'').trim();
@@ -14,9 +16,14 @@ const count=chosen.lessons.filter(l=>l.subject).length;$('count').textContent=co
 if(!count)$('lessons').append(el('li',/[土日]/.test(chosen.weekday)?'この日の授業はありません。':'この日の授業はシートに登録されていません。','empty'));
 else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=days.indexOf(chosen)+3;const column=String.fromCharCode(65+columnIndex);const legend=legendFrom(data);for(const l of chosen.lessons.slice(0,last+1)){const item=el('li',undefined,l.subject?'':'blank');const style=data.formats?.['時間割']?.[`${column}${l.period+5}`];const subject=el('span',l.subject||'未登録','subject');applyChangeColor(subject,style,legend);const details=el('div',undefined,'lesson-detail');details.append(subject);for(const entry of labelsFor(style,legend)){const label=el('span',entry.label,'change-label');applyColor(label,entry);details.append(label);}item.append(el('span',`${l.period}限`,'period'),details);$('lessons').append(item);}}
 renderNotices(data.sheets['連絡']??[]);renderRelatedLinks();}
-function renderRelatedLinks(){const label=cell(data.sheets['連絡']??[],1,3)||'授業時間変更';const href=data.links?.['連絡']?.D2;if(href)$('lesson-change-link').href=href;$('lesson-change-label').textContent=label;}
+function renderRelatedLinks(){const rows=data.sheets['連絡']??[],links=data.links?.['連絡']??{};const entries=[
+ ['lesson-change-link',links.D2,cell(rows,1,3)||'授業時間変更'],
+ ['health-link',links.G2,cell(rows,1,6)||'健康観察フォーム'],
+ ['feedback-link',links.B15,'電子版意見箱']
+];let visible=0;for(const [id,href,label] of entries){const link=$(id);link.hidden=!href;if(href){link.href=href;link.firstElementChild.textContent=label;visible++;}}$('related-links').hidden=!visible;}
 function renderNotices(rows){$('notice-date').textContent=cell(rows,0,1)?`${cell(rows,0,1)} の連絡`: '連絡の日付は未記入';const root=$('notice-content');root.replaceChildren();
 const add=(title,texts)=>{const entries=texts.map(v=>String(v??'').trim()).filter(Boolean);const block=el('section',undefined,'notice-block');block.append(el('h3',title));if(entries.length)for(const t of entries)block.append(el('p',t));else{const empty=el('p',' ','notice-empty');empty.setAttribute('aria-label','現在、連絡はありません');block.append(empty);}root.append(block);};
+const sourceStatus=cell(rows,0,0);if(sourceStatus&&!/^\d+$/.test(sourceStatus))root.append(el('p',sourceStatus,'notice-status'));
 add('本日の予定',[cell(rows,3,2)]);
 add('クラスの連絡',rows.slice(3).map(r=>String(r[11]??'').trim()).filter(v=>v&&!/^[\s・提出物入力行事等]+$/.test(v)));
 const grade=rows.slice(3).map(r=>String(r[5]??'').trim()).find(v=>/^\d+年生$/.test(v));
@@ -24,5 +31,5 @@ add(grade?`${grade}の連絡`:'学年の連絡',rows.slice(3).map(r=>String(r[6]
 add('学校からのお知らせ',rows.slice(4).map(r=>r[2]?[r[2],r[3]?`（${r[3]}）`:''].join(''):''));
 }
 async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;$('sync').textContent='最新の時間割を確認中…';$('sync').classList.remove('error','ready');try{const {readWorkbook}=await import('./workbook.js');const response=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&_=${Date.now()}`,{signal:AbortSignal.timeout(20000),credentials:'omit'});if(!response.ok)throw new Error('sheet unavailable');const next=readWorkbook(await response.arrayBuffer());if(!parseDays(next.sheets['時間割']).length)throw new Error('layout changed');data=next;render();$('sync').classList.add('ready');$('sync').textContent=`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())} 更新済み`;$('sync').title='内容と色をGoogleスプレッドシートから取得しました';}catch{$('sync').classList.add('error');$('sync').textContent=data?`最新データを取得できません。${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',dateStyle:'short',timeStyle:'short'}).format(new Date(data.capturedAt))} 取得の内容を表示しています。元のシートもご確認ください。`:'読み込みに失敗しました。「更新」で再試行するか、元のシートをご確認ください。';}finally{loading=false;$('refresh').disabled=false;}}
-async function start(){try{const r=await fetch('./snapshot.json');if(!r.ok)throw new Error('snapshot');data=await r.json();render();}catch{}await refresh();}
-if(typeof document!=='undefined'){$('refresh').onclick=refresh;start();}
+async function start(){try{const r=await fetch(SNAPSHOT);if(!r.ok)throw new Error('snapshot');data=await r.json();render();}catch{}await refresh();}
+if(typeof document!=='undefined'){$('refresh').onclick=refresh;$('source').href=page.sheetUrl;start();}

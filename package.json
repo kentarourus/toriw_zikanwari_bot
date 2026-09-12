@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/workbook.js --bundle --format=esm --outfile=dist/workbook.js --minify",
-    "test": "node verify.mjs && node verify-colors.mjs"
+    "build": "esbuild src/workbook.js --bundle --format=esm --outfile=dist/assets/js/workbook.js --minify",
+    "snapshots": "node scripts/update-snapshots.mjs",
+    "test": "node verify.mjs && node verify-colors.mjs && node verify-site.mjs"
   },
   "dependencies": {
     "fast-xml-parser": "^5.11.1",

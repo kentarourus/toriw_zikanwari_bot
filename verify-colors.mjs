@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {readWorkbook,applyConditions} from './src/workbook.js';
-import {legendFrom,labelsFor} from './dist/colors.js';
-import {parseDays} from './dist/app.js';
+import {legendFrom,labelsFor} from './dist/assets/js/colors.js';
+import {parseDays} from './dist/assets/js/app.js';
 const response=await fetch('https://docs.google.com/spreadsheets/d/1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98/export?format=xlsx');
 assert.equal(response.status,200);
 assert.equal(response.headers.get('access-control-allow-origin'),'*');
@@ -35,5 +35,5 @@ assert.deepEqual(labelsFor(testCells.D9,legend).map(x=>x.label),['振替授業']
 assert.deepEqual(labelsFor(testCells.E9,legend),[]);
 ruleRows[19][2]='';const cleared={D9:{background:'#f8e287',foreground:'#534600'}};
 applyConditions(ruleRows,cleared,conditions,dxfs);assert.deepEqual(labelsFor(cleared.D9,legend),[]);
-if(process.argv.includes('--snapshot'))fs.writeFileSync('dist/snapshot.json',JSON.stringify(data));
+if(process.argv.includes('--snapshot'))fs.writeFileSync('dist/data/2-3.json',JSON.stringify(data));
 console.log('Live XLSX, monthly link, CORS, five legend categories, normal stripes, combined changes and malformed input passed.');

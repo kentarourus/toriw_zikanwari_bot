@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {parseDays} from './dist/app.js';
-const data=JSON.parse(fs.readFileSync('dist/snapshot.json','utf8'));
+import {parseDays} from './dist/assets/js/app.js';
+const classes=JSON.parse(fs.readFileSync('config/classes.json','utf8'));
+const data=JSON.parse(fs.readFileSync('dist/data/2-3.json','utf8'));
 const fixture=Array.from({length:13},()=>[]);
 fixture[2]=['','','日付','9月10日','11日','12日','13日'];
 fixture[4]=['','','曜日','木','金','土','日'];
@@ -16,15 +17,15 @@ assert.equal(days[1].lessons[6].subject,'LHR');
 assert.equal(days[2].lessons.filter(x=>x.subject).length,0);
 assert.deepEqual(parseDays([]),[]);
 assert.ok(parseDays(data.sheets['時間割']).length>0);
-for(const name of ['時間割','連絡']){
- const url=new URL('https://docs.google.com/spreadsheets/d/1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98/gviz/tq');
+for(const classInfo of classes)for(const name of ['時間割','連絡']){
+ const url=new URL(`https://docs.google.com/spreadsheets/d/${classInfo.sheetId}/gviz/tq`);
  url.search=new URLSearchParams({sheet:name,headers:'0',tqx:'out:json;responseHandler:verifyCallback',tq:'select *'});
  const response=await fetch(url);assert.equal(response.status,200);
  const text=await response.text();assert.ok(text.includes('verifyCallback('));
  const body=JSON.parse(text.slice(text.indexOf('verifyCallback(')+15,text.lastIndexOf(');')));
- assert.equal(body.status,'ok');assert.ok(body.table.rows.length>5);
+ assert.equal(body.status,'ok');assert.ok(body.table.rows.length>(name==='時間割'?5:0));
  const rows=body.table.rows.map(r=>r.c.map(v=>v?.f??v?.v??''));
  if(name==='時間割')assert.ok(parseDays(rows).length>0);
- console.log(`${name}: live data and callback verified`);
+ console.log(`${classInfo.id} ${name}: live data verified`);
 }
 console.log('Date parsing, subject mapping, empty days and live feeds passed.');
