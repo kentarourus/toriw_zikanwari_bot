@@ -2,8 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 
-const pages=['dist/index.html','dist/classes/index.html','dist/classes/1-5/index.html'];
-assert.match(fs.readFileSync('dist/index.html','utf8'),/hostname\.endsWith\('\.github\.io'\).*classes\//s,'GitHub Pages root redirect is missing');
+const pages=['dist/index.html','dist/classes/index.html','dist/classes/1-5/index.html','dist/classes/2-3/index.html'];
+assert.match(fs.readFileSync('dist/index.html','utf8'),/<h1>クラスを選択<\/h1>/,'Class list is missing from the root');
+assert.doesNotMatch(fs.readFileSync('dist/index.html','utf8'),/2–3を開く|公開準備ができたクラスから/,'Removed class-list copy is still visible');
+for(const page of ['dist/classes/1-5/index.html','dist/classes/2-3/index.html'])assert.doesNotMatch(fs.readFileSync(page,'utf8'),/hostname\.endsWith/,'Class page contains an obsolete redirect');
 for(const page of pages){
   const html=fs.readFileSync(page,'utf8');
   for(const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)){

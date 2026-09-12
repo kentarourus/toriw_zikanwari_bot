@@ -4,9 +4,10 @@ Google スプレッドシートの「時間割」「連絡」を表示する、�
 
 ## ページ構成
 
-- `/` — Sitesでは2-3時間割、GitHub Pagesではクラス一覧へ移動
-- `/classes/` — 3学年・各7クラスの一覧
+- `/` — 3学年・各7クラスの一覧
+- `/classes/` — クラス一覧へ移動する互換URL
 - `/classes/1-5/` — 1-5 時間割
+- `/classes/2-3/` — 2-3 時間割
 
 公開ファイルは `dist` にまとめています。共通のJavaScriptとCSSは `dist/assets`、クラス別の予備データは `dist/data` にあります。クラスとスプレッドシートの対応は `config/classes.json` が管理します。
 
