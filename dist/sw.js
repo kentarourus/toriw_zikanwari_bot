@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v1';
+const CACHE = 'timetable-v2';
 const APP_FILES = [
   './',
   './index.html',
@@ -8,9 +8,10 @@ const APP_FILES = [
   './classes/2-5/',
   './assets/styles/style.css',
   './assets/styles/colors.css',
-  './assets/styles/ui.css',
+  './assets/styles/ui.css?v=11',
   './assets/styles/portal.css',
-  './assets/js/app.js',
+  './assets/js/app.js?v=13',
+  './assets/js/pwa.js',
   './assets/js/colors.js',
   './assets/js/workbook.js',
   './assets/icons/icon-192.png',
@@ -27,7 +28,7 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('timetable-') && key !== CACHE).map(key => caches.delete(key)))));
   self.clients.claim();
 });
 
@@ -41,5 +42,8 @@ self.addEventListener('fetch', event => {
     }).catch(() => caches.match(event.request).then(response => response || caches.match('./'))));
     return;
   }
-  event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+  event.respondWith(fetch(event.request, {cache:'no-store'}).then(async response => {
+    if(response.ok){const cache=await caches.open(CACHE);await cache.put(event.request,response.clone());}
+    return response;
+  }).catch(() => caches.match(event.request)));
 });
