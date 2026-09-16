@@ -20,6 +20,20 @@ window.addEventListener('appinstalled',()=>{guide.hidden=true;installEvent=null;
 const nav=document.querySelector('.mobile-nav');
 if(nav){
   const links=[...nav.querySelectorAll('a')];
+  const navIcons={
+    '#timetable':'<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 2v4m10-4v4M3 10h18m-12 4h1m4 0h1m-6 4h1m4 0h1"/>',
+    '#announcements':'<path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/>',
+    '#related-links':'<path d="M10.4 13.6l3.2-3.2M8.6 15.4l-1.1 1.1a4 4 0 01-5.7-5.7l3-3a4 4 0 015.7 0M15.4 8.6l1.1-1.1a4 4 0 015.7 5.7l-3 3a4 4 0 01-5.7 0"/>'
+  };
+  for(const link of links){
+    link.addEventListener('click',event=>{
+      if(!event.isTrusted||typeof navigator.vibrate!=='function')return;
+      try{navigator.vibrate(12);}catch{/* Haptics must not interrupt navigation. */}
+    });
+    const label=document.createElement('span');label.textContent=link.textContent;
+    link.replaceChildren(label);
+    if(navIcons[link.hash])link.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${navIcons[link.hash]}</svg>`);
+  }
   const sections=links.map(link=>document.querySelector(link.hash)).filter(Boolean);
   function updateNav(){
     let current=sections[0];

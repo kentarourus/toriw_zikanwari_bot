@@ -1,13 +1,13 @@
-const CACHE = 'timetable-test-v1';
+const CACHE = 'timetable-test-v2';
 const APP_FILES = [
   './',
   './index.html',
   './assets/styles/style.css',
   './assets/styles/colors.css',
-  './assets/styles/ui.css?v=12',
+  './assets/styles/ui.css?v=13',
   './assets/styles/portal.css',
   './assets/js/app.js?v=14',
-  './assets/js/pwa.js?v=2',
+  './assets/js/pwa.js?v=3',
   './assets/js/notices.js',
   './assets/styles/install.css',
   './assets/js/colors.js',
