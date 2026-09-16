@@ -1,0 +1,5 @@
+.install-guide{margin-top:28px;border:1px solid #d4dfeb;border-radius:12px;background:#fff;padding:0 18px;color:#243f64;font-size:14px;line-height:1.8}
+.install-guide[hidden]{display:none}
+.install-guide summary{cursor:pointer;font-weight:700;padding:15px 0;min-height:48px}
+.install-guide p{margin:0 0 16px}.install-guide button{font:inherit;background:#203f6b;color:white;border:0;border-radius:8px;padding:12px 18px;cursor:pointer;margin-bottom:18px;min-height:44px}
+.install-guide button[hidden]{display:none}.install-note{color:#52667f}.install-guide summary:focus-visible,.install-guide button:focus-visible{outline:3px solid #2765c5;outline-offset:3px}

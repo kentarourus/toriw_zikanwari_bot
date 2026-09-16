@@ -1,0 +1,44 @@
+const CACHE = 'timetable-test-v1';
+const APP_FILES = [
+  './',
+  './index.html',
+  './assets/styles/style.css',
+  './assets/styles/colors.css',
+  './assets/styles/ui.css?v=12',
+  './assets/styles/portal.css',
+  './assets/js/app.js?v=14',
+  './assets/js/pwa.js?v=2',
+  './assets/js/notices.js',
+  './assets/styles/install.css',
+  './assets/js/colors.js',
+  './assets/js/workbook.js',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png',
+  './data/2-3.json',
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_FILES)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('timetable-test-') && key !== CACHE).map(key => caches.delete(key)))));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET' || new URL(event.request.url).origin !== location.origin) return;
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put(event.request, copy));
+      return response;
+    }).catch(() => caches.match(event.request).then(response => response || caches.match('./'))));
+    return;
+  }
+  event.respondWith(fetch(event.request, {cache:'no-store'}).then(async response => {
+    if(response.ok){const cache=await caches.open(CACHE);await cache.put(event.request,response.clone());}
+    return response;
+  }).catch(() => caches.match(event.request)));
+});
