@@ -38,6 +38,10 @@ if(nav){
     nav.style.setProperty('--slider-width',`${linkRect.width}px`);
   }
   function updateNav(){
+    if(window.scrollY+window.innerHeight>=document.documentElement.scrollHeight-8){
+      setActiveIndex(sections.length-1);
+      return;
+    }
     const threshold=Math.min(window.innerHeight*0.45,240);
     const visible=sections.map(section=>({section,top:section.getBoundingClientRect().top})).filter(item=>item.top<=threshold);
     let current=sections[0];
