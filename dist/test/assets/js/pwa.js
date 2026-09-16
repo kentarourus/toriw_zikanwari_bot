@@ -26,10 +26,6 @@ if(nav){
     '#related-links':'<path d="M10.4 13.6l3.2-3.2M8.6 15.4l-1.1 1.1a4 4 0 01-5.7-5.7l3-3a4 4 0 015.7 0M15.4 8.6l1.1-1.1a4 4 0 015.7 5.7l-3 3a4 4 0 01-5.7 0"/>'
   };
   for(const link of links){
-    link.addEventListener('click',event=>{
-      if(!event.isTrusted||typeof navigator.vibrate!=='function')return;
-      try{navigator.vibrate(12);}catch{/* Haptics must not interrupt navigation. */}
-    });
     const label=document.createElement('span');label.textContent=link.textContent;
     link.replaceChildren(label);
     if(navIcons[link.hash])link.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${navIcons[link.hash]}</svg>`);
@@ -40,5 +36,18 @@ if(nav){
     for(const section of sections){if(section.getBoundingClientRect().top<=window.innerHeight*0.45)current=section;}
     for(const link of links){if(link.hash==='#'+current.id)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');}
   }
+  let startPoint=null,lastSwipeAt=0;
+  nav.addEventListener('pointerdown',event=>{startPoint={x:event.clientX,y:event.clientY};},{passive:true});
+  nav.addEventListener('pointerup',event=>{
+    if(!startPoint)return;
+    const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;startPoint=null;
+    if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy))return;
+    const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
+    const nextIndex=Math.max(0,Math.min(links.length-1,currentIndex+(dx<0?1:-1)));
+    if(nextIndex===currentIndex)return;
+    lastSwipeAt=Date.now();
+    document.querySelector(links[nextIndex].hash)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  },{passive:true});
+  nav.addEventListener('click',event=>{if(Date.now()-lastSwipeAt<450){event.preventDefault();event.stopImmediatePropagation();}},true);
   window.addEventListener('scroll',updateNav,{passive:true});updateNav();
 }

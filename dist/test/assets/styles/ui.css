@@ -25,7 +25,7 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}button:focus-visible,a:focus
 /* F: generous rounded targets with a quiet, shared icon and label color. */
 @media(max-width:800px){
   body{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
-  .mobile-nav{gap:7px;padding:10px max(11px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(11px,env(safe-area-inset-right));overflow:visible;border-top-color:#dce4ed;border-radius:27px 27px 0 0;box-shadow:0 -4px 18px #1932500e}
+  .mobile-nav{gap:7px;padding:10px max(11px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(11px,env(safe-area-inset-right));overflow:visible;border-top-color:#dce4ed;border-radius:27px 27px 0 0;box-shadow:0 -4px 18px #1932500e;touch-action:pan-y;user-select:none}
   .mobile-nav a,.mobile-nav a:first-child{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1 1 0;min-width:0;min-height:68px;gap:3px;padding:6px 4px;border:0;border-radius:23px;background:transparent;color:#626d7b;font-size:1rem;font-weight:600;line-height:1.25;white-space:normal;overflow-wrap:anywhere;text-align:center;-webkit-tap-highlight-color:transparent;transition:background-color .15s,color .15s}
   .mobile-nav a svg{display:block;width:23px;height:23px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .mobile-nav a[aria-current=location]{background:#dfeafb;color:#203f6b;font-weight:700}
