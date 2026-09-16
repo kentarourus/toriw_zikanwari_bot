@@ -53,7 +53,7 @@ if(nav){
     const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;
     if(Math.abs(dx)<=Math.abs(dy))return;
     const step=links[0].getBoundingClientRect().width+7;
-    const min=startPoint.index===0?0:-step,max=startPoint.index===links.length-1?0:step;
+    const min=-startPoint.index*step,max=(links.length-1-startPoint.index)*step;
     nav.classList.add('is-dragging');
     nav.style.setProperty('--drag-x',`${Math.max(min,Math.min(max,dx))}px`);
   },{passive:true});
@@ -63,7 +63,9 @@ if(nav){
     const dx=event.clientX-x,dy=event.clientY-y;
     nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');
     if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy)){setActiveIndex(index);return;}
-    const nextIndex=Math.max(0,Math.min(links.length-1,index+(dx>0?1:-1)));
+    const step=links[0].getBoundingClientRect().width+7;
+    const movedTabs=Math.round(dx/step)||Math.sign(dx);
+    const nextIndex=Math.max(0,Math.min(links.length-1,index+movedTabs));
     if(nextIndex===index){setActiveIndex(index);return;}
     lastSwipeAt=Date.now();
     lockUntil=Date.now()+500;setActiveIndex(nextIndex);
