@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v2';
+const CACHE = 'timetable-v4';
 const APP_FILES = [
   './',
   './index.html',
@@ -8,10 +8,12 @@ const APP_FILES = [
   './classes/2-5/',
   './assets/styles/style.css',
   './assets/styles/colors.css',
-  './assets/styles/ui.css?v=11',
+  './assets/styles/ui.css?v=13',
   './assets/styles/portal.css',
-  './assets/js/app.js?v=13',
-  './assets/js/pwa.js',
+  './assets/js/app.js?v=14',
+  './assets/js/pwa.js?v=3',
+  './assets/js/notices.js',
+  './assets/styles/install.css',
   './assets/js/colors.js',
   './assets/js/workbook.js',
   './assets/icons/icon-192.png',

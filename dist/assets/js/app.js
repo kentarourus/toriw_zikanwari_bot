@@ -1,3 +1,4 @@
+import {noticeItems} from './notices.js';
 import {legendFrom,labelsFor,applyColor,applyChangeColor} from './colors.js';
 const page=typeof document==='undefined'?{}:document.body.dataset;
 const SHEET_ID=page.sheetId??'1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98';
@@ -23,7 +24,7 @@ function renderRelatedLinks(){const rows=data.sheets['連絡']??[],links=data.li
  ['feedback-link',links.B15,'電子版意見箱']
 ];let visible=0;for(const [id,href,label] of entries){const link=$(id);link.hidden=!href;if(href){link.href=href;link.firstElementChild.textContent=label;visible++;}}$('related-links').hidden=!visible;}
 function renderNotices(rows){$('notice-date').textContent=cell(rows,0,1)?`${cell(rows,0,1)} の連絡`: '連絡の日付は未記入';const root=$('notice-content');root.replaceChildren();
-const add=(title,texts)=>{const entries=texts.map(v=>String(v??'').trim()).filter(Boolean);const block=el('section',undefined,'notice-block');block.append(el('h3',title));if(entries.length)for(const t of entries)block.append(el('p',t));else{const empty=el('p',' ','notice-empty');empty.setAttribute('aria-label','現在、連絡はありません');block.append(empty);}root.append(block);};
+const add=(title,texts)=>{const entries=texts.map(v=>String(v??'').trim()).filter(Boolean);const block=el('section',undefined,'notice-block');block.append(el('h3',title));if(entries.length){if(title==='本日の予定'){for(const t of entries)block.append(el('p',t));}else{const list=el('ul',undefined,'notice-items');for(const text of entries.flatMap(noticeItems)){const item=el('li');item.append(el('p',text));list.append(item);}block.append(list);}}else{const empty=el('p',' ','notice-empty');empty.setAttribute('aria-label','現在、連絡はありません');block.append(empty);}root.append(block);};
 const sourceStatus=cell(rows,0,0);if(sourceStatus&&!/^\d+$/.test(sourceStatus))root.append(el('p',sourceStatus,'notice-status'));
 add('本日の予定',[cell(rows,3,2)]);
 add('クラスの連絡',rows.slice(3).map(r=>String(r[11]??'').trim()).filter(v=>v&&!/^[\s・提出物入力行事等]+$/.test(v)));
