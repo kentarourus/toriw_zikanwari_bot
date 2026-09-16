@@ -5,13 +5,14 @@ const SHEET_ID=page.sheetId??'1H4x9oAtptNot0MAiy-uahZb0Cp6czbAjat3g28bqP98';
 const SNAPSHOT=page.snapshot??'data/2-3.json';
 const $=id=>document.getElementById(id);
 let data=null,selectedKey=null,loading=false;
+const haptic=()=>{if(typeof navigator.vibrate!=='function')return;try{navigator.vibrate(12);}catch{/* Unsupported devices continue normally. */}};
 const cell=(rows,r,c)=>String(rows[r]?.[c]??'').trim();
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
 export function parseDays(rows){const out=[];let month='';for(let c=3;c<(rows[2]?.length??0);c++){const raw=cell(rows,2,c),match=raw.match(/(?:(\d+)月)?(\d+)日/);if(!match)continue;if(match[1])month=match[1];const day=match[2],date=`${month?month+'月':''}${day}日`;out.push({key:date,date,day,weekday:cell(rows,4,c),week:cell(rows,3,c),lessons:Array.from({length:8},(_,i)=>({period:i+1,subject:cell(rows,5+i,c)}))});}return out;}
 function render(){const days=parseDays(data.sheets['時間割']);$('days').replaceChildren();if(!days.length){$('lessons').replaceChildren(el('li','時間割の日付を読み取れませんでした。元のシートをご確認ください。','empty'));return;}
 const parts=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric'}).formatToParts(new Date());const today=`${parts.find(p=>p.type==='month').value}月${parts.find(p=>p.type==='day').value}日`;
 if(!days.some(d=>d.key===selectedKey))selectedKey=(days.find(d=>d.date===today)||days[0]).key;
-for(const d of days){const b=el('button');const isToday=d.date===today;b.type='button';b.classList.toggle('is-today',isToday);b.setAttribute('aria-label',`${d.date}（${d.weekday}）${isToday?'、今日':''}`);b.setAttribute('aria-pressed',String(d.key===selectedKey));if(d.key===selectedKey)b.setAttribute('aria-current','date');b.append(el('span',d.date.split('月')[0]+'月','day-month'),el('strong',d.day),el('span',isToday?'今日':d.weekday+'曜日','day-weekday'));b.onclick=()=>{selectedKey=d.key;render();};$('days').append(b);}
+for(const d of days){const b=el('button');const isToday=d.date===today;b.type='button';b.classList.toggle('is-today',isToday);b.setAttribute('aria-label',`${d.date}（${d.weekday}）${isToday?'、今日':''}`);b.setAttribute('aria-pressed',String(d.key===selectedKey));if(d.key===selectedKey)b.setAttribute('aria-current','date');b.append(el('span',d.date.split('月')[0]+'月','day-month'),el('strong',d.day),el('span',isToday?'今日':d.weekday+'曜日','day-weekday'));b.onclick=event=>{if(event.isTrusted)haptic();selectedKey=d.key;render();};$('days').append(b);}
 const chosen=days.find(d=>d.key===selectedKey);$('week').textContent=chosen.week;$('selected-date').textContent=`${chosen.date}（${chosen.weekday}）`;
 const count=chosen.lessons.filter(l=>l.subject).length;$('count').textContent=count?`${count}コマ`:'';$('lessons').replaceChildren();
 if(!count)$('lessons').append(el('li',/[土日]/.test(chosen.weekday)?'この日の授業はありません。':'この日の授業はシートに登録されていません。','empty'));
