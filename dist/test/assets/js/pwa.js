@@ -31,23 +31,48 @@ if(nav){
     if(navIcons[link.hash])link.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${navIcons[link.hash]}</svg>`);
   }
   const sections=links.map(link=>document.querySelector(link.hash)).filter(Boolean);
+  function setActiveIndex(index){
+    links.forEach((link,i)=>{if(i===index)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});
+    const link=links[index],navRect=nav.getBoundingClientRect(),linkRect=link.getBoundingClientRect();
+    nav.style.setProperty('--slider-x',`${linkRect.left-navRect.left}px`);
+    nav.style.setProperty('--slider-width',`${linkRect.width}px`);
+  }
   function updateNav(){
     let current=sections[0];
     for(const section of sections){if(section.getBoundingClientRect().top<=window.innerHeight*0.45)current=section;}
-    for(const link of links){if(link.hash==='#'+current.id)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');}
+    setActiveIndex(Math.max(0,links.findIndex(link=>link.hash==='#'+current.id)));
   }
-  let startPoint=null,lastSwipeAt=0;
-  nav.addEventListener('pointerdown',event=>{startPoint={x:event.clientX,y:event.clientY};},{passive:true});
+  let startPoint=null,lastSwipeAt=0,lockUntil=0;
+  links.forEach((link,index)=>link.addEventListener('click',()=>setActiveIndex(index)));
+  nav.addEventListener('pointerdown',event=>{
+    const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
+    startPoint={x:event.clientX,y:event.clientY,index:currentIndex};
+  },{passive:true});
+  nav.addEventListener('pointermove',event=>{
+    if(!startPoint)return;
+    const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;
+    if(Math.abs(dx)<=Math.abs(dy))return;
+    const step=links[0].getBoundingClientRect().width+7;
+    const min=startPoint.index===0?0:-step,max=startPoint.index===links.length-1?0:step;
+    nav.classList.add('is-dragging');
+    nav.style.setProperty('--drag-x',`${Math.max(min,Math.min(max,dx))}px`);
+  },{passive:true});
   nav.addEventListener('pointerup',event=>{
     if(!startPoint)return;
-    const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;startPoint=null;
-    if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy))return;
-    const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
-    const nextIndex=Math.max(0,Math.min(links.length-1,currentIndex+(dx<0?1:-1)));
-    if(nextIndex===currentIndex)return;
+    const {x,y,index}=startPoint;startPoint=null;
+    const dx=event.clientX-x,dy=event.clientY-y;
+    nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');
+    if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy)){setActiveIndex(index);return;}
+    const nextIndex=Math.max(0,Math.min(links.length-1,index+(dx>0?1:-1)));
+    if(nextIndex===index){setActiveIndex(index);return;}
     lastSwipeAt=Date.now();
+    lockUntil=Date.now()+500;setActiveIndex(nextIndex);
     document.querySelector(links[nextIndex].hash)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+    setTimeout(updateNav,520);
   },{passive:true});
+  nav.addEventListener('pointercancel',()=>{if(startPoint)setActiveIndex(startPoint.index);startPoint=null;nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');});
   nav.addEventListener('click',event=>{if(Date.now()-lastSwipeAt<450){event.preventDefault();event.stopImmediatePropagation();}},true);
-  window.addEventListener('scroll',updateNav,{passive:true});updateNav();
+  window.addEventListener('scroll',()=>{if(Date.now()>=lockUntil)updateNav();},{passive:true});
+  window.addEventListener('resize',()=>setActiveIndex(Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'))),{passive:true});
+  updateNav();
 }
