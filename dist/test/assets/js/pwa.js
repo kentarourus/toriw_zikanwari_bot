@@ -43,7 +43,10 @@ if(nav){
     setActiveIndex(Math.max(0,links.findIndex(link=>link.hash==='#'+current.id)));
   }
   let startPoint=null,lastSwipeAt=0,lockUntil=0;
-  links.forEach((link,index)=>link.addEventListener('click',()=>setActiveIndex(index)));
+  links.forEach((link,index)=>link.addEventListener('click',()=>{
+    lockUntil=Date.now()+800;
+    setActiveIndex(index);
+  }));
   nav.addEventListener('pointerdown',event=>{
     const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
     startPoint={x:event.clientX,y:event.clientY,index:currentIndex,dragging:false};
