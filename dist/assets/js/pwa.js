@@ -46,12 +46,13 @@ if(nav){
   links.forEach((link,index)=>link.addEventListener('click',()=>setActiveIndex(index)));
   nav.addEventListener('pointerdown',event=>{
     const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
-    startPoint={x:event.clientX,y:event.clientY,index:currentIndex};
+    startPoint={x:event.clientX,y:event.clientY,index:currentIndex,dragging:false};
   },{passive:true});
   nav.addEventListener('pointermove',event=>{
     if(!startPoint)return;
     const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;
-    if(Math.abs(dx)<=Math.abs(dy))return;
+    if(Math.abs(dx)<10||Math.abs(dx)<=Math.abs(dy))return;
+    startPoint.dragging=true;
     const step=links[0].getBoundingClientRect().width+7;
     const min=-startPoint.index*step,max=(links.length-1-startPoint.index)*step;
     nav.classList.add('is-dragging');
@@ -59,9 +60,10 @@ if(nav){
   },{passive:true});
   nav.addEventListener('pointerup',event=>{
     if(!startPoint)return;
-    const {x,y,index}=startPoint;startPoint=null;
+    const {x,y,index,dragging}=startPoint;startPoint=null;
     const dx=event.clientX-x,dy=event.clientY-y;
     nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');
+    if(!dragging)return;
     if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy)){setActiveIndex(index);return;}
     const step=links[0].getBoundingClientRect().width+7;
     const movedTabs=Math.round(dx/step)||Math.sign(dx);
