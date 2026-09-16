@@ -38,8 +38,16 @@ if(nav){
     nav.style.setProperty('--slider-width',`${linkRect.width}px`);
   }
   function updateNav(){
+    const threshold=window.innerHeight*0.45;
+    const visible=sections.map(section=>({section,top:section.getBoundingClientRect().top})).filter(item=>item.top<=threshold);
     let current=sections[0];
-    for(const section of sections){if(section.getBoundingClientRect().top<=window.innerHeight*0.45)current=section;}
+    if(visible.length){
+      const nearestTop=Math.max(...visible.map(item=>item.top));
+      const sameRow=visible.filter(item=>Math.abs(item.top-nearestTop)<8).map(item=>item.section);
+      const selected=links.find(link=>link.getAttribute('aria-current')==='location');
+      const selectedSection=selected?document.querySelector(selected.hash):null;
+      current=sameRow.includes(selectedSection)?selectedSection:sameRow[0];
+    }
     setActiveIndex(Math.max(0,links.findIndex(link=>link.hash==='#'+current.id)));
   }
   let startPoint=null,lastSwipeAt=0,lockUntil=0;
