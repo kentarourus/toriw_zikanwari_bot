@@ -54,11 +54,18 @@ if(nav){
     }
     setActiveIndex(Math.max(0,links.findIndex(link=>link.hash==='#'+current.id)));
   }
-  let startPoint=null,lastSwipeAt=0,lockUntil=0;
-  links.forEach((link,index)=>link.addEventListener('click',()=>{
-    lockUntil=Date.now()+800;
+  let startPoint=null,lastSwipeAt=0,pendingIndex=null,scrollSettleTimer=0;
+  function releasePendingSelection(){
+    pendingIndex=null;
+    updateNav();
+  }
+  function holdSelectionUntilScrollEnds(index){
+    pendingIndex=index;
     setActiveIndex(index);
-  }));
+    clearTimeout(scrollSettleTimer);
+    scrollSettleTimer=setTimeout(releasePendingSelection,180);
+  }
+  links.forEach((link,index)=>link.addEventListener('click',()=>holdSelectionUntilScrollEnds(index)));
   nav.addEventListener('pointerdown',event=>{
     const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
     startPoint={x:event.clientX,y:event.clientY,index:currentIndex,dragging:false};
@@ -85,13 +92,17 @@ if(nav){
     const nextIndex=Math.max(0,Math.min(links.length-1,index+movedTabs));
     if(nextIndex===index){setActiveIndex(index);return;}
     lastSwipeAt=Date.now();
-    lockUntil=Date.now()+500;setActiveIndex(nextIndex);
+    holdSelectionUntilScrollEnds(nextIndex);
     document.querySelector(links[nextIndex].hash)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
-    setTimeout(updateNav,520);
   },{passive:true});
   nav.addEventListener('pointercancel',()=>{if(startPoint)setActiveIndex(startPoint.index);startPoint=null;nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');});
   nav.addEventListener('click',event=>{if(Date.now()-lastSwipeAt<450){event.preventDefault();event.stopImmediatePropagation();}},true);
-  window.addEventListener('scroll',()=>{if(Date.now()>=lockUntil)updateNav();},{passive:true});
+  window.addEventListener('scroll',()=>{
+    if(pendingIndex===null){updateNav();return;}
+    setActiveIndex(pendingIndex);
+    clearTimeout(scrollSettleTimer);
+    scrollSettleTimer=setTimeout(releasePendingSelection,180);
+  },{passive:true});
   window.addEventListener('resize',()=>setActiveIndex(Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'))),{passive:true});
   updateNav();
 }
