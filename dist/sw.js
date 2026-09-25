@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v10';
+const CACHE = 'timetable-v11';
 const APP_FILES = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const APP_FILES = [
   './classes/2-1/',
   './classes/2-3/',
   './classes/2-5/',
+  './classes/3-1/',
   './assets/styles/style.css',
   './assets/styles/colors.css',
   './assets/styles/ui.css?v=13',
@@ -21,7 +22,8 @@ const APP_FILES = [
   './data/1-5.json',
   './data/2-1.json',
   './data/2-3.json',
-  './data/2-5.json'
+  './data/2-5.json',
+  './data/3-1.json'
 ];
 
 self.addEventListener('install', event => {
