@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#203f6b">
+  <meta name="description" content="公開中の各クラスの時間割について、日別の閲覧数と推移を確認できます。">
+  <title>クラス別の閲覧数 · 時間割bot</title>
+  <link rel="icon" href="../assets/icons/icon-32.png" sizes="32x32">
+  <link rel="stylesheet" href="./stats.css">
+  <script src="./stats.js" type="module"></script>
+</head>
+<body>
+  <header><a class="brand" href="../"><span class="mark">時</span><span>時間割bot</span></a><a class="back" href="../">クラス一覧</a></header>
+  <main>
+    <div class="heading"><div><h1>クラス別の閲覧数</h1><p id="updated" class="updated"></p></div><label>表示期間 <select id="period"><option value="7">直近7日</option><option value="30" selected>直近30日</option><option value="90">直近90日</option></select></label></div>
+    <p id="status" role="status" aria-live="polite">閲覧数を読み込んでいます…</p>
+    <section id="summary" class="summary" aria-label="クラス別の合計"></section>
+    <section class="panel"><h2>日別の推移</h2><div id="chart" class="chart" role="img" aria-label="クラス別の日別閲覧数の折れ線グラフ"></div><div id="legend" class="legend"></div></section>
+    <section class="panel"><h2>日別の閲覧数</h2><div class="table-wrap"><table><thead><tr><th scope="col">日付</th><th scope="col">1–5</th><th scope="col">2–1</th><th scope="col">2–3</th><th scope="col">2–5</th><th scope="col">合計</th></tr></thead><tbody id="daily"></tbody></table></div></section>
+    <p class="note">各クラスの時間割ページを開いた回数です。計測開始前の日付と取得できなかった日は「—」で表示します。</p>
+  </main>
+</body>
+</html>

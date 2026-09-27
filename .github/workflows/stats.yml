@@ -1,0 +1,33 @@
+name: Update class view counts
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: class-view-counts
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: vars.GOATCOUNTER_SITE != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Retrieve daily class counts
+        env:
+          GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}
+          GOATCOUNTER_API_KEY: ${{ secrets.GOATCOUNTER_API_KEY }}
+        run: node scripts/sync-stats.mjs
+      - name: Save new counts
+        run: |
+          git add dist/stats/data.json
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Update class view counts'
+          git push origin HEAD:main

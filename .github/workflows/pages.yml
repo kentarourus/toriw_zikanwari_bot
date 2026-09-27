@@ -23,6 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Configure view counting
+        env:
+          GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}
+        run: node scripts/write-stats-config.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
