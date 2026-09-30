@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: class-view-counts
@@ -14,20 +16,44 @@ concurrency:
 
 jobs:
   update:
-    if: vars.GOATCOUNTER_SITE != ''
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
       - name: Retrieve daily class counts
+        id: sync
         env:
           GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}
           GOATCOUNTER_API_KEY: ${{ secrets.GOATCOUNTER_API_KEY }}
-        run: node scripts/sync-stats.mjs
+        run: |
+          if [ -z "$GOATCOUNTER_API_KEY" ]; then
+            echo 'API key is not configured yet.'
+            exit 0
+          fi
+          node scripts/sync-stats.mjs
+          echo 'ready=true' >> "$GITHUB_OUTPUT"
       - name: Save new counts
         run: |
           git add dist/stats/data.json
           if git diff --cached --quiet; then exit 0; fi
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Update class view counts'
           git push origin HEAD:main
+      - uses: actions/configure-pages@v5
+        if: steps.sync.outputs.ready == 'true'
+      - name: Configure view counting
+        if: steps.sync.outputs.ready == 'true'
+        env:
+          GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}
+        run: node scripts/write-stats-config.mjs
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.sync.outputs.ready == 'true'
+        with:
+          path: dist
+      - name: Deploy updated counts
+        if: steps.sync.outputs.ready == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4

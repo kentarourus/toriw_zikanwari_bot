@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-const site=process.env.GOATCOUNTER_SITE;
+const site=process.env.GOATCOUNTER_SITE||JSON.parse(fs.readFileSync('dist/stats/config.json','utf8')).site;
 const token=process.env.GOATCOUNTER_API_KEY;
 if(!site||!/^[a-z0-9-]+$/.test(site)||!token)throw new Error('GOATCOUNTER_SITE and GOATCOUNTER_API_KEY are required.');
 
