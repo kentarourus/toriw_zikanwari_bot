@@ -1,7 +1,7 @@
 {
   "timezone": "Asia/Tokyo",
-  "updatedAt": null,
-  "firstTrackedDate": null,
+  "updatedAt": "2026-09-30T06:23:38.044Z",
+  "firstTrackedDate": "2026-09-30",
   "classes": [
     {
       "id": "1-1",
@@ -28,5 +28,15 @@
       "label": "3–1"
     }
   ],
-  "days": []
+  "days": [
+    {
+      "date": "2026-09-30",
+      "1-1": 0,
+      "1-5": 0,
+      "2-1": 0,
+      "2-3": 0,
+      "2-5": 0,
+      "3-1": 0
+    }
+  ]
 }
