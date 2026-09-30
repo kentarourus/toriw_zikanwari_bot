@@ -2,7 +2,7 @@ name: Update class view counts
 
 on:
   schedule:
-    - cron: '23,53 * * * *'
+    - cron: '0,30 * * * *'
   workflow_dispatch:
   workflow_run:
     workflows: ['Deploy GitHub Pages']
