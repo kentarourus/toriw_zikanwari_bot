@@ -1,6 +1,5 @@
-const colors={'1-5':'#2a64a3','2-1':'#b56828','2-3':'#368064','2-5':'#8563ae'};
-const classes=['1-5','2-1','2-3','2-5'];
-const labels={'1-5':'1–5','2-1':'2–1','2-3':'2–3','2-5':'2–5'};
+const colors={'1-1':'#587aaa','1-5':'#2a64a3','2-1':'#b56828','2-3':'#368064','2-5':'#8563ae','3-1':'#ab5267'};
+let classes=[],labels={};
 const number=new Intl.NumberFormat('ja-JP');
 const status=document.getElementById('status');
 const period=document.getElementById('period');
@@ -44,7 +43,7 @@ function drawChart(rows){
 function drawTable(rows){
   const body=document.getElementById('daily');body.replaceChildren();
   if(!rows.some(row=>row.counts.some(value=>value!==null))){
-    const tr=document.createElement('tr');const cell=document.createElement('td');cell.colSpan=6;cell.className='empty';cell.textContent='まだ記録はありません。';tr.append(cell);body.append(tr);return;
+    const tr=document.createElement('tr');const cell=document.createElement('td');cell.colSpan=classes.length+2;cell.className='empty';cell.textContent='まだ記録はありません。';tr.append(cell);body.append(tr);return;
   }
   rows.slice().reverse().forEach(row=>{
     const tr=document.createElement('tr');const values=row.counts;
@@ -64,5 +63,11 @@ try{
   if(!response.ok)throw new Error('data unavailable');
   data=await response.json();
   if(!Array.isArray(data.days))throw new Error('invalid data');
+  classes=data.classes.map(item=>item.id);
+  labels=Object.fromEntries(data.classes.map(item=>[item.id,item.label]));
+  const heading=document.querySelector('thead tr');heading.replaceChildren();
+  ['日付',...classes.map(id=>labels[id]),'合計'].forEach(label=>{const th=document.createElement('th');th.scope='col';th.textContent=label;heading.append(th);});
+  document.getElementById('legend').replaceChildren();
+  classes.forEach(id=>{const span=document.createElement('span');const dot=document.createElement('i');dot.style.background=colors[id]||'#2a64a3';span.append(dot,labels[id]);document.getElementById('legend').append(span);});
   render();
 }catch{status.textContent='閲覧数を取得できませんでした。時間をおいて再読み込みしてください。';}

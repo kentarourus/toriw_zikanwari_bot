@@ -1,31 +1,41 @@
-const CACHE = 'timetable-v10';
+const CACHE = 'timetable-v14';
 const APP_FILES = [
   './',
   './index.html',
-  './classes/1-5/',
-  './classes/2-1/',
-  './classes/2-3/',
-  './classes/2-5/',
   './stats/',
   './stats/stats.css',
   './stats/stats.js',
   './assets/js/analytics.js',
+  './classes/1-1/',
+  './classes/1-1/manifest.webmanifest',
+  './classes/1-5/',
+  './classes/1-5/manifest.webmanifest',
+  './classes/2-1/',
+  './classes/2-1/manifest.webmanifest',
+  './classes/2-3/',
+  './classes/2-3/manifest.webmanifest',
+  './classes/2-5/',
+  './classes/2-5/manifest.webmanifest',
+  './classes/3-1/',
+  './classes/3-1/manifest.webmanifest',
   './assets/styles/style.css',
   './assets/styles/colors.css',
   './assets/styles/ui.css?v=13',
   './assets/styles/portal.css',
   './assets/js/app.js?v=14',
-  './assets/js/pwa.js?v=9',
+  './assets/js/pwa.js?v=10',
   './assets/js/notices.js',
   './assets/styles/install.css',
   './assets/js/colors.js',
   './assets/js/workbook.js',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
+  './data/1-1.json',
   './data/1-5.json',
   './data/2-1.json',
   './data/2-3.json',
-  './data/2-5.json'
+  './data/2-5.json',
+  './data/3-1.json'
 ];
 
 self.addEventListener('install', event => {

@@ -6,7 +6,8 @@ if(!site||!/^[a-z0-9-]+$/.test(site)||!token)throw new Error('GOATCOUNTER_SITE a
 
 const file='dist/stats/data.json';
 const current=JSON.parse(fs.readFileSync(file,'utf8'));
-const classes=['1-5','2-1','2-3','2-5'];
+const classInfo=JSON.parse(fs.readFileSync('config/classes.json','utf8'));
+const classes=classInfo.map(item=>item.id);
 const trackedAt=current.firstTrackedDate||new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const start=new Date(`${trackedAt}T00:00:00+09:00`);
 const end=new Date();
@@ -27,8 +28,8 @@ while(cursor.toISOString().slice(0,10)<=today){
   cursor.setUTCDate(cursor.getUTCDate()+1);
 }
 for(const hit of result.hits){
-  const match=/^\/toriw_zikanwari_bot\/classes\/(1-5|2-1|2-3|2-5)\/?$/.exec(hit.path);
-  if(!match||!Array.isArray(hit.stats))continue;
+  const match=/^\/toriw_zikanwari_bot\/classes\/([1-3]-[1-7])\/?$/.exec(hit.path);
+  if(!match||!classes.includes(match[1])||!Array.isArray(hit.stats))continue;
   for(const stat of hit.stats){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(stat.day)||!Number.isSafeInteger(stat.daily)||stat.daily<0)continue;
     const row=days.get(stat.day)||{date:stat.day};
@@ -44,6 +45,6 @@ if(current.firstTrackedDate===trackedAt&&JSON.stringify(sorted)===JSON.stringify
   console.log('Class visit counts are unchanged.');
   process.exit(0);
 }
-const next={timezone:'Asia/Tokyo',updatedAt:new Date().toISOString(),firstTrackedDate:trackedAt,classes:current.classes,days:sorted};
+const next={timezone:'Asia/Tokyo',updatedAt:new Date().toISOString(),firstTrackedDate:trackedAt,classes:classInfo.map(({id,label})=>({id,label})),days:sorted};
 fs.writeFileSync(file,JSON.stringify(next,null,2)+'\n');
 console.log(`Saved ${sorted.length} days of class visit data.`);

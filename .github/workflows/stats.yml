@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '23 */6 * * *'
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Deploy GitHub Pages']
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: write
@@ -16,6 +20,7 @@ concurrency:
 
 jobs:
   update:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
