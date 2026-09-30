@@ -14,7 +14,10 @@ const end=new Date();
 end.setUTCDate(end.getUTCDate()+1);
 const query=new URLSearchParams({start:start.toISOString(),end:end.toISOString(),limit:'100',group:'day'});
 const response=await fetch(`https://${site}.goatcounter.com/api/v0/stats/hits?${query}`,{headers:{Authorization:`Bearer ${token}`,Accept:'application/json'}});
-if(!response.ok)throw new Error(`GoatCounter returned ${response.status}`);
+if(!response.ok){
+  const message=(await response.text()).replace(/<style[\s\S]*?<\/style>/g,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  throw new Error(`GoatCounter returned ${response.status}: ${message.slice(-600)}`);
+}
 const result=await response.json();
 if(!Array.isArray(result.hits))throw new Error('GoatCounter returned an invalid response.');
 if(result.more)throw new Error('GoatCounter returned more than 100 paths; pagination is required.');
