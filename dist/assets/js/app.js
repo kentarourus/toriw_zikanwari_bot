@@ -7,7 +7,29 @@ const $=id=>document.getElementById(id);
 let data=null,selectedKey=null,loading=false;
 const cell=(rows,r,c)=>String(rows[r]?.[c]??'').trim();
 function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
-export function parseDays(rows){const out=[];let month='';for(let c=3;c<(rows[2]?.length??0);c++){const raw=cell(rows,2,c),match=raw.match(/(?:(\d+)月)?(\d+)日/);if(!match)continue;if(match[1])month=match[1];const day=match[2],date=`${month?month+'月':''}${day}日`;out.push({key:date,date,day,weekday:cell(rows,4,c),week:cell(rows,3,c),lessons:Array.from({length:8},(_,i)=>({period:i+1,subject:cell(rows,5+i,c)}))});}return out;}
+export function parseDays(rows){
+const out=[];let month=0,previous=null;
+const weekdays='日月火水木金土';
+for(let c=3;c<(rows[2]?.length??0);c++){
+const raw=cell(rows,2,c),match=raw.match(/(?:(\d+)月)?(\d+)日/),weekday=cell(rows,4,c);
+if(!match&&!/^\d+(?:\.\d+)?$/.test(raw))continue;
+let dateValue;
+if(match){
+ if(match[1])month=Number(match[1]);
+ let day=Number(match[2]);
+ if(!match[1]&&previous&&day<previous.getUTCDate())month=month%12+1;
+ dateValue=new Date(Date.UTC(previous?.getUTCFullYear()??new Date().getFullYear(),month-1,day));
+}else dateValue=new Date(Date.UTC(1899,11,30)+Number(raw)*86400000);
+if(previous){
+ const expected=new Date(previous.getTime()+86400000);
+ // Repair inconsistent rolling headers only when the next weekday confirms the sequence.
+ if(weekday===weekdays[expected.getUTCDay()]&&(!match?.[1]||weekday!==weekdays[dateValue.getUTCDay()]))dateValue=expected;
+}
+previous=dateValue;month=dateValue.getUTCMonth()+1;
+const day=String(dateValue.getUTCDate()),date=`${month}月${day}日`;
+out.push({key:date,date,day,weekday,week:cell(rows,3,c),columnIndex:c,lessons:Array.from({length:8},(_,i)=>({period:i+1,subject:cell(rows,5+i,c)}))});
+}return out;}
+
 function render(){const days=parseDays(data.sheets['時間割']);$('days').replaceChildren();if(!days.length){$('lessons').replaceChildren(el('li','時間割の日付を読み取れませんでした。元のシートをご確認ください。','empty'));return;}
 const parts=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric'}).formatToParts(new Date());const today=`${parts.find(p=>p.type==='month').value}月${parts.find(p=>p.type==='day').value}日`;
 if(!days.some(d=>d.key===selectedKey))selectedKey=(days.find(d=>d.date===today)||days[0]).key;
@@ -15,7 +37,7 @@ for(const d of days){const b=el('button');const isToday=d.date===today;b.type='b
 const chosen=days.find(d=>d.key===selectedKey);$('week').textContent=chosen.week;$('selected-date').textContent=`${chosen.date}（${chosen.weekday}）`;
 const count=chosen.lessons.filter(l=>l.subject).length;$('count').textContent=count?`${count}コマ`:'';$('lessons').replaceChildren();
 if(!count)$('lessons').append(el('li',/[土日]/.test(chosen.weekday)?'この日の授業はありません。':'この日の授業はシートに登録されていません。','empty'));
-else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=days.indexOf(chosen)+3;const column=String.fromCharCode(65+columnIndex);const legend=legendFrom(data);for(const l of chosen.lessons.slice(0,last+1)){const item=el('li',undefined,l.subject?'':'blank');const style=data.formats?.['時間割']?.[`${column}${l.period+5}`];const subject=el('span',l.subject||'未登録','subject');applyChangeColor(subject,style,legend);const details=el('div',undefined,'lesson-detail');details.append(subject);for(const entry of labelsFor(style,legend)){const label=el('span',entry.label,'change-label');applyColor(label,entry);details.append(label);}item.append(el('span',`${l.period}限`,'period'),details);$('lessons').append(item);}}
+else{const last=chosen.lessons.findLastIndex(l=>l.subject);const columnIndex=chosen.columnIndex;const column=String.fromCharCode(65+columnIndex);const legend=legendFrom(data);for(const l of chosen.lessons.slice(0,last+1)){const item=el('li',undefined,l.subject?'':'blank');const style=data.formats?.['時間割']?.[`${column}${l.period+5}`];const subject=el('span',l.subject||'未登録','subject');applyChangeColor(subject,style,legend);const details=el('div',undefined,'lesson-detail');details.append(subject);for(const entry of labelsFor(style,legend)){const label=el('span',entry.label,'change-label');applyColor(label,entry);details.append(label);}item.append(el('span',`${l.period}限`,'period'),details);$('lessons').append(item);}}
 renderNotices(data.sheets['連絡']??[]);renderRelatedLinks();}
 function renderRelatedLinks(){const rows=data.sheets['連絡']??[],links=data.links?.['連絡']??{};const entries=[
  ['source-link',page.sheetUrl,'元のスプレッドシート'],
@@ -32,6 +54,6 @@ const grade=rows.slice(3).map(r=>String(r[5]??'').trim()).find(v=>/^\d+年生$/.
 add(grade?`${grade}の連絡`:'学年の連絡',rows.slice(3).map(r=>String(r[6]??'').trim()));
 add('学校からのお知らせ',rows.slice(4).map(r=>r[2]?[r[2],r[3]?`（${r[3]}）`:''].join(''):''));
 }
-async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;$('sync').textContent='最新の時間割を確認中…';$('sync').classList.remove('error','ready');try{const {readWorkbook}=await import('./workbook.js');const response=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&_=${Date.now()}`,{signal:AbortSignal.timeout(20000),credentials:'omit',cache:'no-store'});if(!response.ok)throw new Error('sheet unavailable');const next=readWorkbook(await response.arrayBuffer());if(!parseDays(next.sheets['時間割']).length)throw new Error('layout changed');next.capturedAt=new Date().toISOString();data=next;try{localStorage.setItem('timetable:'+SHEET_ID,JSON.stringify(next));}catch{}render();$('sync').classList.add('ready');$('sync').textContent=`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())} 更新済み`;$('sync').title='内容と色をGoogleスプレッドシートから取得しました';}catch{if(!data){try{const saved=localStorage.getItem('timetable:'+SHEET_ID);if(saved)data=JSON.parse(saved);}catch{}if(!data){try{const r=await fetch(SNAPSHOT,{cache:'no-store'});if(r.ok)data=await r.json();}catch{}}if(data)render();}$('sync').classList.add('error');$('sync').textContent=data?`最新データを取得できません。${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',dateStyle:'short',timeStyle:'short'}).format(new Date(data.capturedAt))} 取得の内容を表示しています。元のシートもご確認ください。`:'読み込みに失敗しました。「更新」で再試行するか、元のシートをご確認ください。';}finally{loading=false;$('refresh').disabled=false;}}
+async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;$('sync').textContent='最新の時間割を確認中…';$('sync').classList.remove('error','ready');try{const {readWorkbook}=await import('./workbook.js?v=15');const response=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&_=${Date.now()}`,{signal:AbortSignal.timeout(20000),credentials:'omit',cache:'no-store'});if(!response.ok)throw new Error('sheet unavailable');const next=readWorkbook(await response.arrayBuffer());if(!parseDays(next.sheets['時間割']).length)throw new Error('layout changed');next.capturedAt=new Date().toISOString();data=next;try{localStorage.setItem('timetable:'+SHEET_ID,JSON.stringify(next));}catch{}render();$('sync').classList.add('ready');$('sync').textContent=`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())} 更新済み`;$('sync').title='内容と色をGoogleスプレッドシートから取得しました';}catch{if(!data){try{const saved=localStorage.getItem('timetable:'+SHEET_ID);if(saved)data=JSON.parse(saved);}catch{}if(!data){try{const r=await fetch(SNAPSHOT,{cache:'no-store'});if(r.ok)data=await r.json();}catch{}}if(data)render();}$('sync').classList.add('error');$('sync').textContent=data?`最新データを取得できません。${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',dateStyle:'short',timeStyle:'short'}).format(new Date(data.capturedAt))} 取得の内容を表示しています。元のシートもご確認ください。`:'読み込みに失敗しました。「更新」で再試行するか、元のシートをご確認ください。';}finally{loading=false;$('refresh').disabled=false;}}
 async function start(){await refresh();}
 if(typeof document!=='undefined'){$('refresh').onclick=refresh;$('source').href=page.sheetUrl;start();}

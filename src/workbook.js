@@ -14,6 +14,8 @@ export function readWorkbook(bytes){
  const theme=['lt1','dk1','lt2','dk2','accent1','accent2','accent3','accent4','accent5','accent6','hlink','folHlink'].map(k=>hex(themeXml[k]?.srgbClr?.['@val']??themeXml[k]?.sysClr?.['@lastClr']));
  const styles=xml('xl/styles.xml').styleSheet??{};
  const fonts=list(styles.fonts?.font),fills=list(styles.fills?.fill),xfs=list(styles.cellXfs?.xf);
+ const numberFormats=new Map(list(styles.numFmts?.numFmt).map(f=>[Number(f['@numFmtId']),String(f['@formatCode'])]));
+ const date1904=xml('xl/workbook.xml').workbook?.workbookPr?.['@date1904']==='1';
  const shared=list(xml('xl/sharedStrings.xml').sst?.si);
  const relationships=list(xml('xl/_rels/workbook.xml.rels').Relationships?.Relationship);
  const sheets={},formats={},links={};
@@ -29,6 +31,12 @@ export function readWorkbook(bytes){
    const string=c['@t']==='s'?shared[Number(value(c.v))]:c.is;
    rows[r][column-1]=c['@t']==='s'||c['@t']==='inlineStr'?text(string):String(value(c.v));
    const xf=xfs[Number(c['@s']??0)]??{},font=fonts[Number(xf['@fontId']??0)],fill=fills[Number(xf['@fillId']??0)]?.patternFill;
+   const formatId=Number(xf['@numFmtId']??0),format=numberFormats.get(formatId)??'';
+   const dateFormat=(formatId>=14&&formatId<=17)||/[yd]/i.test(format.replace(/"[^"]*"|\[[^\]]*\]/g,''));
+   if((!c['@t']||c['@t']==='n')&&dateFormat&&/^\d+(?:\.\d+)?$/.test(rows[r][column-1])){
+    const date=new Date(Date.UTC(date1904?1904:1899,date1904?0:11,date1904?1:30)+Number(rows[r][column-1])*86400000);
+    rows[r][column-1]=/[y]/i.test(format)||formatId===14?`${date.getUTCFullYear()}年${date.getUTCMonth()+1}月${date.getUTCDate()}日`:`${date.getUTCMonth()+1}月${date.getUTCDate()}日`;
+   }
    const rich=list(string?.r).map(run=>color(run.rPr?.color,theme)).filter(Boolean);
    cells[address]={background:fill?.['@patternType']==='solid'?color(fill.fgColor,theme):null,foreground:color(font?.color,theme),richColors:[...new Set(rich)]};
   }

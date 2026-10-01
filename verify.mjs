@@ -16,6 +16,13 @@ assert.equal(days[0].lessons[0].subject,'社2B');
 assert.equal(days[1].lessons[6].subject,'LHR');
 assert.equal(days[2].lessons.filter(x=>x.subject).length,0);
 assert.deepEqual(parseDays([]),[]);
+const rollover=fixture.map(row=>[...row]);
+rollover[2]=['','','日付','10月1日','30日','46296.0','2日'];
+assert.deepEqual(parseDays(rollover).map(d=>d.date),['10月1日','10月2日','10月3日','10月4日']);
+assert.deepEqual(parseDays(rollover).map(d=>d.columnIndex),[3,4,5,6]);
+rollover[2]=['','','日付','9月30日','1日','2日','3日'];
+rollover[4]=['','','曜日','水','木','金','土'];
+assert.deepEqual(parseDays(rollover).map(d=>d.date),['9月30日','10月1日','10月2日','10月3日']);
 assert.ok(parseDays(data.sheets['時間割']).length>0);
 for(const classInfo of classes)for(const name of ['時間割','連絡']){
  const url=new URL(`https://docs.google.com/spreadsheets/d/${classInfo.sheetId}/gviz/tq`);
