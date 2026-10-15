@@ -1,6 +1,7 @@
 const colors={'1-1':'#587aaa','1-5':'#2a64a3','2-1':'#b56828','2-3':'#368064','2-5':'#8563ae','3-1':'#ab5267'};
 let classes=[],labels={};
 const number=new Intl.NumberFormat('ja-JP');
+const averageNumber=new Intl.NumberFormat('ja-JP',{maximumFractionDigits:1,minimumFractionDigits:1});
 const status=document.getElementById('status');
 const period=document.getElementById('period');
 let data;
@@ -17,8 +18,8 @@ function drawSummary(rows){
     const known=rows.map(row=>row.counts[index]).filter(value=>value!==null);
     const card=document.createElement('article');card.className='card';card.style.setProperty('--class-color',colors[id]);
     const title=document.createElement('h2');title.textContent=`${labels[id]} の閲覧`;
-    const value=document.createElement('strong');value.textContent=known.length?number.format(known.reduce((sum,item)=>sum+item,0)):'—';
-    const detail=document.createElement('small');detail.textContent=known.length?`${known.length}日分の合計`:'計測データなし';
+    const value=document.createElement('strong');value.textContent=known.length?averageNumber.format(known.reduce((sum,item)=>sum+item,0)/known.length):'—';
+    const detail=document.createElement('small');detail.textContent=known.length?`回／日 · 昨日までの7日間${known.length<7?'（計測済み'+known.length+'日）':''}`:'計測データなし';
     card.append(title,value,detail);summary.append(card);
   });
 }
@@ -53,7 +54,7 @@ function drawTable(rows){
 }
 function render(){
   const rows=rowsFor(Number(period.value));
-  drawSummary(rows);drawChart(rows);drawTable(rows);
+  drawSummary(rowsFor(8).slice(0,-1));drawChart(rows);drawTable(rows);
   document.getElementById('updated').textContent=data.updatedAt?`最終更新：${new Date(data.updatedAt).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'})}`:'計測開始前';
   status.textContent=data.days.length?'':'まだ閲覧数の記録はありません。';
 }
