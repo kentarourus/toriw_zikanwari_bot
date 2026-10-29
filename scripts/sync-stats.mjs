@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {fetchStats} from './stats-api.mjs';
 
 const site=process.env.GOATCOUNTER_SITE||JSON.parse(fs.readFileSync('dist/stats/config.json','utf8')).site;
 const token=process.env.GOATCOUNTER_API_KEY;
@@ -13,12 +14,7 @@ const start=new Date(`${trackedAt}T00:00:00+09:00`);
 const end=new Date();
 end.setUTCDate(end.getUTCDate()+1);
 const query=new URLSearchParams({start:start.toISOString(),end:end.toISOString(),limit:'100',group:'day'});
-const response=await fetch(`https://${site}.goatcounter.com/api/v0/stats/hits?${query}`,{headers:{Authorization:`Bearer ${token}`,Accept:'application/json'}});
-if(!response.ok){
-  const message=(await response.text()).replace(/<style[\s\S]*?<\/style>/g,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
-  throw new Error(`GoatCounter returned ${response.status}: ${message.slice(-600)}`);
-}
-const result=await response.json();
+const result=await fetchStats(`https://${site}.goatcounter.com/api/v0/stats/hits?${query}`,token);
 if(!Array.isArray(result.hits))throw new Error('GoatCounter returned an invalid response.');
 if(result.more)throw new Error('GoatCounter returned more than 100 paths; pagination is required.');
 
