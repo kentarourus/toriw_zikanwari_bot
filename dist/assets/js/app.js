@@ -54,6 +54,21 @@ const grade=rows.slice(3).map(r=>String(r[5]??'').trim()).find(v=>/^\d+年生$/.
 add(grade?`${grade}の連絡`:'学年の連絡',rows.slice(3).map(r=>String(r[6]??'').trim()));
 add('学校からのお知らせ',rows.slice(4).map(r=>r[2]?[r[2],r[3]?`（${r[3]}）`:''].join(''):''));
 }
-async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;$('sync').textContent='最新の時間割を確認中…';$('sync').classList.remove('error','ready');try{const {readWorkbook}=await import('./workbook.js?v=15');const response=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&_=${Date.now()}`,{signal:AbortSignal.timeout(20000),credentials:'omit',cache:'no-store'});if(!response.ok)throw new Error('sheet unavailable');const next=readWorkbook(await response.arrayBuffer());if(!parseDays(next.sheets['時間割']).length)throw new Error('layout changed');next.capturedAt=new Date().toISOString();data=next;try{localStorage.setItem('timetable:'+SHEET_ID,JSON.stringify(next));}catch{}render();$('sync').classList.add('ready');$('sync').textContent=`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())} 更新済み`;$('sync').title='内容と色をGoogleスプレッドシートから取得しました';}catch{if(!data){try{const saved=localStorage.getItem('timetable:'+SHEET_ID);if(saved)data=JSON.parse(saved);}catch{}if(!data){try{const r=await fetch(SNAPSHOT,{cache:'no-store'});if(r.ok)data=await r.json();}catch{}}if(data)render();}$('sync').classList.add('error');$('sync').textContent=data?`最新データを取得できません。${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',dateStyle:'short',timeStyle:'short'}).format(new Date(data.capturedAt))} 取得の内容を表示しています。元のシートもご確認ください。`:'読み込みに失敗しました。「更新」で再試行するか、元のシートをご確認ください。';}finally{loading=false;$('refresh').disabled=false;}}
-async function start(){await refresh();}
+async function refresh(){if(loading)return;loading=true;$('refresh').disabled=true;$('sync').textContent=data?`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(data.capturedAt))} 取得の内容 · 最新情報を確認中…`:'最新の時間割を確認中…';$('sync').classList.remove('error','ready');try{const [module,response]=await Promise.all([import('./workbook.js?v=15'),fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&_=${Date.now()}`,{signal:AbortSignal.timeout(20000),credentials:'omit',cache:'no-store'})]);const {readWorkbook}=module;if(!response.ok)throw new Error('sheet unavailable');const next=readWorkbook(await response.arrayBuffer());if(!parseDays(next.sheets['時間割']).length)throw new Error('layout changed');next.capturedAt=new Date().toISOString();data=next;try{localStorage.setItem('timetable:'+SHEET_ID,JSON.stringify(next));}catch{}render();$('sync').classList.add('ready');$('sync').textContent=`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date())} 更新済み`;$('sync').title='内容と色をGoogleスプレッドシートから取得しました';}catch{if(!data){try{const saved=localStorage.getItem('timetable:'+SHEET_ID);if(saved)data=JSON.parse(saved);}catch{}if(!data){try{const r=await fetch(SNAPSHOT,{cache:'no-store'});if(r.ok)data=await r.json();}catch{}}if(data)render();}$('sync').classList.add('error');$('sync').textContent=data?`最新データを取得できません。${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',dateStyle:'short',timeStyle:'short'}).format(new Date(data.capturedAt))} 取得の内容を表示しています。元のシートもご確認ください。`:'読み込みに失敗しました。「更新」で再試行するか、元のシートをご確認ください。';}finally{loading=false;$('refresh').disabled=false;}}
+export function usablePreview(candidate,now=Date.now()){
+ const captured=Date.parse(candidate?.capturedAt);
+ return Number.isFinite(captured)&&now-captured>=0&&now-captured<6*60*60*1000&&parseDays(candidate?.sheets?.['時間割']??[]).length>0;
+}
+function showPreview(candidate){
+ if(data||!usablePreview(candidate))return;
+ data=candidate;render();
+ $('sync').textContent=`${new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(candidate.capturedAt))} 取得の内容 · 最新情報を確認中…`;
+}
+async function start(){
+ try{showPreview(JSON.parse(localStorage.getItem('timetable:'+SHEET_ID)||'null'));}catch{}
+ // Start the live export immediately; the lightweight snapshot never blocks it.
+ const live=refresh();
+ if(!data)fetch(SNAPSHOT,{cache:'no-cache',signal:AbortSignal.timeout(5000)}).then(r=>r.ok?r.json():null).then(showPreview).catch(()=>{});
+ await live;
+}
 if(typeof document!=='undefined'){$('refresh').onclick=refresh;$('source').href=page.sheetUrl;start();}

@@ -41,9 +41,17 @@ jobs:
           fi
           node scripts/sync-stats.mjs
           echo 'ready=true' >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare snapshot reader
+        run: npm ci --ignore-scripts
+      - name: Refresh fast class previews
+        continue-on-error: true
+        run: node scripts/update-snapshots.mjs
       - name: Save new counts
         run: |
-          git add dist/stats/data.json
+          git add dist/stats/data.json dist/data/
           if git diff --cached --quiet; then exit 0; fi
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Update class view counts'
           git push origin HEAD:main
