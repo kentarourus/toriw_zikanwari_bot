@@ -1,18 +1,5 @@
 @media(max-width:800px){.mobile-nav::before{transition:transform var(--motion-duration,440ms) cubic-bezier(.22,var(--motion-bounce,1.38),.38,1),width .15s ease,scale .28s cubic-bezier(.2,1.35,.4,1),box-shadow .18s}.mobile-nav.is-dragging::before{scale:var(--drag-stretch,1.015) .95;transition:scale .15s,box-shadow .15s}}
 @media(prefers-reduced-motion:reduce){.mobile-nav::before{transition:none!important;scale:1!important}}
-/* Floating glass surface with a separate, elastic selection lens. */
-@media(max-width:800px){
- body{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
- .mobile-nav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));padding:7px;gap:5px;border-radius:32px;border:1px solid #ffffffc9;background:rgb(247 250 255 / var(--glass-opacity,.68));backdrop-filter:blur(22px) saturate(1.55);-webkit-backdrop-filter:blur(22px) saturate(1.55);box-shadow:0 8px 30px #19325022,inset 0 1px 1px #fff,inset 0 -1px 1px #49628418;isolation:isolate}
- .mobile-nav::before{top:7px;height:66px;border-radius:26px;background:linear-gradient(145deg,#ffffffc9 0%,#e8f2ff88 40%,#bdd9fa70 100%);border:1px solid #ffffffd9;box-sizing:border-box;backdrop-filter:blur(9px) saturate(1.65);-webkit-backdrop-filter:blur(9px) saturate(1.65);box-shadow:inset 0 1.5px 1px #fff,inset 0 -1px 2px #5c94d537,0 3px 8px #264b7e16;transform-origin:center}
- .mobile-nav::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 1px 0 1px #fff9,inset -1px 0 1px #fff8}
- .mobile-nav a,.mobile-nav a:first-child{min-height:66px;border-radius:26px;color:#4c5b6e;font-size:.95rem;text-shadow:0 1px 1px #fff8}
- .mobile-nav a[aria-current=location]{color:#174f8e}
- .mobile-nav.is-dragging::before{background:linear-gradient(135deg,#ffffffe6,#d5e9ff8f 55%,#b9d9fb86);box-shadow:inset 0 2px 2px #fff,inset 0 -1px 3px #5c94d540,0 5px 13px #264b7e20}
-}
-@supports not (backdrop-filter:blur(1px)){.mobile-nav{background:#eef4fcf5}.mobile-nav::before{background:#dceafa}}
-@media(prefers-contrast:more){.mobile-nav{background:#f4f7fd;border-color:#8299b7}.mobile-nav::before{background:#cce1fa;border-color:#6c8caf}.mobile-nav a{color:#23374f}}
-
 /* Taps travel directly to the target; only a released drag uses the elastic spring. */
 @media(max-width:800px){
  .mobile-nav[data-interaction=tap]::before{scale:1;transition:transform .24s cubic-bezier(.2,.75,.25,1),width .24s ease,box-shadow .16s ease}

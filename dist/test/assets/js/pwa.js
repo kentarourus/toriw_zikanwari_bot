@@ -63,6 +63,7 @@ if(nav){
     scrollSettleTimer=setTimeout(releasePendingSelection,180);
   }
   links.forEach((link,index)=>link.addEventListener('click',()=>{nav.dataset.interaction='tap';holdSelectionUntilScrollEnds(index);}));
+  nav.addEventListener('dragstart',event=>event.preventDefault());
   nav.addEventListener('pointerdown',event=>{
     if(event.button!==0||!event.isPrimary||startPoint)return;
     nav.dataset.interaction='tap';
@@ -77,6 +78,7 @@ if(nav){
       if(Math.abs(dx)<10||Math.abs(dx)<=Math.abs(dy))return;
       nav.setPointerCapture(event.pointerId);
     }
+    if(event.cancelable)event.preventDefault();
     startPoint.dragging=true;
     nav.dataset.interaction='drag';
     const step=links.length>1?links[1].offsetLeft-links[0].offsetLeft:links[0].offsetWidth;
@@ -86,7 +88,7 @@ if(nav){
     const resistance=Math.sign(dx-clamped)*Math.min(24,Math.abs(dx-clamped)*Number(nav.style.getPropertyValue('--edge-resistance')||.16));
     nav.style.setProperty('--drag-x',`${clamped+resistance}px`);
     nav.style.setProperty('--drag-stretch',String(1+Math.min(Number(nav.style.getPropertyValue('--stretch-amount')||.035),Math.abs(dx)*.0003)));
-  },{passive:true});
+  },{passive:false});
   nav.addEventListener('pointerup',event=>{
     if(!startPoint||event.pointerId!==startPoint.pointerId)return;
     const {x,y,index,dragging,pointerId}=startPoint;startPoint=null;
@@ -111,7 +113,7 @@ if(nav){
     nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');
   }
   nav.addEventListener('pointercancel',cancelDrag);
-  nav.addEventListener('lostpointercapture',cancelDrag);
+  nav.addEventListener('lostpointercapture',event=>{if(event.target===nav)cancelDrag();});
   window.addEventListener('blur',cancelDrag);
   window.addEventListener('pointerup',event=>{if(startPoint?.pointerId===event.pointerId)cancelDrag();},{passive:true});
   function userScroll(){manualIndex=null;pendingIndex=null;clearTimeout(scrollSettleTimer);}
