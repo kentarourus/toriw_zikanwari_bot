@@ -12,7 +12,7 @@ function setup(){
  const win=Object.assign(make(),{scrollY:0,innerHeight:700});
  const doc={querySelector:s=>s==='.mobile-nav'?nav:sections[hashes.indexOf(s)],createElement:()=>({}),documentElement:{scrollHeight:2400}};
  const context={document:doc,window:win,matchMedia:()=>({matches:true}),setTimeout:()=>1,clearTimeout(){},Date};
- const source=fs.readFileSync('dist/test/assets/js/pwa.js','utf8');vm.runInNewContext(source.slice(source.indexOf("const nav=document.querySelector")),context);
+ const source=fs.readFileSync(process.env.NAV_SCRIPT||'dist/test/assets/js/pwa.js','utf8');vm.runInNewContext(source.slice(source.indexOf("const nav=document.querySelector")),context);
  const down=(x=30,id=1)=>nav.fire('pointerdown',{clientX:x,clientY:20,pointerId:id,isPrimary:true,button:0});
  const move=(x,id=1)=>nav.fire('pointermove',{clientX:x,clientY:20,pointerId:id});
  const up=(x,id=1)=>nav.fire('pointerup',{clientX:x,clientY:20,pointerId:id});
