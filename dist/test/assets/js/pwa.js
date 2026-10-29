@@ -52,28 +52,31 @@ if(nav){
     }
     setActiveIndex(Math.max(0,links.findIndex(link=>link.hash==='#'+current.id)));
   }
-  let startPoint=null,lastSwipeAt=0,pendingIndex=null,scrollSettleTimer=0;
+  let startPoint=null,lastSwipeAt=0,pendingIndex=null,scrollSettleTimer=0,manualIndex=null;
   function releasePendingSelection(){
     pendingIndex=null;
-    updateNav();
   }
   function holdSelectionUntilScrollEnds(index){
-    pendingIndex=index;
+    pendingIndex=index;manualIndex=index;
     setActiveIndex(index);
     clearTimeout(scrollSettleTimer);
     scrollSettleTimer=setTimeout(releasePendingSelection,180);
   }
   links.forEach((link,index)=>link.addEventListener('click',()=>{nav.dataset.interaction='tap';holdSelectionUntilScrollEnds(index);}));
   nav.addEventListener('pointerdown',event=>{
-    if(event.button!==0)return;
+    if(event.button!==0||!event.isPrimary||startPoint)return;
     nav.dataset.interaction='tap';
     const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
-    startPoint={x:event.clientX,y:event.clientY,index:currentIndex,dragging:false};
+    startPoint={x:event.clientX,y:event.clientY,index:currentIndex,dragging:false,pointerId:event.pointerId};
   },{passive:true});
   nav.addEventListener('pointermove',event=>{
-    if(!startPoint)return;
+    if(!startPoint||event.pointerId!==startPoint.pointerId)return;
     const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;
-    if(Math.abs(dx)<10||Math.abs(dx)<=Math.abs(dy))return;
+    if(!startPoint.dragging){
+      if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){startPoint=null;return;}
+      if(Math.abs(dx)<10||Math.abs(dx)<=Math.abs(dy))return;
+      nav.setPointerCapture(event.pointerId);
+    }
     startPoint.dragging=true;
     nav.dataset.interaction='drag';
     const step=links.length>1?links[1].offsetLeft-links[0].offsetLeft:links[0].offsetWidth;
@@ -85,11 +88,13 @@ if(nav){
     nav.style.setProperty('--drag-stretch',String(1+Math.min(Number(nav.style.getPropertyValue('--stretch-amount')||.035),Math.abs(dx)*.0003)));
   },{passive:true});
   nav.addEventListener('pointerup',event=>{
-    if(!startPoint)return;
-    const {x,y,index,dragging}=startPoint;startPoint=null;
+    if(!startPoint||event.pointerId!==startPoint.pointerId)return;
+    const {x,y,index,dragging,pointerId}=startPoint;startPoint=null;
+    if(nav.hasPointerCapture(pointerId))nav.releasePointerCapture(pointerId);
     const dx=event.clientX-x,dy=event.clientY-y;
     nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');
     if(!dragging)return;
+    lastSwipeAt=Date.now();
     if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy)){setActiveIndex(index);return;}
     const step=links.length>1?links[1].offsetLeft-links[0].offsetLeft:links[0].offsetWidth;
     const movedTabs=Math.round(dx/step)||Math.sign(dx);
@@ -99,9 +104,23 @@ if(nav){
     holdSelectionUntilScrollEnds(nextIndex);
     document.querySelector(links[nextIndex].hash)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   },{passive:true});
-  nav.addEventListener('pointercancel',()=>{if(startPoint)setActiveIndex(startPoint.index);startPoint=null;nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');});
+  function cancelDrag(){
+    if(!startPoint)return;
+    const {index,dragging}=startPoint;startPoint=null;
+    if(dragging){lastSwipeAt=Date.now();setActiveIndex(index);}
+    nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');
+  }
+  nav.addEventListener('pointercancel',cancelDrag);
+  nav.addEventListener('lostpointercapture',cancelDrag);
+  window.addEventListener('blur',cancelDrag);
+  window.addEventListener('pointerup',event=>{if(startPoint?.pointerId===event.pointerId)cancelDrag();},{passive:true});
+  function userScroll(){manualIndex=null;pendingIndex=null;clearTimeout(scrollSettleTimer);}
+  window.addEventListener('wheel',userScroll,{passive:true});
+  window.addEventListener('touchmove',event=>{if(!nav.contains(event.target))userScroll();},{passive:true});
+  window.addEventListener('keydown',event=>{if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key)&&!event.target.closest('input,select,textarea'))userScroll();});
   nav.addEventListener('click',event=>{if(Date.now()-lastSwipeAt<450){event.preventDefault();event.stopImmediatePropagation();}},true);
   window.addEventListener('scroll',()=>{
+    if(manualIndex!==null){setActiveIndex(manualIndex);return;}
     if(pendingIndex===null){updateNav();return;}
     setActiveIndex(pendingIndex);
     clearTimeout(scrollSettleTimer);
