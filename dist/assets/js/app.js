@@ -68,7 +68,7 @@ async function start(){
  try{showPreview(JSON.parse(localStorage.getItem('timetable:'+SHEET_ID)||'null'));}catch{}
  // Start the live export immediately; the lightweight snapshot never blocks it.
  const live=refresh();
- if(!data)fetch(SNAPSHOT,{cache:'no-cache',signal:AbortSignal.timeout(5000)}).then(r=>r.ok?r.json():null).then(showPreview).catch(()=>{});
+ if(!data)fetch(SNAPSHOT,{cache:'no-cache',signal:AbortSignal.timeout(5000)}).then(r=>r.ok?r.json():null).then(candidate=>{if(loading)showPreview(candidate);}).catch(()=>{});
  await live;
 }
 if(typeof document!=='undefined'){$('refresh').onclick=refresh;$('source').href=page.sheetUrl;start();}
