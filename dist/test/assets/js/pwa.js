@@ -32,7 +32,7 @@ if(nav){
   function setActiveIndex(index){
     links.forEach((link,i)=>{if(i===index)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});
     const link=links[index],navRect=nav.getBoundingClientRect(),linkRect=link.getBoundingClientRect();
-    nav.style.setProperty('--slider-x',`${linkRect.left-navRect.left}px`);
+    nav.style.setProperty('--slider-x',`${linkRect.left-navRect.left-nav.clientLeft}px`);
     nav.style.setProperty('--slider-width',`${linkRect.width}px`);
   }
   function updateNav(){
@@ -63,8 +63,10 @@ if(nav){
     clearTimeout(scrollSettleTimer);
     scrollSettleTimer=setTimeout(releasePendingSelection,180);
   }
-  links.forEach((link,index)=>link.addEventListener('click',()=>holdSelectionUntilScrollEnds(index)));
+  links.forEach((link,index)=>link.addEventListener('click',()=>{nav.dataset.interaction='tap';holdSelectionUntilScrollEnds(index);}));
   nav.addEventListener('pointerdown',event=>{
+    if(event.button!==0)return;
+    nav.dataset.interaction='tap';
     const currentIndex=Math.max(0,links.findIndex(link=>link.getAttribute('aria-current')==='location'));
     startPoint={x:event.clientX,y:event.clientY,index:currentIndex,dragging:false};
   },{passive:true});
@@ -73,7 +75,8 @@ if(nav){
     const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;
     if(Math.abs(dx)<10||Math.abs(dx)<=Math.abs(dy))return;
     startPoint.dragging=true;
-    const step=links[0].getBoundingClientRect().width+7;
+    nav.dataset.interaction='drag';
+    const step=links.length>1?links[1].offsetLeft-links[0].offsetLeft:links[0].offsetWidth;
     const min=-startPoint.index*step,max=(links.length-1-startPoint.index)*step;
     nav.classList.add('is-dragging');
     const clamped=Math.max(min,Math.min(max,dx));
@@ -88,7 +91,7 @@ if(nav){
     nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');
     if(!dragging)return;
     if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy)){setActiveIndex(index);return;}
-    const step=links[0].getBoundingClientRect().width+7;
+    const step=links.length>1?links[1].offsetLeft-links[0].offsetLeft:links[0].offsetWidth;
     const movedTabs=Math.round(dx/step)||Math.sign(dx);
     const nextIndex=Math.max(0,Math.min(links.length-1,index+movedTabs));
     if(nextIndex===index){setActiveIndex(index);return;}

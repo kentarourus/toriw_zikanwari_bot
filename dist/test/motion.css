@@ -12,3 +12,14 @@
 }
 @supports not (backdrop-filter:blur(1px)){.mobile-nav{background:#eef4fcf5}.mobile-nav::before{background:#dceafa}}
 @media(prefers-contrast:more){.mobile-nav{background:#f4f7fd;border-color:#8299b7}.mobile-nav::before{background:#cce1fa;border-color:#6c8caf}.mobile-nav a{color:#23374f}}
+
+/* Taps travel directly to the target; only a released drag uses the elastic spring. */
+@media(max-width:800px){
+ .mobile-nav[data-interaction=tap]::before{scale:1;transition:transform .24s cubic-bezier(.2,.75,.25,1),width .24s ease,box-shadow .16s ease}
+ .mobile-nav[data-interaction=tap]:has(a[aria-current=location]:active)::before{scale:1;transition-duration:.24s}
+ .mobile-nav:not(.is-dragging) a:active span{transform:scale(.985);transition:transform .08s ease}
+ .mobile-nav:not(.is-dragging) a:active svg{transform:scale(.985);transition:transform .08s ease}
+ .mobile-nav:not(.is-dragging) a[aria-current=location]:active svg{transform:scale(1.11)}
+ .mobile-nav a span,.mobile-nav a svg{transition:transform .18s ease,color .15s ease}
+}
+@media(prefers-reduced-motion:reduce){.mobile-nav:not(.is-dragging) a:active span,.mobile-nav:not(.is-dragging) a:active svg{transform:none}}
