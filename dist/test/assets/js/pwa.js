@@ -1,15 +1,13 @@
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register(new URL('../../sw.js', import.meta.url));
-  });
-}
-
 const standalone=window.matchMedia('(display-mode: standalone)');
+const classLabel=document.querySelector('.classmark')?.textContent?.trim();
 let installEvent;
 const guide=document.createElement('details');
 guide.className='install-guide';
-guide.innerHTML='<summary>ホーム画面に追加</summary><p>2–3のテスト版をアプリとして開けます。</p><button type="button" hidden>アプリを追加する</button><div class="install-steps"><p><strong>iPhone・iPad（Safari）</strong><br>共有ボタン →「ホーム画面に追加」→「追加」</p><p><strong>Android（Chrome）</strong><br>右上のメニュー →「ホーム画面に追加」または「アプリをインストール」</p><p><strong>パソコン（Chrome・Edge）</strong><br>アドレスバーのインストールボタン、またはブラウザのメニューから追加できます。</p></div><p class="install-note">項目が見つからない場合は、SafariやChromeでこのページを開いてください。</p>';
-document.querySelector('main').append(guide);
+guide.innerHTML='<summary>ホーム画面に追加</summary><p></p><button type="button" hidden>アプリを追加する</button><div class="install-steps"><p><strong>iPhone・iPad（Safari）</strong><br>共有ボタン →「ホーム画面に追加」→「追加」</p><p><strong>Android（Chrome）</strong><br>右上のメニュー →「ホーム画面に追加」または「アプリをインストール」</p><p><strong>パソコン（Chrome・Edge）</strong><br>アドレスバーのインストールボタン、またはブラウザのメニューから追加できます。</p></div><p class="install-note">項目が見つからない場合は、SafariやChromeでこのページを開いてください。</p>';
+guide.querySelector('summary').textContent=classLabel?`${classLabel}をアプリとして追加`:'ホーム画面に追加';
+guide.querySelector('p').textContent=classLabel?`このページを追加すると、${classLabel}の時間割を直接開けます。`:'クラス一覧をアプリとして開けます。';
+if(classLabel)document.querySelector('.page-heading').after(guide);
+else document.querySelector('main').append(guide);
 const installButton=guide.querySelector('button');
 function updateGuide(){guide.hidden=standalone.matches||navigator.standalone===true;}
 updateGuide();standalone.addEventListener('change',updateGuide);
@@ -78,13 +76,16 @@ if(nav){
     const step=links[0].getBoundingClientRect().width+7;
     const min=-startPoint.index*step,max=(links.length-1-startPoint.index)*step;
     nav.classList.add('is-dragging');
-    nav.style.setProperty('--drag-x',`${Math.max(min,Math.min(max,dx))}px`);
+    const clamped=Math.max(min,Math.min(max,dx));
+    const resistance=Math.sign(dx-clamped)*Math.min(24,Math.abs(dx-clamped)*Number(nav.style.getPropertyValue('--edge-resistance')||.16));
+    nav.style.setProperty('--drag-x',`${clamped+resistance}px`);
+    nav.style.setProperty('--drag-stretch',String(1+Math.min(Number(nav.style.getPropertyValue('--stretch-amount')||.035),Math.abs(dx)*.0003)));
   },{passive:true});
   nav.addEventListener('pointerup',event=>{
     if(!startPoint)return;
     const {x,y,index,dragging}=startPoint;startPoint=null;
     const dx=event.clientX-x,dy=event.clientY-y;
-    nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');
+    nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');
     if(!dragging)return;
     if(Math.abs(dx)<36||Math.abs(dx)<=Math.abs(dy)){setActiveIndex(index);return;}
     const step=links[0].getBoundingClientRect().width+7;
@@ -95,7 +96,7 @@ if(nav){
     holdSelectionUntilScrollEnds(nextIndex);
     document.querySelector(links[nextIndex].hash)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   },{passive:true});
-  nav.addEventListener('pointercancel',()=>{if(startPoint)setActiveIndex(startPoint.index);startPoint=null;nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');});
+  nav.addEventListener('pointercancel',()=>{if(startPoint)setActiveIndex(startPoint.index);startPoint=null;nav.classList.remove('is-dragging');nav.style.removeProperty('--drag-x');nav.style.removeProperty('--drag-stretch');});
   nav.addEventListener('click',event=>{if(Date.now()-lastSwipeAt<450){event.preventDefault();event.stopImmediatePropagation();}},true);
   window.addEventListener('scroll',()=>{
     if(pendingIndex===null){updateNav();return;}

@@ -39,13 +39,13 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}button:focus-visible,a:focus
 @media(prefers-reduced-motion:reduce){.mobile-nav a,.mobile-nav::before{transition:none}}
 /* Subtle press and release feedback; the slider's horizontal geometry stays fixed. */
 @media(max-width:800px){
-  .mobile-nav::before{scale:1;transition:transform .44s cubic-bezier(.22,1.38,.38,1),width .15s ease,scale .28s cubic-bezier(.2,1.35,.4,1),box-shadow .18s ease}
+  .mobile-nav::before{scale:1;transition:transform .32s cubic-bezier(.22,1.12,.36,1),width .15s ease,scale .28s cubic-bezier(.2,1.35,.4,1),box-shadow .18s ease}
   .mobile-nav a,.mobile-nav a:first-child{transform:translateY(0) scale(1);transition:color .15s,transform .28s cubic-bezier(.2,1.35,.4,1)}
   .mobile-nav a svg{transition:transform .28s cubic-bezier(.2,1.35,.4,1),stroke-width .15s}
   .mobile-nav a span{transition:transform .28s cubic-bezier(.2,1.35,.4,1)}
   .mobile-nav a:active span,.mobile-nav a:active svg{transform:translateY(1px) scale(.95);transition-duration:.08s}
   .mobile-nav:has(a[aria-current=location]:active)::before{scale:.97 .94;box-shadow:0 1px 3px #203f6b12;transition-duration:.08s}
-  .mobile-nav.is-dragging::before{scale:var(--drag-stretch,1.015) .95;box-shadow:0 3px 10px #203f6b18;transition:scale .15s,box-shadow .15s}
+  .mobile-nav.is-dragging::before{scale:1.015 .96;box-shadow:0 3px 10px #203f6b18;transition:scale .15s,box-shadow .15s}
   .mobile-nav.is-dragging a:active span,.mobile-nav.is-dragging a:active svg{transform:none}
 }
 @media(prefers-reduced-motion:reduce){

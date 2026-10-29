@@ -1,0 +1,2 @@
+@media(max-width:800px){.mobile-nav::before{transition:transform var(--motion-duration,440ms) cubic-bezier(.22,var(--motion-bounce,1.38),.38,1),width .15s ease,scale .28s cubic-bezier(.2,1.35,.4,1),box-shadow .18s}.mobile-nav.is-dragging::before{scale:var(--drag-stretch,1.015) .95;transition:scale .15s,box-shadow .15s}}
+@media(prefers-reduced-motion:reduce){.mobile-nav::before{transition:none!important;scale:1!important}}
