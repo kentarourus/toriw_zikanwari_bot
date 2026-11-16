@@ -1,3 +1,4 @@
+import {exportCsv,importCsv} from './packing-csv.js';
 const defaults={carry:['パスポート','スマートフォン・充電に必要なもの','しおり','現金・貴重品','常備薬','モバイルバッテリー（手元に保管）'],luggage:['衣類・寝間着','洗面用具・歯ブラシ','衛生用品','帽子・雨具','充電器']};
 const storageKey='taiwan-packing-items-2026-v2',status=document.getElementById('packing-status'),editButton=document.getElementById('edit-packing');
 let legacy={};try{legacy=JSON.parse(localStorage.getItem('taiwan-packing-2026')||'{}')||{}}catch{}
@@ -14,4 +15,9 @@ function render(){for(const group of Object.keys(defaults)){
  }
  if(editing){const form=document.createElement('form');form.className='packing-add';const input=document.createElement('input');input.type='text';input.maxLength=80;input.required=true;input.placeholder='追加する持ち物';input.setAttribute('aria-label',group==='carry'?'機内に持ち込む持ち物を追加':'スーツケースの持ち物を追加');const add=document.createElement('button');add.type='submit';add.textContent='追加';form.append(input,add);form.addEventListener('submit',event=>{event.preventDefault();const text=input.value.trim();if(!text)return;items[group].push({id:group+'-'+Date.now()+'-'+Math.random().toString(36).slice(2),text,checked:false});save();render();document.querySelector(`#${group} .packing-add input`)?.focus();});root.append(form);}
 }}
-editButton.addEventListener('click',()=>{editing=!editing;editButton.textContent=editing?'編集を終える':'持ち物を編集';editButton.setAttribute('aria-pressed',String(editing));render();});render();
+const csvControls=document.getElementById('packing-csv-controls'),fileInput=document.getElementById('packing-file');
+editButton.addEventListener('click',()=>{editing=!editing;csvControls.hidden=!editing;editButton.textContent=editing?'編集を終える':'持ち物を編集';editButton.setAttribute('aria-pressed',String(editing));render();});render();
+
+document.getElementById('packing-export').addEventListener('click',()=>{const blob=new Blob([exportCsv(items)],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='台湾研修旅行-持ち物.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+document.getElementById('packing-import').addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',async()=>{const file=fileInput.files?.[0];if(!file)return;try{if(file.size>1024*1024)throw Error('ファイルが大きすぎます（1MBまで）。');const rows=importCsv(await file.text());for(const row of rows){const existing=items[row.group].find(item=>item.text===row.text);if(existing)existing.checked=row.checked;else items[row.group].push({id:row.group+'-'+Date.now()+'-'+Math.random().toString(36).slice(2),text:row.text,checked:row.checked});}save();render();if(!status.textContent)status.textContent=`${rows.length}件を読み込みました。`;}catch(error){status.textContent=`読み込めませんでした：${error.message}`;}finally{fileInput.value='';}});
