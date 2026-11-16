@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v22';
+const CACHE = 'timetable-v23';
 const APP_FILES = [
   './',
   './index.html',
