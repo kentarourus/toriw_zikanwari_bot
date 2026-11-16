@@ -6,7 +6,7 @@ import {createInterface} from 'node:readline';
 import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions as instructions} from '../runner/assistant-instructions.mjs';
-import {readGuide} from '../runner/guide-mcp.mjs';
+import {readGuides} from '../runner/guide-mcp.mjs';
 import {webModeFor,selectGuideTopics} from '../runner/context-policy.mjs';
 const root=path.resolve(process.env.TAIWAN_RUNNER_ROOT||'.');
 const config=JSON.parse(await fs.readFile(path.join(root,'runtime.json'),'utf8'));
@@ -42,7 +42,7 @@ function startCLI(){
 }
 ready=startCLI();ready.catch(()=>{});
 async function answer(job,messages){
- try{await ready;job.stage='preparing';const webMode=webModeFor(messages),topics=selectGuideTopics(messages);let guideContext='';if(topics.length){job.stage='reading';guideContext=JSON.stringify(topics.map(topic=>readGuide(topic)));job.guideReads=topics.length;}const needGuideTool=!topics.length&&/しおり|学校の|研修の|修学の/.test(messages.at(-1)?.content||'');const weather=await weatherContext(messages);const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());
+ try{await ready;job.stage='preparing';const webMode=webModeFor(messages),topics=selectGuideTopics(messages);let guideContext='';if(topics.length){job.stage='reading';guideContext=JSON.stringify(readGuides(topics));job.guideReads=topics.length;}const needGuideTool=(!topics.length||topics.every(t=>t==='overview'))&&/しおり|学校の|研修の|修学の/.test(messages.at(-1)?.content||'');const weather=await weatherContext(messages);const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());
   const result=await rpc('thread/start',{model:'gpt-6.1-terra',cwd:path.join(root,'workspace'),approvalPolicy:'never',sandbox:'read-only',ephemeral:true,baseInstructions:instructions,config:{web_search:webMode,'mcp_servers.trip_guide.enabled':needGuideTool}});
   job.threadId=result.thread.id;byThread.set(job.threadId,job);job.stage='answering';job.status='in_progress';
   job.timer=setTimeout(()=>{if(!['completed','failed'].includes(job.status)){job.status='failed';job.error='回答の作成が時間切れになりました。';active--;byThread.delete(job.threadId);rpc('thread/unload',{threadId:job.threadId}).catch(()=>{});}},180000);

@@ -1,16 +1,28 @@
 import fs from 'node:fs/promises';import {createInterface} from 'node:readline';
-const guide=JSON.parse((await fs.readFile(new URL('./trip-guide.json',import.meta.url),'utf8')).replace(/^\uFEFF/,''));
-const topics=[...Object.keys(guide),'itinerary','all'];
+let source;try{source=await fs.readFile(new URL('./trip-guide.md',import.meta.url),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;source=await fs.readFile(new URL('../../dist/taiwan/guide.md',import.meta.url),'utf8');}
+const pages=new Map([...source.matchAll(/<!-- source-page:(\d+) -->\s*([\s\S]*?)(?=<!-- source-page:|$)/g)].map(m=>[Number(m[1]),m[2].replace(/<a id="source-page-\d+"><\/a>\s*/g,'').replace(/\n---\s*$/,'').trim()]));
+const pageSets={overview:[3],preface:[3],buses:[4],itinerary:[5,14,15,16,18,20,21,22,23,25,26],day1:[14,15,16],day2:[18],day3:[20,21,22,23],day4:[25,26],daily_routine:[16,18,20,23,25],meals:[5],packing:[6,7,8],preparation:[6,7,8],baggage:[7,8],clothing:[7,9],devices:[7,8,10,11],rules:[9,11,12,31],hotel:[3],hotel_rules:[11,12,31],health:[10,12],emergency:[21,28],shopping:[22,23],contacts:[28],language:[31,32],planning:[27],transport:[29],maps:[30],all:Array.from({length:34},(_,i)=>i+1)};
+const topics=Object.keys(pageSets),base='https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/guide/';
+function between(text,start,end){const a=text.indexOf(start);if(a<0)return text;const b=end?text.indexOf(end,a+start.length):-1;return text.slice(a,b<0?undefined:b).trim();}
 export function readGuide(topic){
- if(!topics.includes(topic))throw Error('Unknown guide topic');
- const keys=topic==='all'?Object.keys(guide):topic==='itinerary'?['overview','day1','day2','day3','day4']:[topic];
- return {source:'公開用しおり要約・利用者からの補足。資料にない詳細は未確認。',asOf:'2026-11-13',url:'https://drive.google.com/file/d/12cX17qVX1fxJbOhnS4W9hcOlcfBWP1nx/view',sections:Object.fromEntries(keys.map(key=>[key,guide[key]]))};
+ if(!Object.hasOwn(pageSets,topic))throw Error('Unknown guide topic');const numbers=pageSets[topic];let text=numbers.map(n=>pages.get(n)).join('\n\n');
+ if(topic==='hotel')text=between(text,'#### （４）','#### （５）');
+ if(topic==='overview')text=between(text,'### ２ 概要',null);
+ if(topic==='preface')text=between(text,'### １ はじめに','### ２ 概要');
+ // Keep source images as links: their contents are not guessed from filenames.
+ text=text.replace(/!\[([^\]]+)\]\(guide-assets\/([^\)]+)\)/g,(_m,label,file)=>`[${label}（原本の図。本文中の文字情報からは未確認）](https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/guide-assets/${file})`);
+ return {source:'しおり暫定版の詳細Markdown（個人情報のみ非掲載）。原本の記述を保持し、推測・創作しない。',asOf:'2026-11-13',url:base+'#source-page-'+numbers[0],originalUrl:'https://drive.google.com/file/d/12cX17qVX1fxJbOhnS4W9hcOlcfBWP1nx/view',sourcePages:numbers.map(n=>({pdf:n,printed:n===1?null:n-1})),sections:{[topic]:text},notice:'●・後日連絡は未確定の原文表記。記載同士が異なる場合は両方を伝え、勝手に調整しない。個人情報の非掲載箇所は原本で確認する。'};
+}
+export function readGuides(selected){
+ if(selected.length===1)return readGuide(selected[0]);
+ const entries=selected.map(topic=>readGuide(topic)),numbers=[...new Set(entries.flatMap(entry=>entry.sourcePages.map(page=>page.pdf)))].sort((a,b)=>a-b);
+ return {...entries[0],topics:selected,url:base+'#source-page-'+numbers[0],sourcePages:numbers.map(n=>({pdf:n,printed:n===1?null:n-1})),sections:Object.fromEntries(numbers.map(n=>['source-page-'+n,pages.get(n).replace(/!\[([^\]]+)\]\(guide-assets\/([^\)]+)\)/g,(_m,label,file)=>`[${label}（原本の図。本文中の文字情報からは未確認）](https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/guide-assets/${file})`)]))};
 }
 export function handle(message){
  const {id,method,params}=message;if(id==null)return null;
- if(method==='initialize')return {id,jsonrpc:'2.0',result:{protocolVersion:params?.protocolVersion||'2024-11-05',capabilities:{tools:{}},serverInfo:{name:'trip-guide',version:'1.0.0'}}};
+ if(method==='initialize')return {id,jsonrpc:'2.0',result:{protocolVersion:params?.protocolVersion||'2024-11-05',capabilities:{tools:{}},serverInfo:{name:'trip-guide',version:'2.0.0'}}};
  if(method==='ping')return {id,jsonrpc:'2.0',result:{}};
- if(method==='tools/list')return {id,jsonrpc:'2.0',result:{tools:[{name:'read_trip_guide',annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false},description:'学校の台湾研修旅行の日程、集合時刻、班別研修、準備、注意事項、宿泊ホテルを必要時だけ確認する。質問に関係するtopicだけ読む。day1〜4は12月1〜4日、hotelは宿泊先、rulesは行動規則。要約にない情報は未確認。',inputSchema:{type:'object',properties:{topic:{type:'string',enum:topics}},required:['topic'],additionalProperties:false}}]}};
+ if(method==='tools/list')return {id,jsonrpc:'2.0',result:{tools:[{name:'read_trip_guide',annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false},description:'全34ページのしおりMarkdownから必要な項目だけ参照する。day1〜4=12月1〜4日、daily_routine=朝食/点呼/起床/就寝、meals=食事会場、packing=携行品、baggage=荷物/液体/電池、clothing=服装、devices=スマホ/SNS、hotel=宿泊先、hotel_rules=宿舎、health=健康、emergency=緊急、shopping=買物、contacts=連絡、language=会話、planning=班計画、transport=MRT図、maps=ホテル図。全体が必要な場合だけallを使う。図の内容や未定箇所を推測しない。',inputSchema:{type:'object',properties:{topic:{type:'string',enum:topics}},required:['topic'],additionalProperties:false}}]}};
  if(method==='tools/call'&&params?.name==='read_trip_guide'){
   try{return {id,jsonrpc:'2.0',result:{content:[{type:'text',text:JSON.stringify(readGuide(params.arguments?.topic))}]}};}catch{return {id,jsonrpc:'2.0',result:{isError:true,content:[{type:'text',text:'指定された項目はありません。利用できるtopicを指定してください。'}]}};}
  }
