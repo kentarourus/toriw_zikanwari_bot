@@ -23,6 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Validate timetable dates
+        run: node --test scripts/test-timetable-dates.mjs
       - name: Configure view counting
         env:
           GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}

@@ -49,6 +49,8 @@ jobs:
       - name: Refresh fast class previews
         continue-on-error: true
         run: node scripts/update-snapshots.mjs
+      - name: Validate timetable dates
+        run: node --test scripts/test-timetable-dates.mjs
       - name: Save new counts
         run: |
           git add dist/stats/data.json dist/data/

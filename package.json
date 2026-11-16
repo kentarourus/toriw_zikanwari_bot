@@ -5,7 +5,7 @@
   "scripts": {
     "build": "esbuild src/workbook.js --bundle --format=esm --outfile=dist/assets/js/workbook.js --minify",
     "snapshots": "node scripts/update-snapshots.mjs",
-    "test": "node verify.mjs && node verify-colors.mjs && node verify-site.mjs",
+    "test": "node --test scripts/test-timetable-dates.mjs && node verify.mjs && node verify-colors.mjs && node verify-site.mjs",
     "build:chat": "esbuild src/chat-markdown.js --bundle --format=esm --outfile=dist/taiwan-chat/markdown.js --minify",
     "build:guide": "node scripts/build-trip-guide.mjs"
   },
