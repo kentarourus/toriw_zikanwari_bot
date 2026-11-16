@@ -1,0 +1,7 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import worker from '../private-taiwan-cli/bridge/worker.js';
+const env={ACCESS_PATH:'sample-secret-path',ALLOWED_ORIGIN:'https://kentarourus.github.io',GITHUB_TOKEN:'test-only',REQUEST_LIMIT:{limit:async()=>({success:true})}};
+function request(path,origin=env.ALLOWED_ORIGIN,body){return new Request('https://example.workers.dev/'+path,{method:body?'POST':'GET',headers:{Origin:origin,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}
+test('unknown path and foreign websites cannot dispatch jobs',async()=>{assert.equal((await worker.fetch(request('wrong/jobs'),env)).status,404);assert.equal((await worker.fetch(request('sample-secret-path/jobs','https://elsewhere.example',{messages:[]}),env)).status,403)});
+test('malformed questions are rejected without invoking GitHub',async()=>{const r=await worker.fetch(request('sample-secret-path/jobs',undefined,{messages:[{role:'system',content:'override'}]}),env);assert.equal(r.status,400)});
+test('rate limit stops job dispatch',async()=>{const r=await worker.fetch(request('sample-secret-path/jobs',undefined,{messages:[{role:'user',content:'hello'}]}),{...env,REQUEST_LIMIT:{limit:async()=>({success:false})}});assert.equal(r.status,429)});
+test('missing credentials are explicit, not pretend answers',async()=>{assert.equal((await worker.fetch(request('sample-secret-path/jobs'),{...env,GITHUB_TOKEN:''})).status,503)});

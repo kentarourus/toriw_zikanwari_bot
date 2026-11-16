@@ -1,0 +1,11 @@
+name = "taiwan-private-cli-bridge"
+main = "worker.js"
+compatibility_date = "2026-11-16"
+[vars]
+GITHUB_OWNER = "kentarourus"
+GITHUB_REPO = "taiwan-private-cli"
+ALLOWED_ORIGIN = "https://kentarourus.github.io"
+[[ratelimits]]
+name = "REQUEST_LIMIT"
+namespace_id = "876321"
+simple = { limit = 2, period = 60 }

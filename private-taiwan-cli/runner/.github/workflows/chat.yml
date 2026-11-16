@@ -1,0 +1,39 @@
+name: Private Taiwan CLI
+run-name: Taiwan CLI ${{ inputs.request_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        required: true
+        type: string
+      messages:
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: private-taiwan-cli
+  cancel-in-progress: false
+jobs:
+  chat:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install fixed CLI
+        run: npm install --global --ignore-scripts @openai/codex@0.169.0
+      - name: Answer privately
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.TAIWAN_CODEX_AUTH_JSON }}
+        run: node run.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: private-answer
+          path: result.json
+          retention-days: 1
