@@ -1,6 +1,6 @@
 # 個人用 台湾CLI相談
 
-構成: unlisted Pages画面 → Cloudflare Worker → 個人PCの常駐Codex app-server (gpt-6.1-terra / medium)。GitHub Actions経路も未接続時の従来経路として保持する。
+構成: unlisted Pages画面 → Cloudflare Worker → 個人PCの常駐Codex app-server (gpt-6-luna / medium)。GitHub Actions経路も未接続時の従来経路として保持する。
 
 これはGitHubにログインした本人のための試作です。推測しにくいURLはアクセス認証の代わりにはなりません。接続URLを他人に共有しないでください。GitHub Actionsの起動には数分かかることがあります。
 
@@ -21,7 +21,7 @@
 会話入力はworkflowの入力、回答はprivate artifact `private-answer` として保存される。artifactの保存期間は1日。公開Pagesには会話やトークンを保存しない。GitHub実行履歴の保持設定はリポジトリ側で管理する。会話履歴と接続先はブラウザーのlocalStorageに保持する。会話は一覧から再開・削除できる。接続先の設定欄は表示しない。AIへ送る文脈は直近7件（各1500文字まで）で、端末上の全文保存は切り詰めない。
 
 ## 検証状況
-2026-11-16: 専用のChatGPT認証をprivate repoのSecretに登録済み。GitHub Actions run 43807678050でgpt-6.1-terra / mediumを実行し、研修旅行の日付回答を確認済み。Cloudflare Workerも配置済み。専用GitHub ActionsトークンをWorkerへ登録済み。Worker経由でジョブ起動から回答取得まで確認済み。
+2026-11-16: 専用のChatGPT認証をprivate repoのSecretに登録済み。GitHub Actions run 43807678050でgpt-6-luna / mediumを実行し、研修旅行の日付回答を確認済み。Cloudflare Workerも配置済み。専用GitHub ActionsトークンをWorkerへ登録済み。Worker経由でジョブ起動から回答取得まで確認済み。
 
 ## 専用ログインの補助
 `npm install --prefix outputs/private-cli-tools --no-save --package-lock=false libsodium-wrappers` の後、`node private-taiwan-cli/setup-auth.mjs <codex.exeのパス>` を実行する。本人が通常のブラウザーログインを完了すると、専用認証だけを暗号化してprivate repoのSecretへ登録する。通常利用のCodex認証には変更を加えない。
