@@ -7,7 +7,7 @@ const pages=['dist/index.html','dist/classes/index.html',...classPages];
 assert.match(fs.readFileSync('dist/index.html','utf8'),/<h1>クラスを選択<\/h1>/,'Class list is missing from the root');
 assert.match(fs.readFileSync('dist/index.html','utf8'),/href=\"classes\/1-1\/\"[^>]*><strong>1–1<\/strong>/,'1-1 must be available from the class list');
 assert.doesNotMatch(fs.readFileSync('dist/index.html','utf8'),/2–3を開く|公開準備ができたクラスから/,'Removed class-list copy is still visible');
-assert.match(fs.readFileSync('dist/index.html','utf8'),/manifest\.webmanifest/,'PWA manifest is missing from the portal');
+assert.doesNotMatch(fs.readFileSync('dist/index.html','utf8'),/rel=\"manifest\"/,'Portal must not offer PWA installation');
 const manifest=JSON.parse(fs.readFileSync('dist/manifest.webmanifest','utf8'));
 assert.equal(manifest.display,'standalone','PWA must open as a standalone app');
 assert.deepEqual(manifest.icons.map(icon=>icon.sizes),['192x192','512x512'],'PWA icon sizes are incomplete');

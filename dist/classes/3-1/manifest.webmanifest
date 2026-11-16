@@ -22,5 +22,12 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "./manifest.webmanifest",
+      "id": "/toriw_zikanwari_bot/classes/3-1/"
+    }
   ]
 }

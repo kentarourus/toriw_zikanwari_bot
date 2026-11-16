@@ -4,22 +4,34 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const standalone=window.matchMedia('(display-mode: standalone)');
 const classLabel=document.querySelector('.classmark')?.textContent?.trim();
-let installEvent;
-const guide=document.createElement('details');
-guide.className='install-guide';
-guide.innerHTML='<summary>ホーム画面に追加</summary><p></p><button type="button" hidden>アプリを追加する</button><div class="install-steps"><p><strong>iPhone・iPad（Safari）</strong><br>共有ボタン →「ホーム画面に追加」→「追加」</p><p><strong>Android（Chrome）</strong><br>右上のメニュー →「ホーム画面に追加」または「アプリをインストール」</p><p><strong>パソコン（Chrome・Edge）</strong><br>アドレスバーのインストールボタン、またはブラウザのメニューから追加できます。</p></div><p class="install-note">項目が見つからない場合は、SafariやChromeでこのページを開いてください。</p>';
-guide.querySelector('summary').textContent=classLabel?`${classLabel}をアプリとして追加`:'ホーム画面に追加';
-guide.querySelector('p').textContent=classLabel?`このページを追加すると、${classLabel}の時間割を直接開けます。`:'クラス一覧をアプリとして開けます。';
-if(classLabel)document.querySelector('.page-heading').after(guide);
-else document.querySelector('main').append(guide);
-const installButton=guide.querySelector('button');
-function updateGuide(){guide.hidden=standalone.matches||navigator.standalone===true;}
-updateGuide();standalone.addEventListener('change',updateGuide);
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installEvent=event;installButton.hidden=false;});
-installButton.addEventListener('click',async()=>{if(!installEvent)return;const prompt=installEvent;installEvent=null;installButton.hidden=true;await prompt.prompt();});
-window.addEventListener('appinstalled',()=>{guide.hidden=true;installEvent=null;});
+if(classLabel){
+ const standalone=window.matchMedia('(display-mode: standalone)');
+ let installEvent,installed=false;
+ const guide=document.createElement('details');
+ guide.className='install-guide';guide.hidden=true;
+ guide.innerHTML='<summary>ホーム画面に追加</summary><p></p><button type="button" hidden>アプリを追加する</button><div class="install-steps"><p><strong>iPhone・iPad（Safari）</strong><br>共有ボタン →「ホーム画面に追加」→「追加」</p><p><strong>Android（Chrome）</strong><br>右上のメニュー →「ホーム画面に追加」または「アプリをインストール」</p><p><strong>パソコン（Chrome・Edge）</strong><br>アドレスバーのインストールボタン、またはブラウザのメニューから追加できます。</p></div><p class="install-note">項目が見つからない場合は、SafariやChromeでこのページを開いてください。</p>';
+ guide.querySelector('summary').textContent=`${classLabel}をアプリとして追加`;
+ guide.querySelector('p').textContent=`このページを追加すると、${classLabel}の時間割を直接開けます。`;
+ document.querySelector('.page-heading').after(guide);
+ const installButton=guide.querySelector('button');
+ function updateGuide(){guide.hidden=installed||standalone.matches||navigator.standalone===true;}
+ async function checkInstalled(){
+  if(typeof navigator.getInstalledRelatedApps==='function'){
+   try{
+    const apps=await navigator.getInstalledRelatedApps();
+    const expected=new URL('./',document.baseURI).href;
+    if(apps.some(app=>app.platform==='webapp'&&((app.id&&new URL(app.id,document.baseURI).href===expected)||(app.url&&new URL(app.url,document.baseURI).href===new URL('./manifest.webmanifest',document.baseURI).href))))installed=true;
+   }catch{/* Some browsers cannot inspect installed apps. */}
+  }
+  updateGuide();
+ }
+ if(standalone.matches||navigator.standalone===true)installed=true;
+ checkInstalled();standalone.addEventListener('change',updateGuide);
+ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();if(installed)return;installEvent=event;installButton.hidden=false;});
+ installButton.addEventListener('click',async()=>{if(!installEvent)return;const prompt=installEvent;installEvent=null;installButton.hidden=true;await prompt.prompt();});
+ window.addEventListener('appinstalled',()=>{installed=true;installEvent=null;updateGuide();});
+}
 
 const nav=document.querySelector('.mobile-nav');
 if(nav){
