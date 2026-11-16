@@ -13,3 +13,18 @@ test('actual workflow steps distinguish setup, answering and delivery',async()=>
  const response=await worker.fetch(request('sample-secret-path/jobs/'+id),env);assert.equal(response.status,200);assert.equal((await response.json()).stage,expected);
  }}finally{globalThis.fetch=original;}
 });
+
+test('runner registration requires dedicated key and accepts only tunnel hostnames',async()=>{
+ let endpoint=null;const settings={...env,LOCAL_RUNNER_TOKEN:'runner-test',RUNNER_REGISTRY:{idFromName:()=>1,get:()=>({fetch:async(_url,options)=>{if(options?.method==='POST')endpoint=JSON.parse(options.body).endpoint;return Response.json({endpoint});}})}};
+ const make=(url,token)=>new Request('https://example.workers.dev/sample-secret-path/runner/register',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({endpoint:url})});
+ assert.equal((await worker.fetch(make('https://safe.trycloudflare.com','wrong'),settings)).status,403);
+ assert.equal((await worker.fetch(make('http://192.168.1.1','runner-test'),settings)).status,400);
+ assert.equal((await worker.fetch(make('https://safe.trycloudflare.com','runner-test'),settings)).status,200);assert.equal(endpoint,'https://safe.trycloudflare.com');
+});
+test('PC results preserve token usage and partial answer without dispatching GitHub',async()=>{
+ const original=globalThis.fetch;try{
+ globalThis.fetch=async(url,options)=>{assert.match(String(url),/^https:\/\/safe.trycloudflare.com\/jobs\//);assert.equal(options.headers.Authorization,'Bearer runner-test');return Response.json({status:'in_progress',partial:'返答',usage:{input_tokens:100,output_tokens:2}});};
+ const settings={...env,LOCAL_RUNNER_TOKEN:'runner-test',RUNNER_REGISTRY:{idFromName:()=>1,get:()=>({fetch:async()=>Response.json({endpoint:'https://safe.trycloudflare.com'})})}};
+ const response=await worker.fetch(request('sample-secret-path/jobs/pc-12345678-1234-1234-1234-123456789abc'),settings);const result=await response.json();assert.equal(result.partial,'返答');assert.equal(result.usage.input_tokens,100);
+ }finally{globalThis.fetch=original;}
+});

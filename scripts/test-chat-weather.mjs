@@ -6,3 +6,11 @@ test('weather facts keep forecast dates, nulls, location and attribution',async(
  assert.equal(requested.searchParams.get('timezone'),'Asia/Taipei');assert.equal(requested.searchParams.get('latitude'),'25.109');assert.match(result,/九份/);assert.match(result,/2026-11-17/);assert.match(result,/"rainPercent":null/);assert.match(result,/期間外/);assert.match(result,/Open-Meteo/);
 });
 test('weather outages are explicit instead of fabricating a forecast',async()=>{const result=await weatherContext([{role:'user',content:'台北の天気'}],async()=>{throw Error('offline')});assert.match(result,/取得できませんでした/);});
+
+test('shared location is used for local weather while explicit cities take priority',async()=>{
+ let url;const fetcher=async input=>{url=input;return Response.json({daily:{time:['2026-11-17']}})};
+ await weatherContext([{role:'user',content:'ここの天気は？\n共有した現在地: 緯度 35.00000, 経度 135.00000'}],fetcher);
+ assert.equal(url.searchParams.get('latitude'),'35');assert.equal(url.searchParams.get('timezone'),'auto');
+ await weatherContext([{role:'user',content:'台北の天気は？\n共有した現在地: 緯度 35.00000, 経度 135.00000'}],fetcher);
+ assert.equal(url.searchParams.get('latitude'),'25.033');
+});

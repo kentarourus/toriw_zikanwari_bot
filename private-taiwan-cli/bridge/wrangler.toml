@@ -9,3 +9,10 @@ ALLOWED_ORIGIN = "https://kentarourus.github.io"
 name = "REQUEST_LIMIT"
 namespace_id = "876321"
 simple = { limit = 2, period = 60 }
+
+[[durable_objects.bindings]]
+name = "RUNNER_REGISTRY"
+class_name = "RunnerRegistry"
+[[migrations]]
+tag = "runner-registry-v1"
+new_sqlite_classes = ["RunnerRegistry"]
