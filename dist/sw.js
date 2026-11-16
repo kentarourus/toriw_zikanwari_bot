@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v25';
+const CACHE = 'timetable-v26';
 const APP_FILES = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const APP_FILES = [
   './stats/stats.css',
   './stats/stats.js',
   './assets/js/analytics.js',
+  './assets/icons/taipei-feature.svg',
   './classes/1-1/',
   './classes/1-1/manifest.webmanifest',
   './classes/1-5/',
