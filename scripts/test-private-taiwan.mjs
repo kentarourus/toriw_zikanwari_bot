@@ -28,3 +28,10 @@ test('PC results preserve token usage and partial answer without dispatching Git
  const response=await worker.fetch(request('sample-secret-path/jobs/pc-12345678-1234-1234-1234-123456789abc'),settings);const result=await response.json();assert.equal(result.partial,'返答');assert.equal(result.usage.input_tokens,100);
  }finally{globalThis.fetch=original;}
 });
+
+test('direct public chat works with origin checks while runner registration stays private',async()=>{
+ const publicRequest=new Request('https://example.workers.dev/chat/jobs',{method:'POST',headers:{Origin:'https://elsewhere.example','Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:'hello'}]})});
+ assert.equal((await worker.fetch(publicRequest,env)).status,403);
+ const preflight=new Request('https://example.workers.dev/chat/jobs',{method:'OPTIONS',headers:{Origin:env.ALLOWED_ORIGIN}});assert.equal((await worker.fetch(preflight,env)).status,204);
+ const registration=new Request('https://example.workers.dev/chat/runner/register',{method:'POST'});assert.equal((await worker.fetch(registration,env)).status,404);
+});

@@ -3,9 +3,12 @@ export default {async fetch(request,env){
  const url=new URL(request.url),origin=request.headers.get('Origin');
  const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':env.ALLOWED_ORIGIN,'Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type','Vary':'Origin','X-Content-Type-Options':'nosniff'};
  const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
- if(!env.ACCESS_PATH||!url.pathname.startsWith('/'+env.ACCESS_PATH+'/'))return reply({error:'Not found'},404);
+ const privateRoute=!!env.ACCESS_PATH&&url.pathname.startsWith('/'+env.ACCESS_PATH+'/');
+ const publicRoute=url.pathname.startsWith('/chat/');
+ if(!privateRoute&&!publicRoute)return reply({error:'Not found'},404);
  const registry=()=>env.RUNNER_REGISTRY?.get(env.RUNNER_REGISTRY.idFromName('personal-runner'));
  if(request.method==='POST'&&url.pathname.endsWith('/runner/register')){
+  if(!privateRoute)return reply({error:'Not found'},404);
   if(!env.LOCAL_RUNNER_TOKEN||request.headers.get('Authorization')!=='Bearer '+env.LOCAL_RUNNER_TOKEN)return reply({error:'Not allowed'},403);
   const {endpoint}=await request.json();if(typeof endpoint!=='string'||!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(endpoint))return reply({error:'Invalid endpoint'},400);
   if(!registry())return reply({error:'Registry unavailable'},503);
