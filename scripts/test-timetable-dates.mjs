@@ -41,7 +41,8 @@ test('invalid or ambiguous first dates are not normalized into invented dates', 
   for (const value of ['13月1日', '0000年11月17日', '0月17日', '2026年2月29日', '2月30日', '4月31日', '0月0日', '18日', 'NaN', '', '日付なし']) {
     assert.deepEqual(datesOf(rows([value], [''])), [], value);
   }
-  assert.deepEqual(datesOf(rows(['11月17日', '10月1日'], ['火', '金'])), ['2026-11-17']);
+  assert.deepEqual(datesOf(rows(['11月17日', '10月1日'], ['火', '金'])), []);
+  assert.deepEqual(datesOf(rows(['11月17日', '未定'], ['火', '水'])), []);
 });
 
 test('calendar arithmetic preserves every month boundary in leap and non-leap years', () => {

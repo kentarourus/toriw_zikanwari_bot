@@ -1,5 +1,5 @@
-import {parseDays,tokyoDateKey} from './timetable-dates.js?v=1';
-export {parseDays} from './timetable-dates.js?v=1';
+import {parseDays,tokyoDateKey} from './timetable-dates.js?v=2';
+export {parseDays} from './timetable-dates.js?v=2';
 import {noticeItems} from './notices.js';
 import {legendFrom,labelsFor,applyColor,applyChangeColor} from './colors.js';
 const page=typeof document==='undefined'?{}:document.body.dataset;

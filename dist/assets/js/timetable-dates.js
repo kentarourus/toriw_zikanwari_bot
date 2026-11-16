@@ -47,7 +47,10 @@ export function parseDays(rows, {referenceDate = new Date()} = {}) {
   let previous = null, previousColumn = null;
   for (let c = 3; c < (rows[2]?.length ?? 0); c++) {
     const raw = cell(rows, 2, c), parts = dateParts(raw);
-    if (!parts) continue;
+    if (!parts) {
+      if (raw) return []; // Do not silently omit an unrecognized date column.
+      continue;
+    }
     const suppliedWeekday = cell(rows, 4, c).replace(/曜日$|曜$/, '');
     const weekday = weekdays.includes(suppliedWeekday) && suppliedWeekday.length === 1 ? suppliedWeekday : null;
     let date = resolveDate(parts, previous, reference);
@@ -57,7 +60,9 @@ export function parseDays(rows, {referenceDate = new Date()} = {}) {
       // A valid forward date is preserved, even if the timetable skips several days.
       if (weekday === weekdays[expected.getUTCDay()] && (!date || date <= previous || weekday !== weekdays[date.getUTCDay()])) date = expected;
     }
-    if (!date || (previous && date <= previous) || (weekday && weekday !== weekdays[date.getUTCDay()])) continue;
+    // Reject the whole header if it cannot be reconciled; the caller retains its
+    // previous data rather than presenting a partial or invented timetable.
+    if (!date || (previous && date <= previous) || (weekday && weekday !== weekdays[date.getUTCDay()])) return [];
     previous = date;
     previousColumn = c;
     const month = date.getUTCMonth() + 1, day = String(date.getUTCDate());
