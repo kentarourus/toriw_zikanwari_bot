@@ -33,6 +33,6 @@ export default {async fetch(request,env){
   }
   if(run.conclusion!=='success')return reply({status:'failed',error:'CLI実行に失敗しました。GitHubの実行履歴とCLIのログイン状態を確認してください。'});
   const ar=await github(`/actions/runs/${run.id}/artifacts`);if(!ar.ok)throw Error();const artifact=(await ar.json()).artifacts.find(a=>a.name==='private-answer'&&!a.expired);if(!artifact)throw Error();
-  const redirect=await github(`/actions/artifacts/${artifact.id}/zip`,{redirect:'manual'});const location=redirect.headers.get('Location');if(redirect.status!==302||!location||!location.startsWith('https://'))throw Error();const download=await fetch(location);if(!download.ok)throw Error();const files=unzipSync(new Uint8Array(await download.arrayBuffer()));if(!files['result.json'])throw Error();const result=JSON.parse(strFromU8(files['result.json']));return reply({status:'completed',answer:result.answer,webSearches:result.webSearches||0});
+  const redirect=await github(`/actions/artifacts/${artifact.id}/zip`,{redirect:'manual'});const location=redirect.headers.get('Location');if(redirect.status!==302||!location||!location.startsWith('https://'))throw Error();const download=await fetch(location);if(!download.ok)throw Error();const files=unzipSync(new Uint8Array(await download.arrayBuffer()));if(!files['result.json'])throw Error();const result=JSON.parse(strFromU8(files['result.json']));return reply({status:'completed',answer:result.answer,webSearches:result.webSearches||0,usage:result.usage||null});
  }catch{return reply({error:'通信できませんでした。しばらくしてから再度お試しください。'},502);}
 }};

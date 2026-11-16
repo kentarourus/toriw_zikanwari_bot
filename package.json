@@ -5,11 +5,13 @@
   "scripts": {
     "build": "esbuild src/workbook.js --bundle --format=esm --outfile=dist/assets/js/workbook.js --minify",
     "snapshots": "node scripts/update-snapshots.mjs",
-    "test": "node verify.mjs && node verify-colors.mjs && node verify-site.mjs"
+    "test": "node verify.mjs && node verify-colors.mjs && node verify-site.mjs",
+    "build:chat": "esbuild src/chat-markdown.js --bundle --format=esm --outfile=dist/taiwan-chat/markdown.js --minify"
   },
   "dependencies": {
     "fast-xml-parser": "^5.11.1",
-    "fflate": "^0.8.3"
+    "fflate": "^0.8.3",
+    "markdown-it": "^15.0.3"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"
