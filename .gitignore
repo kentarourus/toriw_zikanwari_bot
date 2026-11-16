@@ -1,1 +1,5 @@
 node_modules/
+
+# Private CLI authentication and setup-only dependencies
+/outputs/taiwan-private-runtime/
+/outputs/private-cli-tools/

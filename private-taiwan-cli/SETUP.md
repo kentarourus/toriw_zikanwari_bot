@@ -22,3 +22,6 @@
 
 ## 検証状況
 CLIのLuna medium接続はローカルのChatGPTログインで確認済み。GitHub上での認証・Cloudflare連携・ブラウザーでの通し動作は、Secret設定後に検証が必要。
+
+## 専用ログインの補助
+`npm install --prefix outputs/private-cli-tools --no-save --package-lock=false libsodium-wrappers` の後、`node private-taiwan-cli/setup-auth.mjs <codex.exeのパス>` を実行する。本人がdeviceログインを完了すると、専用認証だけを暗号化してprivate repoのSecretへ登録する。通常利用のCodex認証には変更を加えない。
