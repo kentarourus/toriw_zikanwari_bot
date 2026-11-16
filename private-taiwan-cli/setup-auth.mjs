@@ -9,7 +9,7 @@ const home=path.join(repoRoot,'outputs/taiwan-private-runtime/dedicated-auth');a
 await fs.writeFile(path.join(home,'config.toml'),'cli_auth_credentials_store = "file"\n');
 const codex=process.argv[2]||'codex';
 console.log('Sign in to ChatGPT for this dedicated private CLI runner. No tokens will be printed.');
-await new Promise((resolve,reject)=>{const p=spawn(codex,['login','--device-auth'],{env:{...process.env,CODEX_HOME:home},stdio:'inherit'});p.on('error',reject);p.on('exit',code=>code===0?resolve():reject(Error('Login was not completed.')));});
+await new Promise((resolve,reject)=>{const p=spawn(codex,['login'],{env:{...process.env,CODEX_HOME:home},stdio:'inherit'});p.on('error',reject);p.on('exit',code=>code===0?resolve():reject(Error('Login was not completed.')));});
 const auth=JSON.parse(await fs.readFile(path.join(home,'auth.json'),'utf8'));if(auth.auth_mode!=='chatgpt'||!auth.tokens)throw Error('ChatGPT authentication file was not generated.');
 const lines=spawnSync('git',['credential','fill'],{input:'protocol=https\nhost=github.com\n\n',encoding:'utf8'}).stdout;
 const credential=Object.fromEntries(lines.trim().split(/\r?\n/).filter(x=>x.includes('=')).map(x=>[x.slice(0,x.indexOf('=')),x.slice(x.indexOf('=')+1)]));
