@@ -19,9 +19,20 @@ export default {async fetch(request,env){
    return reply({id});
   }
   const id=url.pathname.split('/').at(-1);if(request.method!=='GET'||!/^[-a-f0-9]{36}$/.test(id))return reply({error:'Not found'},404);
-  const runs=await github('/actions/workflows/chat.yml/runs?event=workflow_dispatch&per_page=50');if(!runs.ok)throw Error();const run=(await runs.json()).workflow_runs.find(r=>r.display_title==='Taiwan CLI '+id);if(!run||run.status!=='completed')return reply({status:run?.status||'queued'});
+  const runs=await github('/actions/workflows/chat.yml/runs?event=workflow_dispatch&per_page=50');if(!runs.ok)throw Error();const run=(await runs.json()).workflow_runs.find(r=>r.display_title==='Taiwan CLI '+id);if(!run)return reply({status:'queued',stage:'queued'});
+  if(run.status!=='completed'){
+   let stage=run.status==='in_progress'?'preparing':'queued';
+   if(run.status==='in_progress'){
+    const jr=await github(`/actions/runs/${run.id}/jobs`);
+    if(jr.ok){const job=(await jr.json()).jobs?.[0];const steps=job?.steps||[];const answer=steps.find(s=>s.name==='Answer privately');
+     if(answer?.status==='in_progress')stage='answering';
+     else if(answer?.status==='completed'&&answer.conclusion==='success')stage='delivering';
+    }
+   }
+   return reply({status:run.status,stage});
+  }
   if(run.conclusion!=='success')return reply({status:'failed',error:'CLI実行に失敗しました。GitHubの実行履歴とCLIのログイン状態を確認してください。'});
   const ar=await github(`/actions/runs/${run.id}/artifacts`);if(!ar.ok)throw Error();const artifact=(await ar.json()).artifacts.find(a=>a.name==='private-answer'&&!a.expired);if(!artifact)throw Error();
-  const redirect=await github(`/actions/artifacts/${artifact.id}/zip`,{redirect:'manual'});const location=redirect.headers.get('Location');if(redirect.status!==302||!location||!location.startsWith('https://'))throw Error();const download=await fetch(location);if(!download.ok)throw Error();const files=unzipSync(new Uint8Array(await download.arrayBuffer()));if(!files['result.json'])throw Error();const result=JSON.parse(strFromU8(files['result.json']));return reply({status:'completed',answer:result.answer});
+  const redirect=await github(`/actions/artifacts/${artifact.id}/zip`,{redirect:'manual'});const location=redirect.headers.get('Location');if(redirect.status!==302||!location||!location.startsWith('https://'))throw Error();const download=await fetch(location);if(!download.ok)throw Error();const files=unzipSync(new Uint8Array(await download.arrayBuffer()));if(!files['result.json'])throw Error();const result=JSON.parse(strFromU8(files['result.json']));return reply({status:'completed',answer:result.answer,webSearches:result.webSearches||0});
  }catch{return reply({error:'通信できませんでした。しばらくしてから再度お試しください。'},502);}
 }};

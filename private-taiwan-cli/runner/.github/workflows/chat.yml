@@ -26,8 +26,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore CLI
+        id: cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/taiwan-cli
+          key: taiwan-cli-${{ runner.os }}-${{ runner.arch }}-0.169.0-v1
       - name: Install fixed CLI
-        run: npm install --global --ignore-scripts @openai/codex@0.169.0
+        if: steps.cli-cache.outputs.cache-hit != 'true'
+        run: npm install --prefix "$HOME/.cache/taiwan-cli" --no-audit --no-fund --ignore-scripts @openai/codex@0.169.0
+      - name: Configure CLI path
+        run: echo "$HOME/.cache/taiwan-cli/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Answer privately
         env:
           CODEX_AUTH_JSON: ${{ secrets.TAIWAN_CODEX_AUTH_JSON }}
