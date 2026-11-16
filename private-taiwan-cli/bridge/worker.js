@@ -18,7 +18,7 @@ export default {async fetch(request,env){
  const local=async(path,options={})=>{const endpoint=await localURL();if(!endpoint)return null;const response=await fetch(endpoint+path,{...options,headers:{Authorization:'Bearer '+env.LOCAL_RUNNER_TOKEN,'Content-Type':'application/json'},signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error('local unavailable');return response.json();};
  if(origin!==env.ALLOWED_ORIGIN)return reply({error:'Origin not allowed'},403);
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
- if(!env.GITHUB_TOKEN)return reply({error:'接続設定が未完了です。'},503);
+ if(request.method==='GET'&&url.pathname.endsWith('/provider-status')){try{return reply(await local('/provider-status')||{mode:'legacy',label:'Luna medium'});}catch{return reply({error:'常駐PCに接続できません。'},503);}}
  if(request.method==='GET'&&/\/jobs\/pc-[-a-f0-9]{36}$/.test(url.pathname)){try{const result=await local('/jobs/'+url.pathname.split('/').at(-1));return result?reply(result):reply({error:'常駐PCに接続できません。'},503);}catch{return reply({error:'常駐PCに接続できません。電源とネットワークを確認してください。'},503);}}
  const base=`https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}`;
  const github=async(path,options={})=>fetch(base+path,{...options,headers:{Authorization:'Bearer '+env.GITHUB_TOKEN,Accept:'application/vnd.github+json','User-Agent':'Taiwan-private-CLI','X-GitHub-Api-Version':'2022-11-28',...options.headers}});
@@ -28,11 +28,13 @@ export default {async fetch(request,env){
    const raw=await request.text();if(raw.length>14000)return reply({error:'会話が長すぎます。新しい会話にしてください。'},400);
    const {messages}=JSON.parse(raw);if(!Array.isArray(messages)||!messages.length||messages.length>8||messages.some(m=>!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>1500))return reply({error:'質問は1500文字以内で送ってください。'},400);
    if(await localURL()){try{return reply(await local('/jobs',{method:'POST',body:JSON.stringify({messages})}));}catch{return reply({error:'常駐PCに接続できません。電源とネットワークを確認してください。'},503);}}
+   if(!env.GITHUB_TOKEN)return reply({error:'接続設定が未完了です。'},503);
    const id=crypto.randomUUID();const r=await github('/actions/workflows/chat.yml/dispatches',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{request_id:id,messages:JSON.stringify(messages)}})});
    if(!r.ok)return reply({error:'GitHubで実行を開始できませんでした。'},502);
    return reply({id});
   }
   const id=url.pathname.split('/').at(-1);if(request.method!=='GET'||!/^[-a-f0-9]{36}$/.test(id))return reply({error:'Not found'},404);
+  if(!env.GITHUB_TOKEN)return reply({error:'接続設定が未完了です。'},503);
   const runs=await github('/actions/workflows/chat.yml/runs?event=workflow_dispatch&per_page=50');if(!runs.ok)throw Error();const run=(await runs.json()).workflow_runs.find(r=>r.display_title==='Taiwan CLI '+id);if(!run)return reply({status:'queued',stage:'queued'});
   if(run.status!=='completed'){
    let stage=run.status==='in_progress'?'preparing':'queued';

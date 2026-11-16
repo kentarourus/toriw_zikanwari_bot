@@ -62,3 +62,13 @@ runtime.json（token, bridge）とChatGPT認証auth/auth.jsonはPCの専用フ�
 正本はdist/taiwan/guide.md。添付の2026年11月13日暫定版PDF全34ページをページ順に転記し、人名・個人用連絡先・個人の部屋割り・署名だけを非掲載とする。予定・●・後日連絡や記載の食い違いは勝手に修正しない。原本の図はguide-assetsへ保存。Markdownの閲覧用HTMLはnpm run build:guideで再生成する。旅行サイトの参考資料から閲覧できる。
 
 read_trip_guideはこのMarkdownを原本ページ単位で参照し、hotelなど一部の項目は該当見出しに絞る。原本PDFのページと印字ページ、閲覧用URLを回答へ渡す。MRT路線図など画像内の文字を読み取れたものとして回答しない。旧trip-guide.jsonの短い要約は廃止し、PC・非公開実行repoには同じ正本をrunner/trip-guide.mdまたはtrip-guide.mdとして転送する。個人情報を含む抽出原文・PDFのコピーは公開しない。
+
+
+## Copilot CLIへの切替（2026年11月16日）
+常駐PCのdaemon/package.jsonに固定した公式 @github/copilot-sdk 1.0.34（CLIランタイム同梱）を使う。`npm install --prefix daemon`で依存を導入する場合もNodeから上位またはdaemon配下のnode_modulesを解決できる。PCのCopilot CLIでサインイン済みのアカウントを使い、APIキーやGitHub ActionsのPATでCopilotを呼ばない。認証プロファイルは公開・転送しない。
+
+runtime.jsonの`providerMode`は通常`auto`。Codexの構造化エラーがusageLimitExceededなど明確な利用枠切れの場合だけ、一度Copilot Autoへ切り替える。一般通信障害、短時間のレート制限、認証切れ、入力長超過は切替対象ではない。切替時に途中回答を消し、「Copilotに切替中…」と表示する。履歴は引き継ぐ。
+
+動作確認用の`copilot-test`は最初からCopilot Autoを使う一時モード。現在は利用者の指示でこのモード。通常へ戻すにはproviderModeをautoへ変更しtaiwan-chatサービスを再起動する。ブラウザーからモード変更や認証操作はできない。画面は接続先のモードを取得し、回答に実際のprovider/modelとSDKが報告するトークン数を保存する。CopilotのモデルはAutoに任せ、固定モデル名を保証しない。利用枠残量・料金は表示しない。
+
+Copilotセッションはemptyモード、設定探索・組込みエージェント・スキルを無効にし、必要時だけ固定しおり参照とweb_searchを公開する。web_searchはMCP由来の場合があるため、builtin限定ではなく名前を厳密に許可する。シェル・任意ファイルの読書き・汎用URL取得は許可しない。質問ごとに専用セッションを作り、終了時にそのセッションだけ削除する。試験でしおり参照、持ち物提案、実Web検索、トークン取得、従来Codexの応答を確認。枠切れは実枠を消費し切らず構造化エラーで試験する。
