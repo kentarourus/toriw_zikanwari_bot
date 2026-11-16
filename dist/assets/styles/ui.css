@@ -73,3 +73,5 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}button:focus-visible,a:focus
 
 /* Full-width, easily tapped feature rows. */
 .feature-links{grid-template-columns:minmax(0,1fr);gap:8px;max-width:720px}.feature-link{min-height:62px;padding:10px 16px;border-radius:13px}.feature-icon{width:36px;height:36px}.feature-copy{flex-direction:row;align-items:baseline;gap:12px}.feature-copy small{margin-top:0}@media(max-width:400px){.feature-link{min-height:60px;padding:10px 12px}.feature-copy{gap:7px}.feature-copy strong{font-size:13px}.feature-copy small{font-size:11px}}
+
+.feature-link[href*="taiwan/"]{background:#f2f8f3;border-color:#c8dfd2;color:#24594f}.feature-link[href*="taiwan/"] .feature-icon{background:#dcece2;color:#2c7565}.feature-link[href*="taiwan/"] .feature-copy small{color:#69867b}.feature-link[href*="taiwan/"] .feature-arrow{color:#6f9b8b}.feature-link[href*="taiwan/"]:hover{background:#e8f3ea;border-color:#94bba5}
