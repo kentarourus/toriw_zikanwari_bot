@@ -1,0 +1,4 @@
+export const storageKey='taiwan-private-conversations-v1';
+export function readStore(storage){try{const data=JSON.parse(storage.getItem(storageKey)||'null');if(!data||!Array.isArray(data.chats))return {chats:[],active:null};const chats=data.chats.filter(c=>c&&typeof c.id==='string'&&typeof c.title==='string'&&Array.isArray(c.messages)&&c.messages.every(m=>m&&['user','assistant'].includes(m.role)&&typeof m.content==='string'));return {chats,active:chats.some(c=>c.id===data.active)?data.active:chats[0]?.id??null}}catch{return {chats:[],active:null}}}
+export function contextFor(chat){return chat.messages.slice(-7).map(m=>({role:m.role,content:m.content.slice(0,1500)}));}
+export function createChat(){return {id:crypto.randomUUID(),title:'新しいチャット',updatedAt:Date.now(),messages:[],pending:null,error:''};}

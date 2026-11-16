@@ -7,10 +7,10 @@
 ## 接続先
 - 非公開実行リポジトリ: kentarourus/taiwan-private-cli
 - Workflow: .github/workflows/chat.yml (workflow_dispatchのみ)
-- Pages画面: /_private/taiwan-6b7e94d2/
+- Pages画面: /taiwan-chat/
 - Worker: taiwan-private-cli-bridge
 
-## 未設定の認証
+## 認証の設定手順
 1. Cloudflare Wranglerを `account:read user:read workers_scripts:write` でログイン。
 2. GitHub Fine-grained tokenを作成。対象は `taiwan-private-cli` のみ、Actions read/write、Metadata read、期限付き。Workerの `GITHUB_TOKEN` Secretに登録。チャットや公開ソースへ貼らない。
 3. この試作専用のChatGPT CLIログイン情報を、非公開実行リポジトリのActions Secret `TAIWAN_CODEX_AUTH_JSON` に登録。API keyではなくChatGPT認証を利用。認証の移設には本人の承認が必要。公開repoにauth.jsonをコミットしない。
@@ -18,10 +18,10 @@
 5. Workerをデプロイし、`https://…workers.dev/<ACCESS_PATH>` を接続URLとして設定。
 
 ## データ
-会話入力はworkflowの入力、回答はprivate artifact `private-answer` として保存される。artifactの保存期間は1日。公開Pagesには会話やトークンを保存しない。GitHub実行履歴の保持設定はリポジトリ側で管理する。会話自体は画面のメモリーにのみ保持し、リロードで消える。
+会話入力はworkflowの入力、回答はprivate artifact `private-answer` として保存される。artifactの保存期間は1日。公開Pagesには会話やトークンを保存しない。GitHub実行履歴の保持設定はリポジトリ側で管理する。会話履歴と接続先はブラウザーのlocalStorageに保持する。会話は一覧から再開・削除できる。接続先の設定欄は表示しない。AIへ送る文脈は直近7件（各1500文字まで）で、端末上の全文保存は切り詰めない。
 
 ## 検証状況
-2026-11-16: 専用のChatGPT認証をprivate repoのSecretに登録済み。GitHub Actions run 43807678050でgpt-6-luna / mediumを実行し、研修旅行の日付回答を確認済み。Cloudflare Workerも配置済み。専用GitHub ActionsトークンのWorkerへの登録とブラウザーの通し動作は未完了。
+2026-11-16: 専用のChatGPT認証をprivate repoのSecretに登録済み。GitHub Actions run 43807678050でgpt-6-luna / mediumを実行し、研修旅行の日付回答を確認済み。Cloudflare Workerも配置済み。専用GitHub ActionsトークンをWorkerへ登録済み。Worker経由でジョブ起動から回答取得まで確認済み。
 
 ## 専用ログインの補助
 `npm install --prefix outputs/private-cli-tools --no-save --package-lock=false libsodium-wrappers` の後、`node private-taiwan-cli/setup-auth.mjs <codex.exeのパス>` を実行する。本人が通常のブラウザーログインを完了すると、専用認証だけを暗号化してprivate repoのSecretへ登録する。通常利用のCodex認証には変更を加えない。
