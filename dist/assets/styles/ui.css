@@ -67,3 +67,5 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}button:focus-visible,a:focus
  .mobile-nav a span,.mobile-nav a svg{transition:transform .18s ease,color .15s ease}
 }
 @media(prefers-reduced-motion:reduce){.mobile-nav:not(.is-dragging) a:active span,.mobile-nav:not(.is-dragging) a:active svg{transform:none}}
+
+.exam-link{margin:0 0 18px}.exam-link a{display:inline-block;padding:10px 16px;border-radius:12px;background:#eaf2fc;color:#234d80;font-weight:700;text-decoration:none}.exam-link a:hover{background:#dceafa}

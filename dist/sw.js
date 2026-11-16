@@ -1,7 +1,10 @@
-const CACHE = 'timetable-v20';
+const CACHE = 'timetable-v21';
 const APP_FILES = [
   './',
   './index.html',
+  './exams/',
+  './exams/exam.js',
+  './exams/exam.css',
   './stats/',
   './stats/stats.css',
   './stats/stats.js',

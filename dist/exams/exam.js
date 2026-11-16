@@ -1,0 +1,8 @@
+const days=['11月18日（水）','11月19日（木）','11月20日（金）','11月24日（火）'];
+const data={
+1:[[['1限','論理表現Ⅰ'],['2限','言語文化']],[['1限','自然科学基礎化学'],['2・3限','数学Ⅰ']],[['1限','現代の国語'],['2限','地理総合・歴史総合']],[['1限','数学A'],['2限','英語CⅠ（リスニング有）'],['3限','QUアンケート・授業アンケート']]],
+2:[[['1限','理系：探究化学Ⅰ / 文系：探自科 生物'],['2限','発展／応用 論理・表現Ⅱ（リスニング有）'],['3限','古典探究']],[['1限','論理／文学国語'],['2・3限','理系：数学Ⅱ・Ⅲ / 文系：数学Ⅱ'],['4限','文系：選択Ⅰ 探社A']],[['1限','理系：探究数学B・C / 文系：探究数学B'],['2限','地理・日本史・世界史'],['3限','理系：探究物理Ⅰ・探究生物Ⅰ / 文系：探自科 物化地']],[['1限','公共'],['2限','英語CⅡ'],['3・4限','研修旅行LHR・高校教育に関するアンケート・教育相談アンケート・授業アンケート']]],
+3:[[['1限','古典探究'],['2限','発展／応用 論理表現Ⅲ'],['3限','文系：探自科 生物']],[['1限','地理・日本史・世界史'],['2限','理系：探究物理Ⅱ・探究生物Ⅱ / 文系：選択Ⅰ 探社B'],['3限','理系：発展数学（Ⅲ） / 文系：発展数学αβ'],['4限','文系：探自科Ⅱ 物化地']],[['1限','論理／文学国語'],['2限','理系：探究化学Ⅱ / 文系：選択ⅡB'],['3限','文系：選択ⅡA']],[['1限','英語CⅢ（リスニング有）'],['2限','理系：発展数学（C） / 文系：探究数学D'],['3限','人権意識調査・授業アンケート']]]};
+const root=document.getElementById('content');for(const [grade,dayList] of Object.entries(data)){const sec=document.createElement('section');sec.id='grade-'+grade;sec.className='grade';const h=document.createElement('h2');h.textContent=grade+'年生';sec.append(h);const grid=document.createElement('div');grid.className='grid';dayList.forEach((rows,i)=>{const card=document.createElement('article');const heading=document.createElement('h3');heading.textContent=days[i];card.append(heading);const list=document.createElement('dl');rows.forEach(([period,subject])=>{const dt=document.createElement('dt');dt.textContent=period;const dd=document.createElement('dd');dd.textContent=subject;list.append(dt,dd)});card.append(list);grid.append(card)});sec.append(grid);root.append(sec)}
+
+if(/^#grade-[123]$/.test(location.hash))document.getElementById(location.hash.slice(1))?.scrollIntoView();
