@@ -3,3 +3,7 @@
 auth.json
 node_modules/
 .wrangler/
+
+credentials.json
+authorize-url.txt
+service.json
