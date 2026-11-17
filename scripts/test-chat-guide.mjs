@@ -25,7 +25,7 @@ test('prefetch never prevents additional Markdown lookup, including follow-up co
  assert.match(JSON.stringify(readGuides(policy.topics)),/別階のフロア/);
 });
 test('MCP discovery and calls work without exposing arbitrary file access',()=>{
- const tools=handle({id:1,method:'tools/list'}).result.tools;assert.equal(tools.length,2);assert.equal(tools[0].name,'read_trip_guide');
+ const tools=handle({id:1,method:'tools/list'}).result.tools;assert.equal(tools.length,3);assert.equal(tools[0].name,'read_trip_guide');
  const answer=handle({id:2,method:'tools/call',params:{name:'read_trip_guide',arguments:{topic:'day3'}}});assert.match(answer.result.content[0].text,/12:00～13:00/);
  assert.equal(handle({method:'notifications/initialized'}),null);
 });

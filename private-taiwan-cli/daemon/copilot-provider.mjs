@@ -1,4 +1,4 @@
-import {useGeneratedMapLinks} from '../runner/directions.mjs';
+import {useGeneratedMapLinks,mapSearch,mapSearchSpec} from '../runner/directions.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import {handle, readGuide, readDirections} from '../runner/guide-mcp.mjs';
@@ -6,7 +6,7 @@ import {handle, readGuide, readDirections} from '../runner/guide-mcp.mjs';
 const denied = {kind: 'denied-by-rules'};
 export function copilotPermission(request) {
   if (request.managedApprovalRequired) return denied;
-  if (request.kind === 'custom-tool' && ['read_trip_guide','get_map_directions'].includes(request.toolName)) return {kind: 'approved'};
+  if (request.kind === 'custom-tool' && ['read_trip_guide','get_map_directions','get_map_search_link'].includes(request.toolName)) return {kind: 'approved'};
   // Web search is the only built-in exposed. Shell, filesystem and generic fetch are absent.
   if (request.kind === 'url') {
     try {
@@ -77,11 +77,11 @@ export class CopilotProvider {
       includedBuiltinAgents: [],
       includedBuiltinSkills: [],
       infiniteSessions: {enabled: false},
-      tools: [tool,routeTool],
+      tools: [tool,routeTool,this.defineTool('get_map_search_link',{description:mapSearchSpec.description,parameters:mapSearchSpec.inputSchema,handler:args=>JSON.stringify(mapSearch(args))})],
       availableTools: [
         ...(prepared.needGuideTool ? ['custom:read_trip_guide'] : []),
         ...(prepared.needDirections ? ['custom:get_map_directions'] : []),
-        ...(prepared.webMode === 'live' ? ['web_search'] : []),
+        ...(prepared.webMode === 'live' ? ['web_search','custom:get_map_search_link'] : []),
       ],
       onPermissionRequest: copilotPermission,
       systemMessage: {mode: 'append', content: prepared.instructions},

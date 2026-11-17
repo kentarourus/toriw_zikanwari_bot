@@ -22,3 +22,6 @@ export function useGeneratedMapLinks(answer,links){
  for(const link of links)if(!result.includes(link.url))result+=`\n\n[${link.mode==='walking'?'徒歩':'公共交通'}の経路をGoogleマップで確認](${link.url})`;
  return result;
 }
+
+export const mapSearchSpec={name:'get_map_search_link',description:'Googleマップで場所・店舗・施設を検索する共有用URLを作る。Googleマップの検索結果そのものや口コミを取得する機能ではない。地名を含む具体的な検索語を使う。',annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false},inputSchema:{type:'object',properties:{query:{type:'string',maxLength:250}},required:['query'],additionalProperties:false}};
+export function mapSearch({query}){const url=new URL('https://www.google.com/maps/search/');url.searchParams.set('api','1');url.searchParams.set('query',place(query));return {query:place(query),url:url.href,resultsFetched:false,notice:'Googleマップの検索結果を開く共有リンクです。検索結果・営業時間・口コミは未取得です。'};}

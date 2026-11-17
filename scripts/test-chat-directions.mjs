@@ -39,3 +39,5 @@ test('model-altered map parameters are replaced by the exact generated URL',()=>
  assert.equal(useGeneratedMapLinks('[地図]('+altered+')',[link]),'[地図]('+link.url+')');
  assert.ok(useGeneratedMapLinks('地図で確認してください。',[link]).includes(link.url));
 });
+import {mapSearch} from '../private-taiwan-cli/runner/directions.mjs';
+test('Maps search links safely encode place queries without claiming fetched results',()=>{const r=mapSearch({query:'台北 西門町 カフェ & test=1'}),u=new URL(r.url);assert.equal(u.pathname,'/maps/search/');assert.equal(u.searchParams.get('query'),'台北 西門町 カフェ & test=1');assert.equal(u.searchParams.has('test'),false);assert.equal(r.resultsFetched,false);assert.throws(()=>mapSearch({query:''}));});

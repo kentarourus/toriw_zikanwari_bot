@@ -1,4 +1,4 @@
-import {directionsSpec,mapDirections} from './directions.mjs';
+import {directionsSpec,mapDirections,mapSearchSpec,mapSearch} from './directions.mjs';
 import fs from 'node:fs/promises';import {createInterface} from 'node:readline';
 let source;try{source=await fs.readFile(new URL('./trip-guide.md',import.meta.url),'utf8');}catch(error){if(error.code!=='ENOENT')throw error;source=await fs.readFile(new URL('../../dist/taiwan/guide.md',import.meta.url),'utf8');}
 const pages=new Map([...source.matchAll(/<!-- source-page:(\d+) -->\s*([\s\S]*?)(?=<!-- source-page:|$)/g)].map(m=>[Number(m[1]),m[2].replace(/<a id="source-page-\d+"><\/a>\s*/g,'').replace(/\n---\s*$/,'').trim()]));
@@ -27,7 +27,8 @@ export function handle(message){
  const {id,method,params}=message;if(id==null)return null;
  if(method==='initialize')return {id,jsonrpc:'2.0',result:{protocolVersion:params?.protocolVersion||'2024-11-05',capabilities:{tools:{}},serverInfo:{name:'trip-guide',version:'2.0.0'}}};
  if(method==='ping')return {id,jsonrpc:'2.0',result:{}};
- if(method==='tools/list')return {id,jsonrpc:'2.0',result:{tools:[{name:'read_trip_guide',annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false},description:'全34ページのしおりMarkdownから必要な項目だけ参照する。day1〜4=12月1〜4日、daily_routine=朝食/点呼/起床/就寝、meals=食事会場、packing=携行品、baggage=荷物/液体/電池、clothing=服装、devices=スマホ/SNS、hotel=宿泊先の名前・住所のみ、hotel_rules=階やフロアの移動/客室の行き来/エレベーター/階段/宿舎の生活ルール、health=健康、emergency=緊急、shopping=買物、contacts=連絡、language=会話、planning=班計画、transport=MRT図、maps=ホテル図。全体が必要な場合だけallを使う。図の内容や未定箇所を推測しない。',inputSchema:{type:'object',properties:{topic:{type:'string',enum:topics}},required:['topic'],additionalProperties:false}},directionsSpec]}};
+ if(method==='tools/list')return {id,jsonrpc:'2.0',result:{tools:[{name:'read_trip_guide',annotations:{readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false},description:'全34ページのしおりMarkdownから必要な項目だけ参照する。day1〜4=12月1〜4日、daily_routine=朝食/点呼/起床/就寝、meals=食事会場、packing=携行品、baggage=荷物/液体/電池、clothing=服装、devices=スマホ/SNS、hotel=宿泊先の名前・住所のみ、hotel_rules=階やフロアの移動/客室の行き来/エレベーター/階段/宿舎の生活ルール、health=健康、emergency=緊急、shopping=買物、contacts=連絡、language=会話、planning=班計画、transport=MRT図、maps=ホテル図。全体が必要な場合だけallを使う。図の内容や未定箇所を推測しない。',inputSchema:{type:'object',properties:{topic:{type:'string',enum:topics}},required:['topic'],additionalProperties:false}},directionsSpec,mapSearchSpec]}};
+ if(method==='tools/call'&&params?.name==='get_map_search_link'){try{return {id,jsonrpc:'2.0',result:{content:[{type:'text',text:JSON.stringify(mapSearch(params.arguments??{}))}]}};}catch{return {id,jsonrpc:'2.0',result:{isError:true,content:[{type:'text',text:'検索する場所を確認してください。'}]}};}}
  if(method==='tools/call'&&params?.name==='get_map_directions'){
   try{return {id,jsonrpc:'2.0',result:{content:[{type:'text',text:JSON.stringify(readDirections(params.arguments??{}))}]}};}catch{return {id,jsonrpc:'2.0',result:{isError:true,content:[{type:'text',text:'出発地・目的地・移動手段を確認してください。'}]}};}
  }
