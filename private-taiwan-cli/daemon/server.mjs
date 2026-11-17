@@ -5,7 +5,7 @@ import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions as instructions} from '../runner/assistant-instructions.mjs';
 import {readGuides} from '../runner/guide-mcp.mjs';
-import {webModeFor,selectGuideTopics} from '../runner/context-policy.mjs';
+import {guidePolicyFor} from '../runner/context-policy.mjs';
 import {CodexProvider} from './codex-provider.mjs';
 import {CopilotProvider} from './copilot-provider.mjs';
 import {runWithFallback,providerLabel} from './provider-routing.mjs';
@@ -18,13 +18,12 @@ const jobs=new Map();let active=0,providerReady=false;
 (mode==='copilot-test'?copilot:codex).start().then(()=>{providerReady=true;console.log('Chat provider ready');}).catch(()=>console.error('Chat provider is not ready'));
 
 async function prepare(job,messages){
- const webMode=webModeFor(messages),topics=selectGuideTopics(messages);
+ const {webMode,topics,needGuideTool,needDirections}=guidePolicyFor(messages);
  let guideContext='';if(topics.length){job.stage='reading';guideContext=JSON.stringify(readGuides(topics));job.guideReads=topics.length;}
- const needGuideTool=(!topics.length||topics.every(t=>t==='overview'))&&/しおり|学校の|研修の|修学の/.test(messages.at(-1)?.content||'');
  const weather=await weatherContext(messages);
  const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());
- const prompt=`現在（台湾時間）: ${now}\n${guideContext?'質問に関係する項目を確認済みです。これだけで答えられる場合は追加参照しないでください。\n'+guideContext:needGuideTool?'旅行資料が必要な場合だけread_trip_guideを使ってください。':'この質問では旅行資料は参照していません。一般会話には資料は不要です。'}\n最新の天気資料:\n${weather||'この質問では取得を省略。必要時のみWeb検索してください。'}\n会話(JSON):\n${JSON.stringify(messages)}`;
- return {webMode,needGuideTool,prompt,instructions};
+ const prompt=`現在（台湾時間）: ${now}\n${guideContext?'以下は質問から事前に選んだしおりの一部です。しおり全文ではありません。該当する記述が見つからなければread_trip_guideで関連項目を追加確認してください。\n'+guideContext:needGuideTool?'旅行資料が必要な場合だけread_trip_guideを使ってください。':'この質問では旅行資料は参照していません。一般会話には資料は不要です。'}\n最新の天気資料:\n${weather||'この質問では取得を省略。必要時のみWeb検索してください。'}\n会話(JSON):\n${JSON.stringify(messages)}`;
+ return {webMode,needGuideTool,needDirections,prompt,instructions};
 }
 async function answer(job,messages){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),210000);
@@ -62,7 +61,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='GET'&&/^\/jobs\/pc-[-a-f0-9]{36}$/.test(req.url)){
    const job=jobs.get(req.url.split('/').at(-1));
    if(!job)return reply({status:'failed',error:'PCの再起動などでこの実行は終了しました。もう一度送信してください。'});
-   return reply({status:job.status,stage:job.stage,partial:job.partial,answer:job.status==='completed'?job.answer:undefined,error:job.error,usage:job.usage,webSearches:job.webSearches,guideReads:job.guideReads,provider:job.provider,model:job.model,switchedFrom:job.switchedFrom,firstTokenMs:job.firstTokenAt?job.firstTokenAt-job.createdAt:null,elapsedMs:(job.completedAt||Date.now())-job.createdAt});
+   return reply({status:job.status,stage:job.stage,partial:job.partial,answer:job.status==='completed'?job.answer:undefined,error:job.error,usage:job.usage,webSearches:job.webSearches,guideReads:job.guideReads,directions:job.directions||0,provider:job.provider,model:job.model,switchedFrom:job.switchedFrom,firstTokenMs:job.firstTokenAt?job.firstTokenAt-job.createdAt:null,elapsedMs:(job.completedAt||Date.now())-job.createdAt});
   }
   return reply({error:'Not found'},404);
  }catch{reply({error:'処理できませんでした。'},500);}

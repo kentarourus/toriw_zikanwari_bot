@@ -46,6 +46,7 @@ export class CodexProvider {
     if (message.method === 'item/completed' && p.item?.type === 'agentMessage') job.answer = p.item.text;
     if (message.method === 'item/started' && p.item?.type === 'mcpToolCall' && p.item.tool === 'read_trip_guide') job.stage = 'reading';
     if (message.method === 'item/completed' && p.item?.type === 'mcpToolCall' && p.item.tool === 'read_trip_guide') { job.guideReads++; job.stage = 'answering'; }
+    if (message.method === 'item/completed' && p.item?.type === 'mcpToolCall' && p.item.tool === 'get_map_directions') job.directions = (job.directions || 0) + 1;
     if (message.method === 'item/started' && p.item?.type === 'webSearch') job.stage = 'searching';
     if (message.method === 'item/completed' && p.item?.type === 'webSearch') { job.webSearches++; job.stage = 'answering'; }
     if (message.method === 'thread/tokenUsage/updated' && p.tokenUsage?.total) {

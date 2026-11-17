@@ -1,7 +1,9 @@
+const hotelRules = /ホテル.*(?:ルール|規則|備付|設備|階|フロア|移動|行き来|部屋|客室|出入|生活|していい)|宿舎|館内|客室|別(?:の)?階|他の階|階を(?:また|跨|移|変)|階間|上下階|フロア|エレベーター|金庫|セキュリティ|タオル|階段|外出|スリッパ|モーニングコール|他の部屋|部屋.*(?:行き来|遊び|訪問)/;
 export function webModeFor(messages){
  const latest=messages.filter(m=>m.role==='user').at(-1)?.content||'';
  if(/(?:Web検索|検索)(?:は|を)?(?:いりません|不要|しないで|しなくていい)/i.test(latest))return 'disabled';
  const external=/検索|調べ|公式|最新|営業時間|料金|運賃|行き方|アクセス|周辺|近く|おすすめ|観光|レストラン|食べ|グルメ|台風|警報|天気|気温|予報|雨|weather/i;
+ if(hotelRules.test(latest)&&!/検索|調べ|最新|公式|周辺|近く|観光/.test(latest))return 'disabled';
  if(external.test(latest))return 'live';
  if(/^(こんにちは|こんばんは|おはよう|ありがとう|どうも|やあ|はい|わかった|おやすみ)[!！。\s]*$/.test(latest))return 'disabled';
  if(/泊まるホテル|宿泊先|ホテル名|日程|旅程|集合|何時|出発|帰着|帰国|定時|現況|班別|しおり|入国カード|持ち物|パスポート|準備|携行品|スマホ|制服|服装|バッテリー|規則|禁止|学校|研修旅行|修学旅行|翻訳|英語で|中国語で|言い換え|計算/.test(latest))return 'disabled';
@@ -9,7 +11,7 @@ export function webModeFor(messages){
 }
 export function selectGuideTopics(messages){
  const users=messages.filter(m=>m.role==='user');let text=users.at(-1)?.content||'';
- if(/^(それ|その|では|じゃあ|準備は|時間は)/.test(text)&&text.length<65)text+=' '+(users.at(-2)?.content||'');
+ if(/^(それ|その|では|じゃあ|じゃ|でも|別の|他の|そこ|どうして|なんで|本当|準備は|時間は)/.test(text)&&text.length<65)text+=' '+(users.at(-2)?.content||'');
  const topics=new Set();
  if(/しおり.*(全部|全体)|全日程/.test(text))return ['all'];
  for(const [pattern,topic] of [
@@ -22,7 +24,7 @@ export function selectGuideTopics(messages){
   [/手荷物|大荷物|荷物.*(重|サイズ)|液体|バッテリー|ヘアアイロン|\bkg\b|\bWh\b/,'baggage'],
   [/服装|制服|パジャマ|館内着|寝間着/,'clothing'],
   [/スマホ|スマートフォン|SNS|撮影|通信|カメラ|機内モード/,'devices'],
-  [/ホテル.*(ルール|規則|備付|設備)|宿舎|エレベーター|金庫|セキュリティ|タオル|階段|外出|スリッパ|モーニングコール/,'hotel_rules'],
+  [hotelRules,'hotel_rules'],
   [/健康|持病|服薬|常備薬|体調|酔い/,'health'],
   [/迷子|はぐれ|緊急|事故/,'emergency'],
   [/免税|買い物|買物|現地学生.*(費用|料金)/,'shopping'],
@@ -39,4 +41,10 @@ export function selectGuideTopics(messages){
  if(/食事|昼食|夕食|レストラン/.test(text))topics.add('meals');
  if(topics.size>1)topics.delete('overview');
  return [...topics];
+}
+
+export function guidePolicyFor(messages){
+ // Always expose the fixed, read-only Markdown tool. Prefetch is an optimization,
+ // not a claim that the selected excerpt contains the entire guide.
+ return {topics:selectGuideTopics(messages),webMode:webModeFor(messages),needGuideTool:true,needDirections:messages.filter(m=>m.role==='user').slice(-2).some(m=>/行き方|経路|道順|ナビ|徒歩|歩いて|地下鉄|MRT|バスで|から.+(?:まで|へ)|ホテルに戻/.test(m.content))};
 }

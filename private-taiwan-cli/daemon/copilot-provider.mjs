@@ -1,11 +1,12 @@
+import {useGeneratedMapLinks} from '../runner/directions.mjs';
 import os from 'node:os';
 import path from 'node:path';
-import {handle, readGuide} from '../runner/guide-mcp.mjs';
+import {handle, readGuide, readDirections} from '../runner/guide-mcp.mjs';
 
 const denied = {kind: 'denied-by-rules'};
 export function copilotPermission(request) {
   if (request.managedApprovalRequired) return denied;
-  if (request.kind === 'custom-tool' && request.toolName === 'read_trip_guide') return {kind: 'approved'};
+  if (request.kind === 'custom-tool' && ['read_trip_guide','get_map_directions'].includes(request.toolName)) return {kind: 'approved'};
   // Web search is the only built-in exposed. Shell, filesystem and generic fetch are absent.
   if (request.kind === 'url') {
     try {
@@ -64,6 +65,9 @@ export class CopilotProvider {
         return JSON.stringify(result);
       },
     });
+    const routeLinks=[];
+    const routeSpec = handle({id: 2, method: 'tools/list'}).result.tools.find(tool => tool.name === 'get_map_directions');
+    const routeTool = this.defineTool('get_map_directions', {description:routeSpec.description,parameters:routeSpec.inputSchema,handler:arguments_=>{const result=readDirections(arguments_);job.directions=(job.directions||0)+1;routeLinks.push(result);return JSON.stringify(result);}});
     const session = await this.client.createSession({
       sessionId: 'taiwan-chat-' + job.id,
       model: 'auto',
@@ -73,9 +77,10 @@ export class CopilotProvider {
       includedBuiltinAgents: [],
       includedBuiltinSkills: [],
       infiniteSessions: {enabled: false},
-      tools: [tool],
+      tools: [tool,routeTool],
       availableTools: [
         ...(prepared.needGuideTool ? ['custom:read_trip_guide'] : []),
+        ...(prepared.needDirections ? ['custom:get_map_directions'] : []),
         ...(prepared.webMode === 'live' ? ['web_search'] : []),
       ],
       onPermissionRequest: copilotPermission,
@@ -123,7 +128,7 @@ export class CopilotProvider {
       const result = await session.sendAndWait({prompt: prepared.prompt}, 180000);
       const answer = result?.data?.content || job.answer || job.partial;
       if (!answer?.trim()) throw new Error('Copilotから回答を取得できませんでした。');
-      return {answer, usage, provider: 'copilot', model: job.model};
+      return {answer:useGeneratedMapLinks(answer,routeLinks), usage, provider: 'copilot', model: job.model};
     } finally {
       unsubscribe();
       signal?.removeEventListener('abort', abort);
