@@ -1,3 +1,4 @@
+import {ChatgptPlanProvider} from './chatgpt-plan-provider.mjs';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -13,9 +14,10 @@ const root=path.resolve(process.env.TAIWAN_RUNNER_ROOT||'.');
 const config=JSON.parse(await fs.readFile(path.join(root,'runtime.json'),'utf8'));
 const mode=process.env.TAIWAN_PROVIDER_MODE||config.providerMode||'auto';
 const port=Number(process.env.TAIWAN_CHAT_PORT||8793);
+const plan=new ChatgptPlanProvider({root});
 const codex=new CodexProvider({root}),copilot=new CopilotProvider({root});
 const jobs=new Map();let active=0,providerReady=false;
-(mode==='copilot-test'?copilot:codex).start().then(()=>{providerReady=true;console.log('Chat provider ready');}).catch(()=>console.error('Chat provider is not ready'));
+(mode==='chatgpt-plan'?plan:mode==='copilot-test'?copilot:codex).start().then(()=>{providerReady=true;console.log('Chat provider ready');}).catch(()=>console.error('Chat provider is not ready'));
 
 async function prepare(job,messages){
  const {webMode,topics,needGuideTool,needDirections}=guidePolicyFor(messages);
@@ -29,7 +31,7 @@ async function answer(job,messages){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),210000);
  try{
   const prepared=await prepare(job,messages);
-  const result=await runWithFallback({mode,codex:()=>codex.run(job,prepared,{signal:controller.signal}),copilot:()=>copilot.run(job,prepared,{signal:controller.signal}),onSwitch:()=>{
+  const result=mode==='chatgpt-plan'?await plan.run(job,prepared,{signal:controller.signal}).catch(async()=>{if(controller.signal.aborted)throw Error('Timeout');job.switchedFrom='chatgpt-plan';job.provider='copilot';job.partial='';job.answer='';job.usage=null;job.firstTokenAt=null;job.stage='switching';return copilot.run(job,prepared,{signal:controller.signal});}):await runWithFallback({mode,codex:()=>codex.run(job,prepared,{signal:controller.signal}),copilot:()=>copilot.run(job,prepared,{signal:controller.signal}),onSwitch:()=>{
    job.stage='switching';job.provider='copilot';job.switchedFrom='codex';job.partial='';job.answer='';job.usage=null;job.firstTokenAt=null;
   }});
   job.answer=result.answer;job.usage=result.usage;job.provider=result.provider;job.model=result.model;
@@ -55,7 +57,7 @@ const server=http.createServer(async(req,res)=>{
    const {messages}=JSON.parse(raw);
    if(!Array.isArray(messages)||!messages.length||messages.length>8||messages.some(m=>!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>1500))return reply({error:'質問を確認してください。'},400);
    if(active>=2)return reply({error:'処理中です。少し待って送信してください。'},429);
-   const job={id:'pc-'+randomUUID(),status:'in_progress',stage:'preparing',createdAt:Date.now(),partial:'',usage:null,webSearches:0,guideReads:0,provider:mode==='copilot-test'?'copilot':'codex'};
+   const job={id:'pc-'+randomUUID(),status:'in_progress',stage:'preparing',createdAt:Date.now(),partial:'',usage:null,webSearches:0,guideReads:0,provider:mode==='chatgpt-plan'?'chatgpt-plan':mode==='copilot-test'?'copilot':'codex'};
    jobs.set(job.id,job);active++;reply({id:job.id,backend:'pc',provider:job.provider});answer(job,messages);return;
   }
   if(req.method==='GET'&&/^\/jobs\/pc-[-a-f0-9]{36}$/.test(req.url)){

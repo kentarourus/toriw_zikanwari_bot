@@ -15,5 +15,6 @@ export async function runWithFallback({mode, codex, copilot, onSwitch = () => {}
 }
 
 export function providerLabel(mode) {
+  if(mode==='chatgpt-plan')return 'GPT-6-Luna · ChatGPT';
   return mode === 'copilot-test' ? 'Copilot Auto（動作確認中）' : 'Luna medium · Copilot予備';
 }

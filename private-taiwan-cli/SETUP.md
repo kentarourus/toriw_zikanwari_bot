@@ -81,3 +81,5 @@ Copilotセッションはemptyモード、設定探索・組込みエージェ�
 
 ## ChatGPT契約枠の非公開検証
 siwc/login.mjsでPKCE/state/nonce付き認可を行い、IDトークン署名・issuer・audience・期限・nonce・利用スコープを検証する。siwc/client.mjsはResponses APIへstore:false/stream:trueで接続し、完了イベントを必須とする。更新トークンは直列に更新して保存する。Ubuntuでは専用host IDを保持し、転送した認証の更新をUbuntuだけが担当する。siwc/server.mjsは127.0.0.1:8795のBearer保護された非公開検証用。taiwan-chat-planサービスで常駐し実応答を確認済み。本番Copilot接続は未変更。学校向け公開提供の適用条件確認と、しおり・検索・経路機能の統合は未完了。認証情報とservice.jsonは公開しない。
+
+2026年11月17日、本番のproviderModeをchatgpt-planへ一時変更。GPT-6-Lunaを使用し、失敗時はCopilotへ切替。名前空間付き固定ツールでしおりと経路を参照し、検索も実応答で検証。SSEはoutput_item.doneの項目も保持する。8795の検証サービスを停止し、認証の更新所有者を本番サービスに一本化。runtime.before-plan.jsonに変更前設定を保存した。公開窓口からchatgpt-plan応答を確認。
