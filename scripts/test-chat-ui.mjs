@@ -1,3 +1,4 @@
+import {createSmoothText} from '../dist/taiwan-chat/smooth-text.js';
 import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import vm from 'node:vm';
 import {packingSnapshot,packingProposals,addPackingItems} from '../dist/taiwan-chat/packing.js';
 import {locationAttachment} from '../dist/taiwan-chat/location.js';
@@ -12,7 +13,7 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  let geolocationCalls=0,fetchCalls=0,sentMessages;const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
  const values=new Map();const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
  const document={getElementById:$,querySelector:()=>app,querySelectorAll:()=>[],createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener(){}};
- const context=vm.createContext({...storageModule,...progressModule,...usageModule,renderMarkdown,locationAttachment,packingSnapshot,packingProposals,addPackingItems,navigator,document,localStorage:storage,sessionStorage:storage,window:{localStorage:storage,history:{replaceState(){}}},location:{hash:'',pathname:'/taiwan-chat/'},matchMedia:()=>({matches:false}),URL,URLSearchParams,AbortSignal,requestAnimationFrame:fn=>fn(),setInterval:()=>1,clearInterval(){},confirm:()=>true,
+ const context=vm.createContext({createSmoothText,...storageModule,...progressModule,...usageModule,renderMarkdown,locationAttachment,packingSnapshot,packingProposals,addPackingItems,navigator,document,localStorage:storage,sessionStorage:storage,window:{localStorage:storage,history:{replaceState(){}}},location:{hash:'',pathname:'/taiwan-chat/'},matchMedia:()=>({matches:false}),URL,URLSearchParams,AbortSignal,requestAnimationFrame:fn=>fn(),setInterval:()=>1,clearInterval(){},confirm:()=>true,
  fetch:async(_url,options)=>{if(String(_url).endsWith('/provider-status'))return Response.json({label:'Copilot Auto（動作確認中）'});fetchCalls++;if(options.method==='POST')sentMessages=JSON.parse(options.body).messages;return Response.json(options.method==='POST'?{id:'job',provider:'copilot'}:{status:'completed',provider:'copilot',model:'auto',answer:'参照 [公式](https://example.com/)\n```packing-suggestions\n[{"group":"carry","text":"折りたたみ傘"}]\n```',usage:{input_tokens:100,output_tokens:40,cached_input_tokens:80}});}
  });
  const source=(await fs.readFile('dist/taiwan-chat/chat.js','utf8')).replace(/^import .*;\r?\n/gm,'');vm.runInContext(source,context);
