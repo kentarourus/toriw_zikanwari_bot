@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
   <a class="skip-link" href="#main">本文へ移動</a>
@@ -84,7 +84,7 @@
     </section>
     <section id="prepare" class="prepare"><h2>出発前に確認</h2><div class="prep-grid"><article><h3>オンライン入国カード</h3><p>資料の案内では11月25日から11月29日までに各自で申請。出発前に最新の学校案内と公式サイトを確認してください。</p><a href="https://twac.immigration.gov.tw/" target="_blank" rel="noopener noreferrer">公式サイトを開く ↗</a></article><article><h3>パスポートと保険</h3><p>有効期限を確認し、パスポートは機内持ち込みに。学校で加入する海外旅行保険の補償内容も確認しましょう。</p></article><article><h3>手荷物のルール</h3><p>液体物やモバイルバッテリーには制限があります。航空会社と配布資料の最新案内を必ず確認してください。</p></article></div></section>
     <section id="packing"><div class="section-title"><div><h2>持ち物チェック</h2></div><span>この端末に保存されます</span></div><div class="packing-progress" hidden><p id="packing-progress-label"></p><progress id="packing-progress" aria-labelledby="packing-progress-label" max="1" value="0"></progress></div><div class="packing-actions"><button type="button" id="edit-packing" aria-pressed="false">持ち物を編集</button><span id="packing-status" role="status" aria-live="polite"></span></div><div id="packing-csv-controls" class="packing-csv-controls" hidden><button id="packing-export" type="button">CSVを書き出す</button><button id="packing-import" type="button">CSVを読み込む</button><input id="packing-file" type="file" accept=".csv,text/csv" hidden><p>読み込んだ項目は現在のリストに追加・更新します。</p></div><div class="check-grid"><article><h3>機内に持ち込む</h3><div id="carry"></div></article><article><h3>スーツケースなど</h3><div id="luggage"></div></article></div></section>
-    <section id="weather" class="weather"><div class="section-title"><div><h2>台北の天気</h2></div><span>台湾時間・今後7日間</span></div><p id="weather-status" role="status">天気予報を読み込んでいます…</p><div id="weather-days" class="weather-days"></div><p class="weather-source">予報は変わる場合があります。データ：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · <a href="https://www.cwa.gov.tw/" target="_blank" rel="noopener noreferrer">台湾の気象情報</a></p></section>
+    <section id="weather" class="weather"><div class="section-title"><div><h2>台北の天気</h2></div><span>台湾時間・今後7日間</span></div><p id="weather-status" role="status">天気予報を読み込んでいます…</p><div id="weather-days" class="weather-days" tabindex="0" role="region" aria-label="台北の7日間の天気予報。横にスクロールできます"></div><p class="weather-source">予報は変わる場合があります。データ：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · <a href="https://www.cwa.gov.tw/" target="_blank" rel="noopener noreferrer">台湾の気象情報</a></p></section>
     <section id="tips" class="tips"><h2>現地での過ごし方</h2><div class="tip-grid"><p><strong>班で行動</strong><br>単独行動はせず、班別研修では報告と帰着時刻を守りましょう。</p><p><strong>交通に注意</strong><br>車両は右側通行。信号が青でも周囲の車やバイクを確認しましょう。</p><p><strong>時差は1時間</strong><br>台湾は日本より1時間遅れです。日程の時間表示に注意してください。</p><p><strong>困ったら</strong><br>落ち着いて教員や現地学生に連絡し、学校からの指示に従いましょう。</p></div></section>
     <section class="references" aria-labelledby="references-title"><h2 id="references-title">参考資料</h2><a class="reference-link" href="guide/"><span><strong>しおりを読む（詳細Markdown版）</strong><small>全34ページ・個人情報のみ非掲載・図も収録</small></span><span aria-hidden="true">↗</span></a><a class="reference-link" href="https://drive.google.com/file/d/12cX17qVX1fxJbOhnS4W9hcOlcfBWP1nx/view?usp=sharing" target="_blank" rel="noopener noreferrer"><span><strong>研修旅行のしおり</strong><small>Google Driveで開く・閲覧には権限が必要な場合があります</small></span><span aria-hidden="true">↗</span></a></section>
     <section class="bottom-tools" aria-labelledby="bottom-tools-title">
@@ -101,6 +101,6 @@
   </main>
   <script type="module" src="app.js?v=packing-edit-4"></script>
   <script type="module" src="travel-ui.js?v=2"></script>
-  <script type="module" src="weather.js?v=1"></script>
+  <script type="module" src="weather.js?v=2"></script>
 </body>
 </html>
