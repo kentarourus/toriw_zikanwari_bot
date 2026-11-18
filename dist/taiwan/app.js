@@ -38,13 +38,6 @@ function render(){updateProgress();for(const group of Object.keys(defaults)){
 const csvControls=document.getElementById('packing-csv-controls'),fileInput=document.getElementById('packing-file');
 editButton.addEventListener('click',()=>{editing=!editing;csvControls.hidden=!editing;editButton.textContent=editing?'編集を終える':'持ち物を編集';editButton.setAttribute('aria-pressed',String(editing));render();});render();
 
-document.getElementById('packing-restore').addEventListener('click',()=>{
- if(!window.confirm('持ち物リストを初期値に戻しますか？ 追加・編集した項目とチェック状態はリセットされます。'))return;
- items=initialItems();
- save();
- render();
- if(!status.textContent)status.textContent='持ち物リストを初期値に戻しました。';
-});
 document.getElementById('packing-export').addEventListener('click',async()=>{try{const {exportCsv}=await import('./packing-csv.js?v=2');const blob=new Blob([exportCsv(items)],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='台湾研修旅行-持ち物.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{status.textContent='CSVを書き出せませんでした。通信を確認して再度お試しください。';}});
 document.getElementById('packing-import').addEventListener('click',()=>fileInput.click());
 fileInput.addEventListener('change',async()=>{const file=fileInput.files?.[0];if(!file)return;try{if(file.size>1024*1024)throw Error('ファイルが大きすぎます（1MBまで）。');const {importCsv}=await import('./packing-csv.js?v=2');const text=typeof file.text==='function'?await file.text():await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('ファイルを読み取れませんでした。'));reader.readAsText(file,'UTF-8');});const rows=importCsv(text);for(const row of rows){const existing=items[row.group].find(item=>item.text===row.text);if(existing)existing.checked=row.checked;else items[row.group].push({id:row.group+'-'+Date.now()+'-'+Math.random().toString(36).slice(2),text:row.text,checked:row.checked});}save();render();if(!status.textContent)status.textContent=`${rows.length}件を読み込みました。`;}catch(error){status.textContent=`読み込めませんでした：${error.message}`;}finally{fileInput.value='';}});
