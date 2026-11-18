@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
   <svg aria-hidden="true" class="travel-icon-library" xmlns="http://www.w3.org/2000/svg">
@@ -34,15 +34,6 @@
     </section>
     <p class="source-note">2026年11月13日版の暫定しおりを掲載しています。変更は学校からの最新連絡を確認してください。</p>
     <div class="trip-dashboard">
-      <section class="field-card" aria-labelledby="field-title">
-        <h2 id="field-title">12月3日（木）の班別研修</h2>
-        <dl>
-          <div><dt>定時現況報告</dt><dd>12:00〜13:00</dd></div>
-          <div><dt>宿舎帰着</dt><dd>16:30〜17:00</dd></div>
-        </dl>
-        <p>台湾時間。宿舎への帰着は16:30以降です。</p>
-        <a href="guide/#source-page-20">しおりで報告方法を確認 <span aria-hidden="true">→</span></a>
-      </section>
       <button type="button" id="open-travel-tools" class="tool-folder" aria-haspopup="dialog" aria-controls="travel-tools" hidden>
         <span class="tool-folder-preview" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#travel-icon-prepare"/></svg><svg viewBox="0 0 24 24"><use href="#travel-icon-weather"/></svg><svg viewBox="0 0 24 24"><use href="#travel-icon-map"/></svg><svg viewBox="0 0 24 24"><use href="#travel-icon-chat"/></svg></span>
         <span><strong>便利ツール</strong><small id="packing-shortcut">持ち物・天気・地図</small></span><span aria-hidden="true">›</span>
@@ -86,7 +77,7 @@
       </div>
     </section>
     <section id="prepare" class="prepare"><h2>出発前に確認</h2><div class="prep-grid"><article><h3>オンライン入国カード</h3><p>資料の案内では11月25日から11月29日までに各自で申請。出発前に最新の学校案内と公式サイトを確認してください。</p><a href="https://twac.immigration.gov.tw/" target="_blank" rel="noopener noreferrer">公式サイトを開く ↗</a></article><article><h3>パスポートと保険</h3><p>有効期限を確認し、パスポートは機内持ち込みに。学校で加入する海外旅行保険の補償内容も確認しましょう。</p></article><article><h3>手荷物のルール</h3><p>液体物やモバイルバッテリーには制限があります。航空会社と配布資料の最新案内を必ず確認してください。</p></article></div></section>
-    <section id="packing"><div class="section-title"><div><h2>持ち物チェック</h2></div><span>この端末に保存されます</span></div><div class="packing-progress" hidden><p id="packing-progress-label"></p><progress id="packing-progress" aria-labelledby="packing-progress-label" max="1" value="0"></progress></div><div class="packing-actions"><button type="button" id="edit-packing" aria-pressed="false">持ち物を編集</button><span id="packing-status" role="status" aria-live="polite"></span></div><div id="packing-csv-controls" class="packing-csv-controls" hidden><button id="packing-export" type="button">CSVを書き出す</button><button id="packing-import" type="button">CSVを読み込む</button><input id="packing-file" type="file" accept=".csv,text/csv" hidden><p>読み込みはリストに追加・更新</p></div><div class="check-grid"><article><h3>機内に持ち込む</h3><div id="carry"></div></article><article><h3>スーツケースなど</h3><div id="luggage"></div></article></div></section>
+    <section id="packing"><div class="section-title"><div><h2>持ち物チェック</h2></div><span>この端末に保存されます</span></div><div class="packing-progress" hidden><p id="packing-progress-label"></p><progress id="packing-progress" aria-labelledby="packing-progress-label" max="1" value="0"></progress></div><div class="packing-actions"><button type="button" id="edit-packing" aria-pressed="false">持ち物を編集</button><span id="packing-status" role="status" aria-live="polite"></span></div><div id="packing-csv-controls" class="packing-csv-controls" hidden><button id="packing-export" type="button">CSVを書き出す</button><button id="packing-import" type="button">CSVを読み込む</button><input id="packing-file" type="file" accept=".csv,text/csv" hidden><p>読み込みはリストに追加・更新</p></div><div class="check-grid"><article><h3>手荷物</h3><div id="carry"></div></article><article><h3>預入荷物</h3><div id="luggage"></div></article></div></section>
     <section id="weather" class="weather"><div class="section-title"><div><h2>台北の天気</h2></div><span>台湾時間・今後7日間</span></div><p id="weather-status" role="status">天気予報を読み込んでいます…</p><div id="weather-days" class="weather-days" tabindex="0" role="region" aria-label="台北の7日間の天気予報。横にスクロールできます"></div><p class="weather-source">予報は変わる場合があります。データ：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · <a href="https://www.cwa.gov.tw/" target="_blank" rel="noopener noreferrer">台湾の気象情報</a></p></section>
     <section id="tips" class="tips" aria-labelledby="tips-title">
       <h2 id="tips-title">現地での過ごし方</h2>
@@ -117,7 +108,7 @@
     </section>
     <footer><a href="#top">ページ上部へ ↑</a><a href="../">クラス一覧に戻る</a></footer>
   </main>
-  <script type="module" src="app.js?v=packing-edit-4"></script>
+  <script type="module" src="app.js?v=packing-edit-5"></script>
   <script type="module" src="travel-ui.js?v=2"></script>
   <script type="module" src="weather.js?v=2"></script>
 </body>

@@ -58,20 +58,14 @@ main > section { margin-block: 0 40px; }
   font-size: .88rem;
 }
 .source-note { margin: 12px 0 18px; color: var(--muted); font-size: .8rem; }
-.trip-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 36px; }
-.field-card, .day-card, .prep-grid article, .check-grid article, .weather-day, .tips, .reference-link {
+.trip-dashboard { display: grid; margin-bottom: 36px; }
+.day-card, .prep-grid article, .check-grid article, .weather-day, .tips, .reference-link {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
 }
-.field-card { padding: 17px 20px; border-left: 4px solid #cf9350; }
-.field-card h2 { font-size: 1.15rem; }
-.field-card dl { margin: 8px 0; }
-.field-card dl div { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0 8px; }
-.field-card dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
-.field-card p { margin: 7px 0 0; color: var(--muted); font-size: .82rem; }
-.field-card a, .section-title a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: .84rem; font-weight: 700; }
+.section-title a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: .84rem; font-weight: 700; }
 h2 { margin: 0; font-size: clamp(1.35rem, 3.5vw, 1.9rem); line-height: 1.35; }
 h3 { margin: 0 0 10px; font-size: 1rem; }
 .section-title { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 5px 16px; margin-bottom: 12px; }
@@ -148,8 +142,8 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
   .hero { min-height: 185px; grid-template-columns: minmax(0,1fr) minmax(0,40%); margin-bottom: 0; }
   .hero-copy { padding: 15px 12px 15px 16px; }
   .trip-date { font-size: .74rem; }
-  .trip-dashboard, .prep-grid, .check-grid { grid-template-columns: minmax(0,1fr); }
-  .trip-dashboard { margin-bottom: 28px; gap: 9px; }
+  .prep-grid, .check-grid { grid-template-columns: minmax(0,1fr); }
+  .trip-dashboard { margin-bottom: 28px; }
   .day-card summary { padding-inline: 12px; }
   .day-content { padding-inline: 12px; }
   .day-content li { grid-template-columns: minmax(90px, 38%) minmax(0,1fr); font-size: .88rem; }
