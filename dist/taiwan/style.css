@@ -257,3 +257,19 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
 .tip-list > div:last-child { padding-bottom: 0; }
 .tip-list dt { font-weight: 750; }
 .tip-list dd { margin: 2px 0 0; color: var(--muted); }
+
+.chat-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #e7efe5;
+}
+.chat-callout > div { flex: 1 1 280px; min-width: 0; }
+.chat-callout h2 { font-size: 1rem; }
+.chat-callout p { margin: 4px 0 0; color: var(--muted); font-size: .84rem; }
+.chat-callout a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: .86rem; font-weight: 750; }
