@@ -1,7 +1,10 @@
 import {defaults} from './packing-data.js';
 const storageKey='taiwan-packing-items-2026-v2',status=document.getElementById('packing-status'),editButton=document.getElementById('edit-packing');
 let legacy={};try{legacy=JSON.parse(localStorage.getItem('taiwan-packing-2026')||'{}')||{}}catch{}
-let items=Object.fromEntries(Object.entries(defaults).map(([group,list])=>[group,list.map((text,i)=>({id:group+'-'+i,text,checked:legacy[group+'-'+i]===true}))]));
+function initialItems(previousChecks={}){
+ return Object.fromEntries(Object.entries(defaults).map(([group,list])=>[group,list.map((text,i)=>({id:group+'-'+i,text,checked:previousChecks[group+'-'+i]===true}))]));
+}
+let items=initialItems(legacy);
 try{const saved=JSON.parse(localStorage.getItem(storageKey)||'null');if(saved&&Object.keys(defaults).every(g=>Array.isArray(saved[g])&&saved[g].every(x=>x&&typeof x.id==='string'&&typeof x.text==='string'&&typeof x.checked==='boolean')))items=saved}catch{}
 function restoreDefaults(){let added=0;for(const [group,list] of Object.entries(defaults)){for(const [i,text] of list.entries()){if(items[group].some(item=>item.text===text))continue;const originalId=group+'-'+i;items[group].push({id:items[group].some(item=>item.id===originalId)?group+'-restored-'+i:originalId,text,checked:legacy[originalId]===true});added++;}}return added;}
 // Restore any missing original entries once, while preserving edits and checks.
@@ -35,7 +38,13 @@ function render(){updateProgress();for(const group of Object.keys(defaults)){
 const csvControls=document.getElementById('packing-csv-controls'),fileInput=document.getElementById('packing-file');
 editButton.addEventListener('click',()=>{editing=!editing;csvControls.hidden=!editing;editButton.textContent=editing?'編集を終える':'持ち物を編集';editButton.setAttribute('aria-pressed',String(editing));render();});render();
 
-document.getElementById('packing-restore').addEventListener('click',()=>{const count=restoreDefaults();save();render();if(!status.textContent)status.textContent=count?`${count}件の初期項目を追加しました。`:'初期項目はすべてあります。';});
+document.getElementById('packing-restore').addEventListener('click',()=>{
+ if(!window.confirm('持ち物リストを初期値に戻しますか？ 追加・編集した項目とチェック状態はリセットされます。'))return;
+ items=initialItems();
+ save();
+ render();
+ if(!status.textContent)status.textContent='持ち物リストを初期値に戻しました。';
+});
 document.getElementById('packing-export').addEventListener('click',async()=>{try{const {exportCsv}=await import('./packing-csv.js?v=2');const blob=new Blob([exportCsv(items)],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='台湾研修旅行-持ち物.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{status.textContent='CSVを書き出せませんでした。通信を確認して再度お試しください。';}});
 document.getElementById('packing-import').addEventListener('click',()=>fileInput.click());
 fileInput.addEventListener('change',async()=>{const file=fileInput.files?.[0];if(!file)return;try{if(file.size>1024*1024)throw Error('ファイルが大きすぎます（1MBまで）。');const {importCsv}=await import('./packing-csv.js?v=2');const text=typeof file.text==='function'?await file.text():await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('ファイルを読み取れませんでした。'));reader.readAsText(file,'UTF-8');});const rows=importCsv(text);for(const row of rows){const existing=items[row.group].find(item=>item.text===row.text);if(existing)existing.checked=row.checked;else items[row.group].push({id:row.group+'-'+Date.now()+'-'+Math.random().toString(36).slice(2),text:row.text,checked:row.checked});}save();render();if(!status.textContent)status.textContent=`${rows.length}件を読み込みました。`;}catch(error){status.textContent=`読み込めませんでした：${error.message}`;}finally{fileInput.value='';}});
