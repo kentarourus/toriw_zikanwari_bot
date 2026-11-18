@@ -25,12 +25,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .site-header, main { max-width: 1120px; margin-inline: auto; padding-inline: clamp(14px, 4vw, 36px); }
 .site-header { display: flex; justify-content: space-between; align-items: center; gap: 14px; min-height: 68px; }
 .site-header a, .primary-link { text-decoration: none; font-weight: 700; }
-.site-header > a, .travel-nav a { display: inline-flex; align-items: center; min-height: 44px; }
+.site-header > a { display: inline-flex; align-items: center; min-height: 44px; }
 .back-link, .header-chat { font-size: .88rem; }
 .header-chat { gap: 5px; }
-.travel-nav { display: flex; gap: 6px; }
-.travel-nav a { justify-content: center; padding: 6px 14px; border-radius: 10px; color: var(--ink); }
-.travel-nav a:hover { background: #e5eee4; }
 main { padding-bottom: 36px; }
 main > section { margin-block: 0 40px; }
 .hero {
@@ -69,7 +66,7 @@ main > section { margin-block: 0 40px; }
 .tower b { width: 45%; height: 20px; background: #3d7868; }
 .source-note { margin: 12px 0 18px; color: var(--muted); font-size: .8rem; }
 .trip-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 36px; }
-.field-card, .day-card, .prep-grid article, .check-grid article, .weather-day, .tip-grid p, .reference-link {
+.field-card, .day-card, .prep-grid article, .check-grid article, .weather-day, .tips, .reference-link {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -100,19 +97,25 @@ h3 { margin: 0 0 10px; font-size: 1rem; }
 .day-content ul { margin: 0; padding: 0; list-style: none; }
 .day-content li { display: grid; grid-template-columns: minmax(100px, 8rem) minmax(0,1fr); gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
 .day-content time { font-weight: 700; font-size: .87rem; font-variant-numeric: tabular-nums; }
-.prep-grid, .check-grid, .tip-grid { display: grid; gap: 10px; }
+.prep-grid, .check-grid { display: grid; gap: 10px; }
 .prep-grid { grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 12px; }
-.check-grid, .tip-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-.prep-grid article, .check-grid article, .tip-grid p { padding: 15px 17px; }
-.prep-grid p, .tip-grid p { font-size: .9rem; }
-.tip-grid p { margin: 0; }
-.tip-grid { margin-top: 12px; }
+.check-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.prep-grid article, .check-grid article { padding: 15px 17px; }
+.prep-grid p { font-size: .9rem; }
 .packing-progress { margin-bottom: 14px; }
 .packing-progress p { margin: 0 0 4px; color: var(--muted); font-size: .88rem; }
 .packing-progress progress { display: block; width: 100%; height: 12px; accent-color: var(--green); }
 .packing-actions, .packing-csv-controls, .packing-add, .packing-item { display: flex; align-items: center; gap: 8px; }
-.packing-actions, .packing-csv-controls { flex-wrap: wrap; margin-bottom: 12px; }
-.packing-csv-controls p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: .8rem; }
+.packing-actions { flex-wrap: wrap; margin-bottom: 12px; }
+.packing-csv-controls {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 4px;
+  margin: -4px -4px 8px;
+}
+.packing-csv-controls > button { flex: none; }
+.packing-csv-controls p { margin: 0; color: var(--muted); font-size: .78rem; }
 .packing-actions button, .packing-csv-controls button, .packing-add button, .packing-remove {
   min-height: 44px; padding: 6px 11px; border: 1px solid #adcaba; border-radius: 9px; background: #e8f1e7; color: var(--ink); cursor: pointer;
 }
@@ -146,8 +149,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
   #weather-days { --weather-columns: 4; --weather-gaps: 21px; }
 }
 @media (max-width: 620px) {
-  html { scroll-padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
-  main { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  main { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
   main > section { margin-bottom: 30px; }
   .site-header { min-height: 55px; }
   .hero { min-height: 185px; grid-template-columns: minmax(0,1fr) minmax(60px,24%); margin-bottom: 0; }
@@ -155,11 +157,6 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
   .trip-date { font-size: .74rem; }
   .tower { left: calc(50% - 31px); transform: scale(.57); transform-origin: bottom center; }
   .sun { width: 68%; right: -10%; top: 22%; }
-  .travel-nav {
-    position: fixed; z-index: 4; inset: auto 0 0; display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
-    gap: 2px; padding: 5px 8px calc(5px + env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line);
-  }
-  .travel-nav a { padding: 5px 2px; font-size: .86rem; }
   .trip-dashboard, .prep-grid, .check-grid { grid-template-columns: minmax(0,1fr); }
   .trip-dashboard { margin-bottom: 28px; gap: 9px; }
   .day-card summary { padding-inline: 12px; }
@@ -253,3 +250,10 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
 }
 .bottom-tools h2 { margin-bottom: 10px; }
 .tool-folder small { display: block; color: var(--muted); font-size: .76rem; }
+
+.tips { padding: 16px; }
+.tip-list { margin: 10px 0 0; font-size: .9rem; }
+.tip-list > div { padding: 10px 0; border-top: 1px solid var(--line); }
+.tip-list > div:last-child { padding-bottom: 0; }
+.tip-list dt { font-weight: 750; }
+.tip-list dd { margin: 2px 0 0; color: var(--muted); }
