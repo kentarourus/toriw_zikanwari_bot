@@ -172,12 +172,15 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
   cursor: pointer;
 }
 .tool-folder:hover, .tool-icons a:hover { background: #edf3e9; }
+.travel-icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
 .tool-folder-preview {
-  padding: 5px 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  padding: 8px;
   border-radius: 12px;
   background: #e4eee3;
-  font-size: 1.1rem;
-  line-height: 1.45;
+  color: #286052;
 }
 .tool-folder > span:last-child { font-size: 1.4rem; }
 .tools-dialog {
@@ -231,8 +234,19 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
   height: 43px;
   border-radius: 12px;
   background: #e4eee3;
-  font-size: 1.25rem;
+  color: #286052;
 }
+.tool-icon svg, .tool-folder-preview svg {
+  display: block;
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tool-folder-preview svg { width: 17px; height: 17px; }
 .bottom-tools {
   padding: 16px;
   border: 1px solid var(--line);
