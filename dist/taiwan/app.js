@@ -16,14 +16,12 @@ function updateProgress(){
  const summary=`${checked} / ${entries.length} 件チェック済み`;
  const bar=document.getElementById('packing-progress');
  const label=document.getElementById('packing-progress-label');
- const shortcut=document.getElementById('packing-shortcut');
  if(bar&&label){
   bar.max=Math.max(1,entries.length);
   bar.value=checked;
   label.textContent=summary;
   bar.parentElement.hidden=false;
  }
- if(shortcut)shortcut.textContent=summary;
 }
 function save(){updateProgress();try{localStorage.setItem(storageKey,JSON.stringify(items));status.textContent='';}catch{status.textContent='この端末には保存できませんでした。';}}
 function render(){updateProgress();for(const group of Object.keys(defaults)){

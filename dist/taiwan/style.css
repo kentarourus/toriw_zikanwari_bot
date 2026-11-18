@@ -306,7 +306,6 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
   background: var(--panel);
 }
 .bottom-tools h2 { margin-bottom: 10px; }
-.tool-folder small { display: block; color: var(--muted); font-size: .76rem; }
 
 .currency-tool { margin-inline: auto; max-width: 480px; }
 .currency-fields, .currency-rate {
