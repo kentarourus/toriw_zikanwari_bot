@@ -3,3 +3,27 @@
 .install-guide summary{cursor:pointer;font-weight:700;padding:15px 0;min-height:48px}
 .install-guide p{margin:0 0 16px}.install-guide button{font:inherit;background:#203f6b;color:white;border:0;border-radius:8px;padding:12px 18px;cursor:pointer;margin-bottom:18px;min-height:44px}
 .install-guide button[hidden]{display:none}.install-note{color:#52667f}.install-guide summary:focus-visible,.install-guide button:focus-visible{outline:3px solid #2765c5;outline-offset:3px}
+
+.installed-travel {
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: #f6f5ee;
+}
+.installed-travel[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.installed-travel iframe { width: 100%; height: 100%; border: 0; }
+.installed-travel-close {
+  justify-self: end;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 4px 12px;
+  border: 1px solid #d9e1d6;
+  border-radius: 9px;
+  background: #fffef9;
+  color: #173d34;
+  font-size: 1.35rem;
+  cursor: pointer;
+}

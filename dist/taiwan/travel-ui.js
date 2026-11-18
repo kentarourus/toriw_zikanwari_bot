@@ -1,5 +1,9 @@
 import {initCurrencyTool} from './currency.js';
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url)).catch(() => {});
+}
+
 function openLinkedDay() {
   const hash = location.hash;
   if (!/^#day-[1-4]$/.test(hash)) return;
@@ -43,15 +47,34 @@ function getPanel(key, title, fallback) {
     panel.refresh = initCurrencyTool(panel);
   } else {
     const frame = document.createElement('iframe');
-    frame.src = embeds[key];
     frame.title = title;
     const link = document.createElement('a');
     link.href = fallback;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = '別のタブで開く ↗';
+    link.textContent = key === 'map' ? 'Google マップで開く ↗' : '別のタブで開く ↗';
+    const offline = document.createElement('div');
+    if (key === 'map') {
+      const image = document.createElement('img');
+      image.src = 'guide-assets/mrt-map.png';
+      image.alt = 'しおりに掲載されている台北MRT路線図';
+      image.className = 'tool-offline-map';
+      offline.append(image);
+    } else {
+      offline.textContent = '丹陽さんに質問するには通信が必要です。';
+      const guide = document.createElement('a');
+      guide.href = 'guide/';
+      guide.textContent = '保存済みのしおりを読む';
+      offline.append(document.createElement('br'), guide);
+    }
+    panel.refresh = () => {
+      const online = navigator.onLine;
+      if (online && !frame.hasAttribute('src')) frame.src = embeds[key];
+      frame.hidden = link.hidden = !online;
+      offline.hidden = online;
+    };
     panel.className = 'tool-embed';
-    panel.append(frame, link);
+    panel.append(frame, offline, link);
   }
   mounted.set(key, panel);
   toolContent.append(panel);
@@ -93,7 +116,6 @@ function openTool(trigger) {
   const origin = trigger.querySelector('.tool-icon').getBoundingClientRect();
   returnFocus = folderDialog.open ? toolFolder : trigger;
   if (folderDialog.open) folderDialog.close();
-  toolDialog.classList.toggle('wide-tool', key === 'chat' && !section);
   document.getElementById('travel-tool-title').textContent =
     section?.querySelector('h2').textContent || (key === 'currency' ? '日本円・台湾ドル換算' : title);
   for (const panel of mounted.values()) panel.hidden = true;
@@ -115,7 +137,7 @@ function openTool(trigger) {
     panel.refresh?.();
   }
   toolDialog.showModal();
-  toolDialog.scrollTop = 0;
+  toolContent.scrollTop = 0;
   animateLaunch(trigger, origin);
 }
 

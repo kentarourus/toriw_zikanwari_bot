@@ -4,6 +4,34 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+const travelLink = document.querySelector('.feature-link[href="../../taiwan/"]');
+if (travelLink) {
+  const standalone = window.matchMedia('(display-mode: standalone)');
+  travelLink.addEventListener('click', event => {
+    if (!(standalone.matches || navigator.standalone === true) ||
+        typeof HTMLDialogElement.prototype.showModal !== 'function' ||
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    event.preventDefault();
+    const dialog = document.createElement('dialog');
+    dialog.className = 'installed-travel';
+    dialog.setAttribute('aria-label', '台湾研修旅行');
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'installed-travel-close';
+    close.textContent = '×';
+    close.setAttribute('aria-label', '台湾研修旅行を閉じる');
+    close.addEventListener('click', () => dialog.close());
+    const frame = document.createElement('iframe');
+    frame.src = travelLink.href;
+    frame.title = '台湾研修旅行';
+    dialog.append(close, frame);
+    dialog.addEventListener('close', () => dialog.remove(), {once: true});
+    document.body.append(dialog);
+    dialog.showModal();
+  });
+}
+
 const classLabel=document.querySelector('.classmark')?.textContent?.trim();
 if(classLabel){
  const standalone=window.matchMedia('(display-mode: standalone)');

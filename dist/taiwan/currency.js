@@ -1,8 +1,12 @@
+import {readSavedData, saveData} from './offline-data.js';
+
 const endpoint = 'https://api.frankfurter.dev/v2/rate/TWD/JPY';
 const formatters = {
   jpy: new Intl.NumberFormat('ja-JP', {maximumFractionDigits: 0}),
   twd: new Intl.NumberFormat('ja-JP', {maximumFractionDigits: 2})
 };
+const validRate = data => data?.base === 'TWD' && data.quote === 'JPY' &&
+  Number.isFinite(data.rate) && data.rate > 0 && /^\d{4}-\d{2}-\d{2}$/.test(data.date);
 
 export function initCurrencyTool(panel) {
   const amount = panel.querySelector('#currency-amount');
@@ -13,6 +17,7 @@ export function initCurrencyTool(panel) {
   const status = panel.querySelector('#currency-status');
   let manual = false;
   let edits = 0;
+  let saved = readSavedData('currency');
 
   function convert() {
     const value = amount.valueAsNumber;
@@ -24,6 +29,12 @@ export function initCurrencyTool(panel) {
       : '—';
   }
 
+  function displayRate(data, label) {
+    rate.value = data.rate;
+    status.textContent = `${data.date.replaceAll('-', '/')} の参考レート${label}`;
+    convert();
+  }
+
   async function fetchRate() {
     if (refresh.disabled) return;
     const revision = edits;
@@ -33,18 +44,21 @@ export function initCurrencyTool(panel) {
       const response = await fetch(endpoint, {cache: 'no-store', signal: AbortSignal.timeout(8000)});
       if (!response.ok) throw new Error('Rate request failed');
       const data = await response.json();
-      if (data.base !== 'TWD' || data.quote !== 'JPY' || !Number.isFinite(data.rate) ||
-          data.rate <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) throw new Error('Invalid rate');
+      if (!validRate(data)) throw new Error('Invalid rate');
+      saved = data;
+      saveData('currency', data);
       if (revision !== edits) return;
-      rate.value = data.rate;
       manual = false;
-      status.textContent = `${data.date.replaceAll('-', '/')} の参考レート`;
-      convert();
+      displayRate(data, '');
     } catch {
       if (revision === edits) {
-        status.textContent = rate.valueAsNumber > 0
-          ? '取得できませんでした。入力欄のレートで換算しています。'
-          : '取得できませんでした。レートを手入力できます。';
+        if (!manual && validRate(saved)) {
+          displayRate(saved, '（取得できないため保存済みの値を使用）');
+        } else {
+          status.textContent = rate.valueAsNumber > 0
+            ? '取得できませんでした。入力欄のレートで換算しています。'
+            : '取得できませんでした。レートを手入力できます。';
+        }
       }
     } finally {
       refresh.disabled = false;
@@ -60,5 +74,10 @@ export function initCurrencyTool(panel) {
     convert();
   });
   refresh.addEventListener('click', fetchRate);
-  return () => { if (!manual) fetchRate(); };
+  return () => {
+    if (manual) return;
+    if (validRate(saved)) displayRate(saved, '（保存済み）');
+    if (navigator.onLine) fetchRate();
+    else if (!validRate(saved)) status.textContent = 'オフラインです。レートを手入力できます。';
+  };
 }
