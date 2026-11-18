@@ -1,0 +1,224 @@
+body {
+  background: #f5f7f3;
+  color: #183a34;
+}
+.site-header, main {
+  max-width: 1120px;
+}
+.site-header {
+  align-items: center;
+  letter-spacing: 0;
+  font-size: .95rem;
+}
+.site-header .back-link {
+  font-size: .8rem;
+  color: #45665e;
+}
+.skip-link {
+  position: fixed;
+  z-index: 5;
+  top: 8px;
+  left: 8px;
+  padding: 10px 14px;
+  background: white;
+  transform: translateY(-150%);
+}
+.skip-link:focus {
+  transform: none;
+}
+.hero {
+  min-height: 260px;
+  grid-template-columns: 1.35fr 1fr;
+  border: 1px solid #d8e5db;
+}
+.hero-copy {
+  align-self: center;
+  padding: 30px 40px;
+}
+.hero h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 9cqw, 3.75rem);
+}
+.hero .dates {
+  margin-top: 18px;
+}
+.hero .art {
+  min-height: 250px;
+}
+.hero .tower {
+  transform: scale(.82);
+  transform-origin: bottom center;
+  bottom: 24px;
+}
+.alert {
+  margin: 14px 0;
+}
+.travel-nav {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 20px;
+  padding: 6px;
+  border: 1px solid #d7e4da;
+  border-radius: 15px;
+  background: #f5f7f3;
+}
+.travel-nav a, .day-links a {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 4px;
+  border-radius: 9px;
+  background: white;
+  color: #21493e;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+.travel-nav a:last-child {
+  background: #24584b;
+  color: white;
+}
+.travel-nav a:hover, .day-links a:hover {
+  box-shadow: inset 0 0 0 2px #7ca996;
+}
+main [id] {
+  scroll-margin-top: 63px;
+}
+.travel-overview {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+.field-card {
+  margin: 0;
+  padding: 18px 22px;
+  border: 1px solid #d7e4da;
+  border-radius: 18px;
+  background: white;
+}
+.field-card h2 {
+  font-size: 1.22rem;
+}
+.field-card dl {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 8px;
+}
+.field-card dl div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 12px;
+}
+.field-card dd {
+  margin: 0;
+  color: #24584b;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.field-card p {
+  margin: 0;
+  font-size: .8rem;
+}
+.field-card a, .section-title > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: .85rem;
+  font-weight: 700;
+}
+.travel-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+.travel-actions .chat-feature {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.travel-actions > a:not(.chat-feature) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  gap: 4px 10px;
+  padding: 8px 12px;
+  border: 1px solid #d7e4da;
+  border-radius: 12px;
+  background: white;
+  font-size: .84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.day-links {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.days article {
+  border: 1px solid #dce7dd;
+}
+.days #day-3 {
+  border-color: #82ad98;
+}
+a:focus-visible {
+  outline: 3px solid #377a65;
+  outline-offset: 3px;
+}
+@media (max-width: 650px) {
+  .hero {
+    min-height: 155px;
+    grid-template-columns: minmax(0, 1fr) minmax(64px, 29%);
+  }
+  .hero-copy {
+    padding: 17px 12px 17px 16px;
+  }
+  .hero .art {
+    min-height: 155px;
+  }
+  .hero .sun {
+    right: -16px;
+    top: 18px;
+  }
+  .hero .tower {
+    left: calc(50% - 35px);
+    transform: scale(.49);
+    bottom: 16px;
+  }
+  .hero .caption {
+    display: none;
+  }
+  .hero .dates {
+    margin-top: 10px;
+    font-size: .78rem;
+  }
+  .travel-nav, .day-links {
+    font-size: .82rem;
+  }
+  .travel-overview {
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 30px;
+  }
+  .field-card {
+    padding: 15px 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .chat-feature {
+    transition: none;
+  }
+}
