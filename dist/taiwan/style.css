@@ -69,7 +69,7 @@ main > section { margin-block: 0 40px; }
 .tower b { width: 45%; height: 20px; background: #3d7868; }
 .source-note { margin: 12px 0 18px; color: var(--muted); font-size: .8rem; }
 .trip-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 36px; }
-.field-card, .task-grid a, .day-card, .prep-grid article, .check-grid article, .weather-day, .tip-grid p, .reference-link {
+.field-card, .day-card, .prep-grid article, .check-grid article, .weather-day, .tip-grid p, .reference-link {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -82,11 +82,6 @@ main > section { margin-block: 0 40px; }
 .field-card dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
 .field-card p { margin: 7px 0 0; color: var(--muted); font-size: .82rem; }
 .field-card a, .section-title a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: .84rem; font-weight: 700; }
-.task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.task-grid a { display: flex; flex-direction: column; justify-content: center; padding: 12px 15px; text-decoration: none; }
-.task-grid a:hover { border-color: var(--green); }
-.task-grid small { color: var(--muted); font-size: .76rem; }
-.task-grid .chat-task { background: #e4eee3; color: var(--ink); }
 h2 { margin: 0; font-size: clamp(1.35rem, 3.5vw, 1.9rem); line-height: 1.35; }
 h3 { margin: 0 0 10px; font-size: 1rem; }
 .section-title { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 5px 16px; margin-bottom: 12px; }
@@ -157,9 +152,94 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
   .travel-nav a { padding: 5px 2px; font-size: .86rem; }
   .trip-dashboard, .prep-grid, .check-grid { grid-template-columns: minmax(0,1fr); }
   .trip-dashboard { margin-bottom: 28px; gap: 9px; }
-  .task-grid a { padding: 10px 12px; }
   .day-card summary { padding-inline: 12px; }
   .day-content { padding-inline: 12px; }
   .day-content li { grid-template-columns: minmax(90px, 38%) minmax(0,1fr); font-size: .88rem; }
   #weather-days { grid-template-columns: repeat(3,minmax(0,1fr)); }
 }
+
+.tool-folder {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  align-self: start;
+  gap: 14px;
+  padding: 14px;
+  min-height: 84px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.tool-folder:hover, .tool-icons a:hover { background: #edf3e9; }
+.tool-folder-preview {
+  padding: 5px 8px;
+  border-radius: 12px;
+  background: #e4eee3;
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+.tool-folder > span:last-child { font-size: 1.4rem; }
+.tools-dialog {
+  width: min(480px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+}
+.tools-dialog::backdrop { background: #173d3470; }
+.tools-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.tools-heading button {
+  min-height: 44px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.tool-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(70px, 100%), 1fr));
+  gap: 6px;
+}
+.tool-icons a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 74px;
+  padding: 7px 3px;
+  border-radius: 12px;
+  text-align: center;
+  text-decoration: none;
+  font-size: .78rem;
+  font-weight: 750;
+}
+.tool-icon {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  background: #e4eee3;
+  font-size: 1.25rem;
+}
+.bottom-tools {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+.bottom-tools h2 { margin-bottom: 10px; }
+.tool-folder small { display: block; color: var(--muted); font-size: .76rem; }

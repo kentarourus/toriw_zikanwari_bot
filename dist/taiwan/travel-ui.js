@@ -13,3 +13,23 @@ document.querySelector('.day-links')?.addEventListener('click', event => {
 });
 window.addEventListener('hashchange', openLinkedDay);
 openLinkedDay();
+
+const toolFolder = document.getElementById('open-travel-tools');
+const toolDialog = document.getElementById('travel-tools');
+
+if (toolFolder && typeof toolDialog?.showModal === 'function') {
+  toolFolder.hidden = false;
+  toolFolder.addEventListener('click', () => toolDialog.showModal());
+  toolDialog.addEventListener('click', event => {
+    if (event.target.closest('a')) {
+      toolDialog.close();
+      return;
+    }
+    if (event.target !== toolDialog) return;
+    const bounds = toolDialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right ||
+        event.clientY < bounds.top || event.clientY > bounds.bottom) {
+      toolDialog.close();
+    }
+  });
+}

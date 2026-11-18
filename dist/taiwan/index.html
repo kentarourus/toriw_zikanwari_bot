@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
   <a class="skip-link" href="#main">本文へ移動</a>
@@ -40,12 +40,23 @@
         <p>台湾時間。宿舎への帰着は16:30以降です。</p>
         <a href="guide/#source-page-20">しおりで報告方法を確認 <span aria-hidden="true">→</span></a>
       </section>
-      <nav class="task-grid" aria-label="よく使う機能">
-        <a href="#prepare"><strong>出発準備</strong><small>入国カード・手荷物</small></a>
-        <a href="#packing"><strong>持ち物チェック</strong><small id="packing-shortcut">チェック・リスト編集</small></a>
-        <a href="#weather"><strong>台北の天気</strong><small>今後7日間の予報</small></a>
-        <a href="../taiwan-chat/" class="chat-task"><strong>丹陽さんに相談</strong><small>しおり・観光・経路案内</small></a>
-      </nav>
+      <button type="button" id="open-travel-tools" class="tool-folder" aria-haspopup="dialog" aria-controls="travel-tools" hidden>
+        <span class="tool-folder-preview" aria-hidden="true">🧳 🌤️<br>🗺️ 💬</span>
+        <span><strong>便利ツール</strong><small id="packing-shortcut">持ち物・天気・地図</small></span><span aria-hidden="true">›</span>
+      </button>
+      <dialog id="travel-tools" class="tools-dialog" aria-labelledby="travel-tools-title">
+        <div class="tools-heading">
+          <h2 id="travel-tools-title">便利ツール</h2>
+          <form method="dialog"><button type="submit" autofocus>閉じる</button></form>
+        </div>
+        <nav class="tool-icons" aria-label="便利ツール">
+          <a href="#prepare"><span class="tool-icon" aria-hidden="true">🧳</span><span>出発準備</span></a>
+          <a href="#packing"><span class="tool-icon" aria-hidden="true">☑️</span><span>持ち物</span></a>
+          <a href="#weather"><span class="tool-icon" aria-hidden="true">🌤️</span><span>天気</span></a>
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=Taipei%2C+Taiwan"><span class="tool-icon" aria-hidden="true">🗺️</span><span>台北の地図</span></a>
+          <a href="../taiwan-chat/"><span class="tool-icon" aria-hidden="true">💬</span><span>丹陽さん</span></a>
+        </nav>
+      </dialog>
     </div>
     <section id="schedule" aria-labelledby="schedule-title">
       <div class="section-title"><h2 id="schedule-title">4日間の予定</h2><a href="guide/">詳しいしおり →</a></div>
@@ -76,10 +87,20 @@
     <section id="weather" class="weather"><div class="section-title"><div><h2>台北の天気</h2></div><span>台湾時間・今後7日間</span></div><p id="weather-status" role="status">天気予報を読み込んでいます…</p><div id="weather-days" class="weather-days"></div><p class="weather-source">予報は変わる場合があります。データ：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · <a href="https://www.cwa.gov.tw/" target="_blank" rel="noopener noreferrer">台湾の気象情報</a></p></section>
     <section id="tips" class="tips"><h2>現地での過ごし方</h2><div class="tip-grid"><p><strong>班で行動</strong><br>単独行動はせず、班別研修では報告と帰着時刻を守りましょう。</p><p><strong>交通に注意</strong><br>車両は右側通行。信号が青でも周囲の車やバイクを確認しましょう。</p><p><strong>時差は1時間</strong><br>台湾は日本より1時間遅れです。日程の時間表示に注意してください。</p><p><strong>困ったら</strong><br>落ち着いて教員や現地学生に連絡し、学校からの指示に従いましょう。</p></div></section>
     <section class="references" aria-labelledby="references-title"><h2 id="references-title">参考資料</h2><a class="reference-link" href="guide/"><span><strong>しおりを読む（詳細Markdown版）</strong><small>全34ページ・個人情報のみ非掲載・図も収録</small></span><span aria-hidden="true">↗</span></a><a class="reference-link" href="https://drive.google.com/file/d/12cX17qVX1fxJbOhnS4W9hcOlcfBWP1nx/view?usp=sharing" target="_blank" rel="noopener noreferrer"><span><strong>研修旅行のしおり</strong><small>Google Driveで開く・閲覧には権限が必要な場合があります</small></span><span aria-hidden="true">↗</span></a></section>
+    <section class="bottom-tools" aria-labelledby="bottom-tools-title">
+      <h2 id="bottom-tools-title">便利ツール</h2>
+      <nav class="tool-icons" aria-label="ページ下部の便利ツール">
+          <a href="#prepare"><span class="tool-icon" aria-hidden="true">🧳</span><span>出発準備</span></a>
+          <a href="#packing"><span class="tool-icon" aria-hidden="true">☑️</span><span>持ち物</span></a>
+          <a href="#weather"><span class="tool-icon" aria-hidden="true">🌤️</span><span>天気</span></a>
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=Taipei%2C+Taiwan"><span class="tool-icon" aria-hidden="true">🗺️</span><span>台北の地図</span></a>
+          <a href="../taiwan-chat/"><span class="tool-icon" aria-hidden="true">💬</span><span>丹陽さん</span></a>
+      </nav>
+    </section>
     <footer><a href="#top">ページ上部へ ↑</a><a href="../exams/#grade-2">後期中間考査の時間割 →</a></footer>
   </main>
   <script type="module" src="app.js?v=packing-edit-4"></script>
-  <script type="module" src="travel-ui.js?v=1"></script>
+  <script type="module" src="travel-ui.js?v=2"></script>
   <script type="module" src="weather.js?v=1"></script>
 </body>
 </html>
