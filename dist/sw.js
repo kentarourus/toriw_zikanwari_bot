@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v31';
+const CACHE = 'timetable-v32';
 const APP_FILES = [
   './',
   './index.html',
@@ -40,7 +40,7 @@ const APP_FILES = [
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
   './taiwan/',
-  './taiwan/style.css?v=20',
+  './taiwan/style.css?v=21',
   './taiwan/app.js?v=packing-edit-6',
   './taiwan/travel-ui.js?v=4',
   './taiwan/weather.js?v=3',
@@ -50,7 +50,7 @@ const APP_FILES = [
   './taiwan/packing-csv.js?v=2',
   './taiwan/taipei-illustration.webp',
   './taiwan/guide/',
-  './taiwan/guide/style.css?v=2',
+  './taiwan/guide/style.css?v=3',
   './taiwan/guide.md',
   './taiwan/guide-assets/cover.png',
   './taiwan/guide-assets/day1.png',
