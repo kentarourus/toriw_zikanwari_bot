@@ -7,8 +7,23 @@ function restoreDefaults(){let added=0;for(const [group,list] of Object.entries(
 // Restore any missing original entries once, while preserving edits and checks.
 try{if(localStorage.getItem('taiwan-packing-defaults-restored-v1')!=='yes'){restoreDefaults();localStorage.setItem(storageKey,JSON.stringify(items));localStorage.setItem('taiwan-packing-defaults-restored-v1','yes');}}catch{}
 let editing=false;
-function save(){try{localStorage.setItem(storageKey,JSON.stringify(items));status.textContent='';}catch{status.textContent='この端末には保存できませんでした。';}}
-function render(){for(const group of Object.keys(defaults)){
+function updateProgress(){
+ const entries=Object.values(items).flat();
+ const checked=entries.filter(item=>item.checked).length;
+ const summary=`${checked} / ${entries.length} 件チェック済み`;
+ const bar=document.getElementById('packing-progress');
+ const label=document.getElementById('packing-progress-label');
+ const shortcut=document.getElementById('packing-shortcut');
+ if(bar&&label){
+  bar.max=Math.max(1,entries.length);
+  bar.value=checked;
+  label.textContent=summary;
+  bar.parentElement.hidden=false;
+ }
+ if(shortcut)shortcut.textContent=summary;
+}
+function save(){updateProgress();try{localStorage.setItem(storageKey,JSON.stringify(items));status.textContent='';}catch{status.textContent='この端末には保存できませんでした。';}}
+function render(){updateProgress();for(const group of Object.keys(defaults)){
  const root=document.getElementById(group);root.replaceChildren();
  for(const item of items[group]){
   const row=document.createElement('div');row.className='packing-item';
