@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v42';
+const CACHE = 'timetable-v43';
 const APP_FILES = [
   './',
   './index.html',
@@ -42,7 +42,8 @@ const APP_FILES = [
   './taiwan/',
   './taiwan/translate/',
   './taiwan/translate/style.css?v=7',
-  './taiwan/translate/app.js?v=7',
+  './taiwan/translate/app.js?v=8',
+  './taiwan/translate/mandarin-worker.js',
   './taiwan/translate/config.js',
   './taiwan/sounds/',
   './taiwan/sounds/app.js?v=2',
@@ -63,9 +64,9 @@ const APP_FILES = [
   './taiwan/sounds/audio/price.mp3',
   './taiwan/sounds/audio/discount.mp3',
   './taiwan/sounds/audio/return.mp3',
-  './taiwan/style.css?v=26',
+  './taiwan/style.css?v=27',
   './taiwan/app.js?v=packing-edit-6',
-  './taiwan/travel-ui.js?v=7',
+  './taiwan/travel-ui.js?v=8',
   './taiwan/weather.js?v=3',
   './taiwan/currency.js',
   './taiwan/offline-data.js',

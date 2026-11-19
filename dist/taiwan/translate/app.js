@@ -23,6 +23,8 @@ const copy = {
 };
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speech = window.speechSynthesis;
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+speech?.getVoices();
 const panels = Object.fromEntries([...document.querySelectorAll('.panel')].map(panel => {
   const buttons = Object.fromEntries([...panel.querySelectorAll('button[data-action]')].map(button => [button.dataset.action, button]));
   return [panel.dataset.language, {
@@ -39,8 +41,11 @@ let source = japanese;
 let request;
 let recognition;
 let utterance;
+let speechContext;
+let fallbackSpeech;
 let retryAvailable = false;
-let viewportMaximized = false;
+let viewportMaximized = embedded;
+document.documentElement.classList.toggle('full-layout', viewportMaximized);
 let typing;
 let turning = false;
 
@@ -152,7 +157,7 @@ function paint() {
     side.buttons.mic.disabled = !SpeechRecognition;
     labelControl(side.buttons.mic, !SpeechRecognition ? words.noMic : input && recognition ? words.stop : words.mic);
     side.buttons.mic.querySelector('use').setAttribute('href', input && recognition ? '#translate-icon-stop' : '#translate-icon-mic');
-    side.buttons.read.disabled = !speech || !sentences[language];
+    side.buttons.read.disabled = !sentences[language] || (!speech && !(language === chinese && AudioContext));
     side.panel.setAttribute('aria-busy', String(Boolean(request && !input)));
   }
   paintSend();
@@ -170,6 +175,8 @@ function showStatus(message = '', retry = false) {
 function stopSpeech() {
   utterance = undefined;
   speech?.cancel();
+  fallbackSpeech?.();
+  fallbackSpeech = undefined;
 }
 
 function cancelRequest() {
@@ -328,22 +335,90 @@ function startMic(language) {
   paint();
 }
 
+function readMandarin(text, side) {
+  if (!AudioContext) {
+    side.feedback.textContent = copy[chinese].noVoice;
+    return;
+  }
+
+  // Unlock audio while handling the tap, before the synthesizer loads.
+  let worker;
+  try {
+    speechContext ??= new AudioContext();
+    worker = new Worker(new URL('./mandarin-worker.js', import.meta.url), {type: 'module'});
+  } catch {
+    side.feedback.textContent = copy[chinese].noVoice;
+    return;
+  }
+  const audioReady = speechContext.resume().catch(() => {});
+  const pendingMessage = '正在準備中文語音…';
+  side.feedback.textContent = pendingMessage;
+  let node;
+  const timer = setTimeout(failed, 30000);
+  const cancel = () => {
+    clearTimeout(timer);
+    worker.terminate();
+    if (node) node.stop();
+    if (side.feedback.textContent === pendingMessage) side.feedback.textContent = '';
+  };
+  function failed() {
+    if (fallbackSpeech !== cancel) return;
+    cancel();
+    fallbackSpeech = undefined;
+    side.feedback.textContent = '無法朗讀。請連線後再試一次。';
+  }
+  fallbackSpeech = cancel;
+  worker.onerror = failed;
+  worker.onmessage = async ({data}) => {
+    worker.terminate();
+    try {
+      if (!data.wave) throw new Error('No audio');
+      await audioReady;
+      const buffer = await speechContext.decodeAudioData(data.wave);
+      if (fallbackSpeech !== cancel) return;
+      if (speechContext.state !== 'running') throw new Error('Audio is blocked');
+      clearTimeout(timer);
+      side.feedback.textContent = '';
+      const player = speechContext.createBufferSource();
+      player.buffer = buffer;
+      player.connect(speechContext.destination);
+      player.onended = () => { if (fallbackSpeech === cancel) fallbackSpeech = undefined; };
+      player.start();
+      node = player;
+    } catch {
+      failed();
+    }
+  };
+  worker.postMessage({text});
+}
+
 function read(language) {
   stopSpeech();
   const side = panels[language];
+  const text = sentences[language];
   const locale = language === japanese ? 'ja-JP' : chinese;
-  const voices = speech.getVoices();
-  const voice = voices.find(candidate => candidate.lang.toLowerCase().replace('_', '-') === locale.toLowerCase())
-    || (language === japanese && voices.find(candidate => /^ja([-_]|$)/i.test(candidate.lang)));
+  const voices = speech?.getVoices() ?? [];
+  const tag = voice => voice.lang.toLowerCase().replaceAll('_', '-');
+  const voice = voices.find(candidate => tag(candidate) === locale.toLowerCase())
+    || (language === japanese
+      ? voices.find(candidate => /^ja(-|$)/.test(tag(candidate)))
+      : voices.find(candidate => /^(zh|cmn)(-hant)?-tw$|^zh-hant$/.test(tag(candidate)))
+        || voices.find(candidate => /^(zh|cmn)(-hans)?(-cn|-sg)?$/.test(tag(candidate))));
+  if (language === chinese && !voice) {
+    readMandarin(text, side);
+    return;
+  }
   if (voices.length && !voice) {
     side.feedback.textContent = copy[language].noVoice;
     return;
   }
-  const line = new SpeechSynthesisUtterance(sentences[language]);
-  line.lang = locale;
+  const line = new SpeechSynthesisUtterance(text);
+  line.lang = voice?.lang ?? locale;
   if (voice) line.voice = voice;
   line.onerror = () => {
-    if (utterance === line) side.feedback.textContent = copy[language].noVoice;
+    if (utterance !== line) return;
+    if (language === chinese) readMandarin(text, side);
+    else side.feedback.textContent = copy[language].noVoice;
   };
   utterance = line;
   if (side.feedback.textContent === copy[language].noVoice) side.feedback.textContent = '';

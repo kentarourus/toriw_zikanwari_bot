@@ -136,7 +136,10 @@ function openTool(trigger) {
     frame.src = `${href}#embedded`;
     frame.title = title;
     frame.className = 'local-tool-frame';
-    if (key === 'translate') frame.allow = "microphone 'self'; fullscreen 'self'";
+    if (key === 'translate') {
+      frame.allow = "microphone 'self'; fullscreen 'self'";
+      toolDialog.classList.add('is-maximized');
+    }
     toolContent.append(frame);
     restoreSection = () => frame.remove();
   } else {
