@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>対面翻訳 | 台湾研修旅行</title>
-  <link rel="stylesheet" href="style.css?v=9">
-  <script type="module" src="app.js?v=10"></script>
+  <link rel="stylesheet" href="style.css?v=10">
+  <script type="module" src="app.js?v=11"></script>
 </head>
 <body>
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -78,6 +78,10 @@
     </label>
     <p id="voice-description">初回に音声データを保存します。保存後はネットなしで読み上げできます。</p>
     <p id="voice-status" role="status"></p>
+    <div id="voice-progress" hidden>
+      <progress max="100" aria-label="音声モデルの取得進捗"></progress>
+      <small></small>
+    </div>
   </dialog>
   <dialog id="info" aria-labelledby="info-title">
     <h2 id="info-title">翻訳について</h2>

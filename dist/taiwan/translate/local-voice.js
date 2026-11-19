@@ -3,21 +3,41 @@ const readyKey = new URL('./voice-pack-ready', import.meta.url).href;
 const preferenceKey = 'taiwan-local-voice-enabled';
 
 export function createVoiceWorker() {
-  return new Worker(new URL('./mandarin-worker.js?v=3', import.meta.url), {type: 'module'});
+  return new Worker(new URL('./mandarin-worker.js?v=4', import.meta.url), {type: 'module'});
 }
 
 export function setupLocalVoice(dialog, trigger, onDisable) {
   const toggle = dialog.querySelector('input');
   const status = dialog.querySelector('[role=status]');
+  const progressBox = dialog.querySelector('#voice-progress');
+  const bar = progressBox.querySelector('progress');
+  const detail = progressBox.querySelector('small');
   let enabled = false;
   let saving = false;
   let failure = '';
+  let progress = {stage: 'start'};
+  const stages = {
+    start: 'ダウンロードの準備中…',
+    model: '中国語の音声モデルをダウンロード中…',
+    verify: '補助音声データの取得と動作確認中…',
+    save: '音声データを端末に保存中…'
+  };
 
   function paint() {
     toggle.checked = enabled || saving;
     toggle.disabled = saving;
-    status.textContent = saving ? '音声データをダウンロードしています…'
+    const message = saving ? stages[progress.stage]
       : failure || (enabled ? '準備完了。音声をオフラインで再生できます。' : 'オフ');
+    if (status.textContent !== message) status.textContent = message;
+    progressBox.hidden = !saving;
+    const {stage, loaded, total} = progress;
+    if (stage === 'model' && total > 0) {
+      bar.value = Math.min(100, Math.floor(loaded / total * 100));
+      detail.textContent = `${bar.value}% · ${(loaded / 1e6).toFixed(1)} MB / ${(total / 1e6).toFixed(1)} MB`;
+    } else {
+      bar.removeAttribute('value');
+      detail.textContent = stage === 'model' && loaded > 0 ? `${(loaded / 1e6).toFixed(1)} MB 取得済み` : '';
+    }
   }
 
   const ready = (async () => {
@@ -41,10 +61,14 @@ export function setupLocalVoice(dialog, trigger, onDisable) {
       return;
     }
     saving = true;
+    progress = {stage: 'start'};
     paint();
     try {
       if (!await caches.match(readyKey, {cacheName: voiceCacheName})) {
-        await prepareVoicePack();
+        await prepareVoicePack(update => {
+          progress = update;
+          paint();
+        });
       }
       localStorage.setItem(preferenceKey, 'yes');
       enabled = true;
@@ -67,7 +91,7 @@ export function setupLocalVoice(dialog, trigger, onDisable) {
   };
 }
 
-async function prepareVoicePack() {
+async function prepareVoicePack(onProgress) {
   const registration = await navigator.serviceWorker.register(new URL('../../sw.js', import.meta.url));
   await registration.update().catch(() => {});
   await navigator.serviceWorker.ready;
@@ -86,6 +110,10 @@ async function prepareVoicePack() {
     await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('Voice download timed out')), 120000);
       worker.onmessage = ({data}) => {
+        if (data.progress) {
+          onProgress(data.progress);
+          return;
+        }
         clearTimeout(timer);
         if (data.ready) resolve();
         else reject(new Error('Voice download failed'));
@@ -96,6 +124,7 @@ async function prepareVoicePack() {
       };
       worker.postMessage({prepare: true});
     });
+    onProgress({stage: 'save'});
     const assets = (await cache.keys()).map(request => request.url);
     if (!assets.some(url => url.includes('/piper-tts-web@')) ||
         !assets.some(url => url.includes('ort-wasm') && url.endsWith('.wasm')) ||

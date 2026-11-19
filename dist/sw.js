@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v46';
+const CACHE = 'timetable-v47';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -53,10 +53,10 @@ const APP_FILES = [
   './assets/icons/icon-512.png',
   './taiwan/',
   './taiwan/translate/',
-  './taiwan/translate/style.css?v=9',
-  './taiwan/translate/app.js?v=10',
-  './taiwan/translate/local-voice.js',
-  './taiwan/translate/mandarin-worker.js?v=3',
+  './taiwan/translate/style.css?v=10',
+  './taiwan/translate/app.js?v=11',
+  './taiwan/translate/local-voice.js?v=2',
+  './taiwan/translate/mandarin-worker.js?v=4',
   './taiwan/translate/config.js',
   './taiwan/sounds/',
   './taiwan/sounds/app.js?v=2',
@@ -135,14 +135,15 @@ async function soundResponse(request) {
   });
 }
 
-async function voiceAsset(request) {
+async function voiceAsset(event) {
+  const request = event.request;
   if (!await caches.has(VOICE_CACHE)) return fetch(request);
   const cache = await caches.open(VOICE_CACHE);
   const saved = await cache.match(request);
   if (saved) return saved;
   if (await cache.match(VOICE_READY)) return Response.error();
   const response = await fetch(request);
-  if (response.ok) await cache.put(request, response.clone());
+  if (response.ok) event.waitUntil(cache.put(request, response.clone()).catch(() => {}));
   return response;
 }
 
@@ -150,7 +151,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET') return;
   if (url.origin !== location.origin) {
-    if (VOICE_ASSETS.some(prefix => url.href.startsWith(prefix))) event.respondWith(voiceAsset(event.request));
+    if (VOICE_ASSETS.some(prefix => url.href.startsWith(prefix))) event.respondWith(voiceAsset(event));
     return;
   }
   if (/\/taiwan\/sounds\/audio\/[\w-]+\.mp3$/.test(url.pathname)) {

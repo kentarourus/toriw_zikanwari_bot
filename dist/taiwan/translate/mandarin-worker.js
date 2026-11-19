@@ -1,9 +1,9 @@
-async function synthesizeNeural(text) {
+async function synthesizeNeural(text, progress) {
   const [{TtsSession}, {Converter}] = await Promise.all([
     import('https://esm.sh/@realtimex/piper-tts-web@1.1.1?deps=onnxruntime-web@1.22.0'),
     import('https://cdn.jsdelivr.net/npm/opencc-js@1.4.2/dist/esm/t2cn.js'),
   ]);
-  const voice = await TtsSession.create({voiceId: 'zh_CN-huayan-medium'});
+  const voice = await TtsSession.create({voiceId: 'zh_CN-huayan-medium', progress});
   const simplified = Converter({from: 'tw', to: 'cn'})(text);
   return (await voice.predict(simplified)).arrayBuffer();
 }
@@ -19,7 +19,15 @@ async function synthesizeBasic(text, language) {
 self.addEventListener('message', async ({data: {text, language, prepare}}) => {
   try {
     if (prepare) {
-      const mandarin = await synthesizeNeural('你好，請問車站在哪裡？');
+      self.postMessage({progress: {stage: 'model'}});
+      let lastUpdate = 0;
+      const mandarin = await synthesizeNeural('你好，請問車站在哪裡？', ({loaded, total}) => {
+        const now = performance.now();
+        if (now - lastUpdate < 120 && loaded !== total) return;
+        lastUpdate = now;
+        self.postMessage({progress: {stage: 'model', loaded, total}});
+      });
+      self.postMessage({progress: {stage: 'verify'}});
       const japanese = await synthesizeBasic('こんにちは。', 'ja');
       if (mandarin.byteLength <= 44 || japanese.byteLength <= 44) throw new Error('Voice sample is empty');
       self.postMessage({ready: true});

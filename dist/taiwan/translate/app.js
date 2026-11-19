@@ -1,5 +1,5 @@
 import {translationEndpoint} from './config.js';
-import {createVoiceWorker, setupLocalVoice} from './local-voice.js';
+import {createVoiceWorker, setupLocalVoice} from './local-voice.js?v=2';
 const embedded = location.hash === '#embedded' && self !== parent;
 
 const find = selector => document.querySelector(selector);

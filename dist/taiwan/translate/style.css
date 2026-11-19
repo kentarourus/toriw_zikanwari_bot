@@ -183,6 +183,9 @@ dialog form { display: grid; gap: 12px; }
 .voice-toggle input:disabled { opacity: .7; cursor: wait; }
 #voice-description, #voice-status { margin: 8px 0 0; font-size: .85rem; }
 #voice-status { font-weight: 700; }
+#voice-progress { margin-top: 8px; }
+#voice-progress progress { display: block; width: 100%; height: 12px; accent-color: #215e48; }
+#voice-progress small { display: block; margin-top: 4px; color: #50665a; font-variant-numeric: tabular-nums; }
 @media (max-height: 510px) {
   .conversation { gap: 4px; }
   .panel { gap: 3px; border-radius: 12px; }
