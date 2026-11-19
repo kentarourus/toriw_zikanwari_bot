@@ -1,4 +1,4 @@
-import {initCurrencyTool} from './currency.js';
+import {initCurrencyTool} from './currency.js?v=2';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(new URL('../sw.js', import.meta.url)).catch(() => {});
@@ -48,6 +48,7 @@ function getPanel(key, title, fallback) {
   if (mounted.has(key)) return mounted.get(key);
   const panel = document.createElement('div');
   if (key === 'currency') {
+    panel.className = 'currency-panel';
     panel.append(document.getElementById('currency-tool').content.cloneNode(true));
     panel.refresh = initCurrencyTool(panel);
   } else {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=29">
+  <link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
   <svg aria-hidden="true" class="travel-icon-library" xmlns="http://www.w3.org/2000/svg">
@@ -218,20 +218,41 @@
   </dialog>
   <template id="currency-tool">
     <div class="currency-tool">
-      <div class="currency-fields">
-        <label>金額<input id="currency-amount" type="number" inputmode="decimal" min="0" step="any" value="100"></label>
-        <label>換算方向<select id="currency-direction"><option value="twd">台湾ドル → 日本円</option><option value="jpy">日本円 → 台湾ドル</option></select></label>
+      <div class="currency-reference">
+        <div class="currency-rate">
+          <label>1台湾ドルあたりの円<input id="currency-rate" type="number" inputmode="decimal" min="0" step="any"></label>
+          <button type="button" id="currency-refresh">最新レートを取得</button>
+        </div>
+        <div class="currency-rate-meta">
+          <p id="currency-status" role="status"></p>
+          <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter ↗</a>
+        </div>
       </div>
-      <output id="currency-result" for="currency-amount currency-direction currency-rate" aria-live="polite">—</output>
-      <div class="currency-rate">
-        <label>1台湾ドルあたりの円<input id="currency-rate" type="number" inputmode="decimal" min="0" step="any"></label>
-        <button type="button" id="currency-refresh">最新の値を取得</button>
+      <div class="currency-display">
+        <label class="currency-input">
+          <span id="currency-from">台湾ドル</span>
+          <input id="currency-amount" aria-label="金額" aria-describedby="currency-from" type="text" inputmode="none" maxlength="16" autocomplete="off" value="100">
+        </label>
+        <div class="currency-output">
+          <span id="currency-to">日本円</span>
+          <output id="currency-result" for="currency-amount currency-rate" aria-live="polite">—</output>
+        </div>
       </div>
-      <p id="currency-status" role="status"></p>
-      <p class="currency-source">参考レート · <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a></p>
+      <div class="currency-controls" role="group" aria-label="金額の操作">
+        <div class="currency-actions">
+          <button type="button" id="currency-swap"><span aria-hidden="true">⇄</span> 通貨を切り替え</button>
+          <button type="button" id="currency-clear">クリア</button>
+        </div>
+        <div class="currency-keypad">
+          <button type="button" data-currency-key="1">1</button><button type="button" data-currency-key="2">2</button><button type="button" data-currency-key="3">3</button>
+          <button type="button" data-currency-key="4">4</button><button type="button" data-currency-key="5">5</button><button type="button" data-currency-key="6">6</button>
+          <button type="button" data-currency-key="7">7</button><button type="button" data-currency-key="8">8</button><button type="button" data-currency-key="9">9</button>
+          <button type="button" data-currency-key="." aria-label="小数点">.</button><button type="button" data-currency-key="0">0</button><button type="button" data-currency-key="backspace" aria-label="1文字消す">⌫</button>
+        </div>
+      </div>
     </div>
   </template>
-  <script type="module" src="travel-ui.js?v=10"></script>
+  <script type="module" src="travel-ui.js?v=11"></script>
   <script type="module" src="weather.js?v=3"></script>
 </body>
 </html>

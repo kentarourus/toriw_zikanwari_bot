@@ -10,7 +10,8 @@ const validRate = data => data?.base === 'TWD' && data.quote === 'JPY' &&
 
 export function initCurrencyTool(panel) {
   const amount = panel.querySelector('#currency-amount');
-  const direction = panel.querySelector('#currency-direction');
+  const from = panel.querySelector('#currency-from');
+  const to = panel.querySelector('#currency-to');
   const rate = panel.querySelector('#currency-rate');
   const refresh = panel.querySelector('#currency-refresh');
   const result = panel.querySelector('#currency-result');
@@ -18,15 +19,26 @@ export function initCurrencyTool(panel) {
   let manual = false;
   let edits = 0;
   let saved = readSavedData('currency');
+  let toYen = true;
+  let replaceAmount = true;
 
   function convert() {
-    const value = amount.valueAsNumber;
+    const value = amount.value === '' ? NaN : Number(amount.value);
     const exchangeRate = rate.valueAsNumber;
-    const toYen = direction.value === 'twd';
     const converted = toYen ? value * exchangeRate : value / exchangeRate;
     result.value = value >= 0 && exchangeRate > 0 && Number.isFinite(converted)
-      ? toYen ? `約 ${formatters.jpy.format(converted)} 円` : `約 ${formatters.twd.format(converted)} 台湾ドル`
+      ? `約 ${formatters[toYen ? 'jpy' : 'twd'].format(converted)}`
       : '—';
+  }
+
+  function setAmount(next) {
+    const text = next.normalize('NFKC').trim();
+    const [integer, ...fraction] = (text.startsWith('-') ? '' : text.replace(/[^0-9.]/g, '')).split('.');
+    const numeric = fraction.length ? (integer || '0') + '.' + fraction.join('') : integer;
+    const clean = numeric.replace(/^0+(?=\d)/, '').slice(0, amount.maxLength);
+    if (amount.value !== clean) amount.value = clean;
+    replaceAmount = false;
+    convert();
   }
 
   function displayRate(data, label) {
@@ -65,8 +77,24 @@ export function initCurrencyTool(panel) {
     }
   }
 
-  amount.addEventListener('input', convert);
-  direction.addEventListener('change', convert);
+  amount.addEventListener('input', () => setAmount(amount.value));
+  panel.querySelector('#currency-swap').addEventListener('click', () => {
+    toYen = !toYen;
+    from.textContent = toYen ? '台湾ドル' : '日本円';
+    to.textContent = toYen ? '日本円' : '台湾ドル';
+    convert();
+  });
+  panel.querySelector('#currency-clear').addEventListener('click', () => setAmount(''));
+  panel.querySelector('.currency-keypad').addEventListener('click', event => {
+    const key = event.target.closest('[data-currency-key]')?.dataset.currencyKey;
+    if (!key) return;
+    if (key === 'backspace') {
+      setAmount(amount.value.slice(0, -1));
+      return;
+    }
+    const current = replaceAmount ? '' : amount.value;
+    if (key !== '.' || !current.includes('.')) setAmount(current + key);
+  });
   rate.addEventListener('input', () => {
     edits++;
     manual = true;
