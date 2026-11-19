@@ -28,7 +28,6 @@ button svg, .control-row a svg {
   padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
     max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
 }
-.conversation.reverse { transform: rotate(180deg); }
 .full-layout .conversation, :fullscreen .conversation { max-width: none; }
 .conversation.is-typing {
   position: fixed;
