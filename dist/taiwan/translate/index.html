@@ -2,30 +2,38 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>対面翻訳 | 台湾研修旅行</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="app.js"></script>
+  <link rel="stylesheet" href="style.css?v=2">
+  <script type="module" src="app.js?v=2"></script>
 </head>
 <body>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="translate-icon-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3m-3 0h6"/></symbol>
+    <symbol id="translate-icon-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="translate-icon-edit" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h1m3.5 0h1m3.5 0h1M7 14h1m3.5 0H17"/></symbol>
+    <symbol id="translate-icon-speaker" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4Zm12-1a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/></symbol>
+    <symbol id="translate-icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="translate-icon-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  </svg>
   <main class="conversation" aria-label="対面翻訳">
     <section class="panel partner" data-language="zh-TW" lang="zh-TW" aria-labelledby="chinese-heading">
       <header><h1 id="chinese-heading">台灣華語</h1><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a></header>
       <p class="phrase" data-phrase tabindex="0"></p>
       <div class="actions">
-        <button type="button" data-action="mic">語音輸入</button>
-        <button type="button" data-action="edit">打字</button>
-        <button type="button" data-action="read">朗讀</button>
+        <button type="button" data-action="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-mic"/></svg><span>語音輸入</span></button>
+        <button type="button" data-action="edit"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-edit"/></svg><span>打字</span></button>
+        <button type="button" data-action="read"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-speaker"/></svg><span>朗讀</span></button>
       </div>
       <p class="feedback" data-feedback role="status"></p>
     </section>
 
     <div class="controls">
       <div class="direction">
-        <a href="../" aria-label="台湾サイトへ戻る">‹ 台湾</a>
+        <a href="../" class="standalone-nav" aria-label="台湾サイトへ戻る">‹ 台湾</a>
         <button type="button" id="flip"><span class="arrow" aria-hidden="true">↑</span> 方向切替</button>
-        <button type="button" id="translate" class="primary">DeepL で翻訳</button>
+        <button type="button" id="translate" class="primary">翻訳する</button>
       </div>
       <p id="direction-label"></p>
       <div class="utilities">
@@ -41,32 +49,22 @@
       <header><h2 id="japanese-heading">日本語</h2><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a></header>
       <p class="phrase" data-phrase tabindex="0"></p>
       <div class="actions">
-        <button type="button" data-action="mic">音声入力</button>
-        <button type="button" data-action="edit">文字入力</button>
-        <button type="button" data-action="read">読み上げ</button>
+        <button type="button" data-action="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-mic"/></svg><span>音声入力</span></button>
+        <button type="button" data-action="edit"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-edit"/></svg><span>文字入力</span></button>
+        <button type="button" data-action="read"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-speaker"/></svg><span>読み上げ</span></button>
       </div>
       <p class="feedback" data-feedback role="status"></p>
     </section>
   </main>
-  <dialog id="editor" aria-labelledby="editor-title">
+  <dialog id="editor" class="input-dialog" aria-labelledby="editor-title">
     <form id="edit-form">
-      <h2 id="editor-title"></h2>
-      <textarea id="draft" rows="4" maxlength="1000" autofocus></textarea>
-      <div class="actions">
-        <button type="button" data-close>取消 / キャンセル</button>
-        <button type="submit" id="save-text" class="primary"></button>
+      <div class="input-heading">
+        <span class="input-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-edit"/></svg></span>
+        <h2 id="editor-title"></h2>
+        <button type="button" id="editor-cancel" class="input-close" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-close"/></svg></button>
       </div>
-    </form>
-  </dialog>
-  <dialog id="access" aria-labelledby="access-title">
-    <form id="access-form">
-      <h2 id="access-title">翻訳の利用コード</h2>
-      <p>管理者から案内された利用コードを入力してください。</p>
-      <input id="access-code" type="password" aria-labelledby="access-title" required autocomplete="off">
-      <div class="actions">
-        <button type="button" data-close>キャンセル</button>
-        <button type="submit" class="primary">DeepL で翻訳</button>
-      </div>
+      <textarea id="draft" rows="4" maxlength="1000" required autofocus></textarea>
+      <button type="submit" id="save-text" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-check"/></svg><span></span></button>
     </form>
   </dialog>
   <dialog id="info" aria-labelledby="info-title">

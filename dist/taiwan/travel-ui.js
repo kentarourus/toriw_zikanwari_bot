@@ -131,6 +131,14 @@ function openTool(trigger) {
       heading.classList.remove('tool-section-heading');
       placeholder.replaceWith(section);
     };
+  } else if (key === 'translate' || key === 'sounds') {
+    const frame = document.createElement('iframe');
+    frame.src = `${href}#embedded`;
+    frame.title = title;
+    frame.className = 'local-tool-frame';
+    if (key === 'translate') frame.allow = "microphone 'self'";
+    toolContent.append(frame);
+    restoreSection = () => frame.remove();
   } else {
     const panel = getPanel(key, title, href);
     panel.hidden = false;

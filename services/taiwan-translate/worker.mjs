@@ -1,11 +1,8 @@
-import {createHash, timingSafeEqual} from 'node:crypto';
-
 const maxBodyBytes = 8192;
 const languages = {
   ja: {source: 'JA', target: 'JA'},
   'zh-TW': {source: 'ZH', target: 'ZH-HANT'},
 };
-const hash = value => createHash('sha256').update(value).digest();
 
 async function readBody(request) {
   const reader = request.body?.getReader();
@@ -47,11 +44,7 @@ export default {
     if (request.method !== 'POST') return json(405, {error: 'method_not_allowed'});
 
     const key = env.DEEPL_AUTH_KEY?.trim();
-    const code = env.TRANSLATION_ACCESS_CODE;
-    if (!key || !/^\S{16,}$/.test(code || '')) return json(503, {error: 'translation_not_configured'});
-    if (!timingSafeEqual(hash(request.headers.get('Authorization') || ''), hash('Bearer ' + code))) {
-      return json(401, {error: 'invalid_access_code'});
-    }
+    if (!key) return json(503, {error: 'translation_not_configured'});
     if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get('Content-Type') || '')) {
       return json(415, {error: 'expected_json'});
     }

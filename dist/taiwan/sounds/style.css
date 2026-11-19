@@ -1,4 +1,5 @@
 .sound-table { max-width: 720px; }
+.embedded .site-header { display: none; }
 .sound-table h1 { margin: 12px 0 0; line-height: 1.35; }
 .sound-table h2 { font-size: 1.25rem; }
 #sound-status { min-height: 1.65em; color: var(--muted); }
@@ -9,7 +10,6 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
 }
@@ -20,7 +20,7 @@
   flex: none;
   width: 48px;
   height: 48px;
-  border: 1px solid var(--control-line);
+  border: 0;
   border-radius: 50%;
   background: var(--green-soft);
   color: var(--green);

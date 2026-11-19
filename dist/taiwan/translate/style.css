@@ -3,10 +3,22 @@
   color-scheme: light;
   font-family: system-ui, "Noto Sans JP", "Noto Sans TC", sans-serif;
   color: #18362d;
-  background: #e7efe5;
+  background: #eef2eb;
 }
 body { margin: 0; }
 [hidden] { display: none !important; }
+.embedded .standalone-nav { display: none; }
+.icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
+button svg, .input-icon svg {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .conversation {
   display: grid;
   grid-template-rows: minmax(0, 1fr) minmax(10%, auto) minmax(0, 1fr);
@@ -24,11 +36,10 @@ body { margin: 0; }
   gap: 6px;
   padding: clamp(8px, 2.5vw, 18px);
   background: #fffef9;
-  border: 2px solid #a9bcb0;
   border-radius: 20px;
 }
 .partner { transform: rotate(180deg); }
-.panel[data-input] { border-color: #22664f; }
+.panel[data-input] { background: #f7fbf4; }
 .panel[data-input].changed { animation: highlight 250ms ease-out; }
 @keyframes highlight { from { box-shadow: inset 0 0 0 4px #3c9271; } }
 .panel header { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
@@ -58,14 +69,15 @@ button, .direction a {
   min-height: 44px;
   padding: 5px 9px;
   border-radius: 10px;
-  border: 1px solid #89a999;
+  border: 0;
   color: #174435;
-  background: #f4faf5;
+  background: #e7efe5;
   font: inherit;
   font-size: .875rem;
   font-weight: 700;
   cursor: pointer;
 }
+.actions button, #save-text { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .direction a { display: inline-flex; align-items: center; text-decoration: none; }
 button:disabled { opacity: .55; cursor: default; }
 .primary { color: white; background: #215e48; border-color: #215e48; }
@@ -81,15 +93,35 @@ dialog {
   width: min(calc(100% - 24px), 480px);
   max-height: 90dvh;
   padding: 16px;
-  border: 1px solid #89a999;
+  border: 0;
   border-radius: 16px;
   color: inherit;
   background: #fffef9;
 }
 dialog::backdrop { background: #122b23a6; }
 dialog form { display: grid; gap: 12px; }
-textarea, input { width: 100%; font: inherit; font-size: 1.125rem; padding: 10px; border: 1px solid #789185; border-radius: 8px; }
-textarea { resize: vertical; max-height: 45dvh; }
+.input-dialog { padding: clamp(12px, 4vw, 22px); border-radius: 22px; }
+.input-heading { display: flex; align-items: center; gap: 10px; }
+.input-heading h2 { font-size: 1.12rem; }
+.input-icon, .input-close { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; }
+.input-icon { flex: none; background: #e7efe5; color: #174435; }
+.input-close { margin-inline-start: auto; padding: 0; background: #edf1e9; }
+#draft {
+  width: 100%;
+  min-height: 84px;
+  height: clamp(84px, 28dvh, 220px);
+  resize: vertical;
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1.55;
+  padding: 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #eff3ed;
+  color: inherit;
+}
+#draft::placeholder { color: #52665b; }
+#save-text { min-height: 46px; font-size: .95rem; }
 @media (max-height: 510px) {
   .conversation { gap: 4px; }
   .panel { gap: 3px; border-radius: 12px; }

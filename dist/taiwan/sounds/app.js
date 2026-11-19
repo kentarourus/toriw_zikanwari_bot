@@ -1,3 +1,4 @@
+document.documentElement.classList.toggle('embedded', location.hash === '#embedded' && self !== top);
 const audio = new Audio();
 const status = document.getElementById('sound-status');
 let current;

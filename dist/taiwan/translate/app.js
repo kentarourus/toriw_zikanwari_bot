@@ -1,4 +1,5 @@
 import {translationEndpoint} from './config.js';
+document.documentElement.classList.toggle('embedded', location.hash === '#embedded' && self !== top);
 
 const find = selector => document.querySelector(selector);
 const chinese = 'zh-TW';
@@ -6,13 +7,13 @@ const japanese = 'ja';
 const copy = {
   [chinese]: {
     source: '輸入', result: '翻譯結果', empty: '請說話或打字', waiting: '翻譯將顯示在這裡',
-    translating: '翻譯中…', edit: '輸入繁體中文', save: '使用這段文字',
+    translating: '翻譯中…', edit: '輸入繁體中文', save: '送出翻譯', close: '關閉', placeholder: '在這裡輸入文字',
     listening: '聆聽中…', stop: '停止錄音', mic: '語音輸入',
     noMic: '無法使用語音輸入，請改用打字。', noVoice: '無法朗讀，請查看畫面上的文字。',
   },
   [japanese]: {
     source: '入力', result: '翻訳結果', empty: '話すか文字を入力', waiting: 'ここに翻訳結果が表示されます',
-    translating: '翻訳中…', edit: '日本語を入力', save: 'この文章を使う',
+    translating: '翻訳中…', edit: '日本語を入力', save: '翻訳する', close: '閉じる', placeholder: 'ここに文章を入力',
     listening: '聞き取り中…', stop: '録音停止', mic: '音声入力',
     noMic: '音声入力を利用できません。文字入力をお使いください。', noVoice: '読み上げを利用できません。',
   },
@@ -29,8 +30,6 @@ const panels = Object.fromEntries([...document.querySelectorAll('.panel')].map(p
 }));
 const editor = find('#editor');
 const draft = find('#draft');
-const access = find('#access');
-const accessInput = find('#access-code');
 const sentences = {[chinese]: '', [japanese]: ''};
 const translated = new Set();
 const resultLanguage = () => source === japanese ? chinese : japanese;
@@ -38,7 +37,6 @@ let source = japanese;
 let request;
 let recognition;
 let utterance;
-let accessCode = '';
 
 function paint() {
   find('.conversation').classList.toggle('reverse', source === chinese);
@@ -54,7 +52,8 @@ function paint() {
     side.phrase.classList.toggle('empty', !sentences[language]);
     side.buttons.edit.disabled = !input;
     side.buttons.mic.disabled = !input || !SpeechRecognition;
-    side.buttons.mic.textContent = input && recognition ? words.stop : words.mic;
+    side.buttons.mic.querySelector('span').textContent = input && recognition ? words.stop : words.mic;
+    side.buttons.mic.querySelector('use').setAttribute('href', input && recognition ? '#translate-icon-stop' : '#translate-icon-mic');
     side.buttons.read.disabled = !speech || !sentences[language];
     side.panel.setAttribute('aria-busy', String(Boolean(request && !input)));
   }
@@ -144,8 +143,10 @@ function openEditor(language) {
   editor.lang = language;
   const title = copy[language].edit;
   find('#editor-title').textContent = title;
-  find('#save-text').textContent = copy[language].save;
+  find('#save-text span').textContent = copy[language].save;
+  find('#editor-cancel').setAttribute('aria-label', copy[language].close);
   draft.setAttribute('aria-label', title);
+  draft.placeholder = copy[language].placeholder;
   draft.value = sentences[language];
   editor.showModal();
   draft.focus();
@@ -153,11 +154,12 @@ function openEditor(language) {
 
 find('#edit-form').addEventListener('submit', event => {
   event.preventDefault();
+  if (!draft.value.trim()) return;
   setSourceText(draft.value);
   editor.close();
+  void translate();
 });
 editor.addEventListener('close', () => { draft.value = ''; });
-access.addEventListener('close', () => { accessInput.value = ''; });
 for (const button of document.querySelectorAll('[data-close]')) {
   button.addEventListener('click', () => button.closest('dialog').close());
 }
@@ -232,11 +234,6 @@ async function translate() {
     showStatus('翻訳サービスは準備中です。');
     return;
   }
-  if (!accessCode) {
-    access.showModal();
-    accessInput.focus();
-    return;
-  }
 
   const to = resultLanguage();
   const side = panels[to];
@@ -251,16 +248,11 @@ async function translate() {
   try {
     const response = await fetch(translationEndpoint, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + accessCode},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({text, source, target: to}),
       signal: active.signal,
     });
     if (request !== active) return;
-    if (response.status === 401) {
-      accessCode = '';
-      showStatus('利用コードを確認して再試行してください。', true);
-      return;
-    }
     if (response.status === 456) {
       showStatus('DeepL の翻訳文字数の上限に達しました。');
       return;
@@ -292,13 +284,6 @@ async function translate() {
   }
 }
 
-find('#access-form').addEventListener('submit', event => {
-  event.preventDefault();
-  accessCode = accessInput.value.trim();
-  accessInput.value = '';
-  access.close();
-  if (accessCode) void translate();
-});
 find('#translate').addEventListener('click', translate);
 find('#retry').addEventListener('click', translate);
 window.addEventListener('pagehide', () => {
