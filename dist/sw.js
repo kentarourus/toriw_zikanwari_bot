@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v47';
+const CACHE = 'timetable-v50';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -53,10 +53,13 @@ const APP_FILES = [
   './assets/icons/icon-512.png',
   './taiwan/',
   './taiwan/translate/',
-  './taiwan/translate/style.css?v=10',
-  './taiwan/translate/app.js?v=11',
-  './taiwan/translate/local-voice.js?v=2',
-  './taiwan/translate/mandarin-worker.js?v=4',
+  './taiwan/translate/style.css?v=11',
+  './taiwan/translate/app.js?v=13',
+  './taiwan/translate/local-voice.js?v=4',
+  './taiwan/translate/local-translation.js?v=1',
+  './taiwan/translate/translation-pack.js?v=1',
+  './taiwan/translate/translation-worker.js?v=1',
+  './taiwan/translate/mandarin-worker.js?v=5',
   './taiwan/translate/config.js',
   './taiwan/sounds/',
   './taiwan/sounds/app.js?v=2',

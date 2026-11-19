@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>対面翻訳 | 台湾研修旅行</title>
-  <link rel="stylesheet" href="style.css?v=10">
-  <script type="module" src="app.js?v=11"></script>
+  <link rel="stylesheet" href="style.css?v=11">
+  <script type="module" src="app.js?v=13"></script>
 </head>
 <body>
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -25,7 +25,7 @@
   </svg>
   <main class="conversation" aria-label="対面翻訳">
     <section class="panel partner" data-language="zh-TW" lang="zh-TW" aria-labelledby="chinese-heading">
-      <header><h1 id="chinese-heading">台灣華語</h1><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a></header>
+      <header><h1 id="chinese-heading">台灣華語</h1><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a><span class="attribution" data-local-attribution hidden>離線翻譯</span></header>
       <div class="message">
         <p class="phrase" data-phrase tabindex="0"></p>
         <textarea class="phrase phrase-input" aria-label="輸入台灣華語" maxlength="1000" hidden></textarea>
@@ -52,7 +52,7 @@
     </div>
 
     <section class="panel" data-language="ja" aria-labelledby="japanese-heading">
-      <header><h2 id="japanese-heading">日本語</h2><span data-role></span><button class="attribution" id="show-info" type="button" aria-label="DeepL翻訳について">DeepL</button></header>
+      <header><h2 id="japanese-heading">日本語</h2><span data-role></span><button class="attribution" id="show-info" data-attribution type="button" aria-label="翻訳について">翻訳について</button></header>
       <div class="message">
         <p class="phrase" data-phrase tabindex="0" hidden></p>
         <textarea class="phrase phrase-input" aria-label="日本語を入力" maxlength="1000"></textarea>
@@ -74,18 +74,28 @@
     </form>
     <label class="voice-toggle">
       <span>音声のローカル利用</span>
-      <input type="checkbox" role="switch" aria-describedby="voice-description voice-status">
+      <input id="local-voice-toggle" type="checkbox" role="switch" aria-describedby="voice-description voice-status">
     </label>
-    <p id="voice-description">初回に音声データを保存します。保存後はネットなしで読み上げできます。</p>
+    <p id="voice-description">初回に音声データを保存します。保存後はネットなしで読み上げできます。通信できるときは、ブラウザのオンライン音声が先に準備できればそちらで再生します。</p>
     <p id="voice-status" role="status"></p>
     <div id="voice-progress" hidden>
       <progress max="100" aria-label="音声モデルの取得進捗"></progress>
       <small></small>
     </div>
+    <label class="voice-toggle">
+      <span>翻訳のローカル利用</span>
+      <input id="local-translation-toggle" type="checkbox" role="switch" aria-describedby="local-translation-description local-translation-status">
+    </label>
+    <p id="local-translation-description">日本語と繁体字中国語の双方向に対応します。初回に約211 MBを保存すると、入力した文章を端末内で翻訳できます。</p>
+    <p id="local-translation-status" role="status">オフ</p>
+    <div id="local-translation-progress" hidden>
+      <progress aria-label="翻訳モデルのダウンロード進捗"></progress>
+      <small></small>
+    </div>
   </dialog>
   <dialog id="info" aria-labelledby="info-title">
     <h2 id="info-title">翻訳について</h2>
-    <p>このアプリは <a href="https://www.deepl.com/pro-api">DeepL API</a> を使って自動翻訳します。翻訳時に入力した文章を DeepL に送信します。</p>
+    <p>通常は入力した文章を <a href="https://www.deepl.com/pro-api">DeepL</a> に送信して翻訳します。ローカル利用をオンにすると、<a href="https://firefox-source-docs.mozilla.org/toolkit/components/translations/resources/index.html">Firefox Translations</a> のモデルを使い、端末内で翻訳します。</p>
     <form method="dialog"><button>閉じる</button></form>
   </dialog>
 </body>

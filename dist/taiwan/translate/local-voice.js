@@ -3,12 +3,12 @@ const readyKey = new URL('./voice-pack-ready', import.meta.url).href;
 const preferenceKey = 'taiwan-local-voice-enabled';
 
 export function createVoiceWorker() {
-  return new Worker(new URL('./mandarin-worker.js?v=4', import.meta.url), {type: 'module'});
+  return new Worker(new URL('./mandarin-worker.js?v=5', import.meta.url), {type: 'module'});
 }
 
-export function setupLocalVoice(dialog, trigger, onDisable) {
-  const toggle = dialog.querySelector('input');
-  const status = dialog.querySelector('[role=status]');
+export function setupLocalVoice(dialog, trigger, onChange) {
+  const toggle = dialog.querySelector('#local-voice-toggle');
+  const status = dialog.querySelector('#voice-status');
   const progressBox = dialog.querySelector('#voice-progress');
   const bar = progressBox.querySelector('progress');
   const detail = progressBox.querySelector('small');
@@ -47,6 +47,7 @@ export function setupLocalVoice(dialog, trigger, onDisable) {
     } catch {}
     paint();
   })();
+  void ready.then(() => onChange(enabled));
 
   trigger.addEventListener('click', () => dialog.showModal());
   toggle.addEventListener('change', async () => {
@@ -55,7 +56,7 @@ export function setupLocalVoice(dialog, trigger, onDisable) {
     failure = '';
     if (!next) {
       enabled = false;
-      onDisable();
+      onChange(false);
       try { localStorage.removeItem(preferenceKey); } catch {}
       paint();
       return;
@@ -63,9 +64,10 @@ export function setupLocalVoice(dialog, trigger, onDisable) {
     saving = true;
     progress = {stage: 'start'};
     paint();
+    let preparedWorker;
     try {
       if (!await caches.match(readyKey, {cacheName: voiceCacheName})) {
-        await prepareVoicePack(update => {
+        preparedWorker = await prepareVoicePack(update => {
           progress = update;
           paint();
         });
@@ -76,12 +78,18 @@ export function setupLocalVoice(dialog, trigger, onDisable) {
       enabled = false;
       failure = '保存できませんでした。通信と端末の空き容量を確認して、もう一度オンにしてください。';
     } finally {
+      if (!enabled) preparedWorker?.terminate();
       saving = false;
       paint();
+      onChange(enabled, enabled ? preparedWorker : undefined);
     }
   });
 
   return {
+    async isEnabled() {
+      await ready;
+      return enabled;
+    },
     async requireEnabled() {
       await ready;
       if (enabled) return true;
@@ -106,6 +114,7 @@ async function prepareVoicePack(onProgress) {
   }
   const cache = await caches.open(voiceCacheName);
   const worker = createVoiceWorker();
+  let keepWorker = false;
   try {
     await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('Voice download timed out')), 120000);
@@ -132,7 +141,11 @@ async function prepareVoicePack(onProgress) {
       throw new Error('Voice files were not saved');
     }
     await cache.put(readyKey, new Response('ready'));
+    keepWorker = true;
+    return worker;
   } finally {
-    worker.terminate();
+    worker.onmessage = null;
+    worker.onerror = null;
+    if (!keepWorker) worker.terminate();
   }
 }

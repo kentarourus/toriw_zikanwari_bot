@@ -1,9 +1,11 @@
 import {translationEndpoint} from './config.js';
-import {createVoiceWorker, setupLocalVoice} from './local-voice.js?v=2';
+import {createVoiceWorker, setupLocalVoice} from './local-voice.js?v=4';
+import {setupLocalTranslation} from './local-translation.js?v=1';
 const embedded = location.hash === '#embedded' && self !== parent;
 
 const find = selector => document.querySelector(selector);
-const localVoice = setupLocalVoice(find('#voice-settings'), find('#show-settings'), stopSpeech);
+const localVoice = setupLocalVoice(find('#voice-settings'), find('#show-settings'), updateVoiceEngine);
+const localTranslation = setupLocalTranslation(find('#voice-settings'));
 const conversation = find('.conversation');
 const chinese = 'zh-TW';
 const japanese = 'ja';
@@ -37,14 +39,17 @@ const panels = Object.fromEntries([...document.querySelectorAll('.panel')].map(p
   }];
 }));
 const sentences = {[chinese]: '', [japanese]: ''};
-const translated = new Set();
+const translated = new Map();
 const resultLanguage = () => source === japanese ? chinese : japanese;
 let source = japanese;
 let request;
 let recognition;
 let utterance;
+let voiceStartupTimer;
 let speechContext;
 let fallbackSpeech;
+let speechWorker;
+let voiceRequestId = 0;
 let retryAvailable = false;
 let viewportMaximized = embedded;
 document.documentElement.classList.toggle('full-layout', viewportMaximized);
@@ -147,7 +152,15 @@ function paint() {
     const words = copy[language];
     side.panel.toggleAttribute('data-input', input);
     side.role.textContent = input ? words.source : words.result;
-    if (side.attribution) side.attribution.hidden = !translated.has(language);
+    if (side.attribution) {
+      const local = translated.get(language) === 'local';
+      side.attribution.hidden = side.attribution.matches('a') && translated.get(language) !== 'deepl';
+      if (side.attribution.matches('button')) {
+        side.attribution.textContent = local ? '端末内翻訳' : translated.has(language) ? 'DeepL' : '翻訳について';
+      }
+    }
+    const localLabel = side.panel.querySelector('[data-local-attribution]');
+    if (localLabel) localLabel.hidden = translated.get(language) !== 'local';
     side.phrase.hidden = input;
     side.draft.hidden = !input;
     side.draft.placeholder = words.placeholder;
@@ -173,11 +186,45 @@ function showStatus(message = '', retry = false) {
   paintSend();
 }
 
-function stopSpeech() {
+function stopNativeSpeech() {
   utterance = undefined;
+  clearTimeout(voiceStartupTimer);
   speech?.cancel();
+}
+
+function stopSavedSpeech() {
   fallbackSpeech?.();
   fallbackSpeech = undefined;
+}
+
+function stopSpeech() {
+  stopNativeSpeech();
+  stopSavedSpeech();
+}
+
+function getSpeechWorker(prepared) {
+  if (speechWorker) {
+    prepared?.terminate();
+    return speechWorker;
+  }
+  const worker = prepared || createVoiceWorker();
+  speechWorker = worker;
+  worker.addEventListener('error', () => {
+    if (speechWorker === worker) speechWorker = undefined;
+    worker.terminate();
+  });
+  if (!prepared) worker.postMessage({warm: true});
+  return worker;
+}
+
+function updateVoiceEngine(enabled, prepared) {
+  if (!enabled) {
+    stopSpeech();
+    speechWorker?.terminate();
+    speechWorker = undefined;
+    return;
+  }
+  try { getSpeechWorker(prepared); } catch {}
 }
 
 function cancelRequest() {
@@ -346,7 +393,7 @@ function readSavedVoice(text, language, side) {
   let worker;
   try {
     speechContext ??= new AudioContext();
-    worker = createVoiceWorker();
+    worker = getSpeechWorker();
   } catch {
     side.feedback.textContent = copy[language].noVoice;
     return;
@@ -354,11 +401,13 @@ function readSavedVoice(text, language, side) {
   const audioReady = speechContext.resume().catch(() => {});
   const pendingMessage = language === chinese ? '正在準備語音…' : '音声を準備しています…';
   side.feedback.textContent = pendingMessage;
+  const id = ++voiceRequestId;
+  const events = new AbortController();
   let node;
   const timer = setTimeout(failed, 38000);
   const cancel = () => {
     clearTimeout(timer);
-    worker.terminate();
+    events.abort();
     if (node) node.stop();
     if (side.feedback.textContent === pendingMessage) side.feedback.textContent = '';
   };
@@ -366,12 +415,13 @@ function readSavedVoice(text, language, side) {
     if (fallbackSpeech !== cancel) return;
     cancel();
     fallbackSpeech = undefined;
-    side.feedback.textContent = copy[language].noVoice;
+    if (!utterance) side.feedback.textContent = copy[language].noVoice;
   }
   fallbackSpeech = cancel;
-  worker.onerror = failed;
-  worker.onmessage = async ({data}) => {
-    worker.terminate();
+  worker.addEventListener('error', failed, {signal: events.signal});
+  worker.addEventListener('message', async ({data}) => {
+    if (data.id !== id) return;
+    events.abort();
     try {
       if (!data.wave) throw new Error('No audio');
       await audioReady;
@@ -379,6 +429,7 @@ function readSavedVoice(text, language, side) {
       if (fallbackSpeech !== cancel) return;
       if (speechContext.state !== 'running') throw new Error('Audio is blocked');
       clearTimeout(timer);
+      if (utterance) stopNativeSpeech();
       side.feedback.textContent = '';
       const player = speechContext.createBufferSource();
       player.buffer = buffer;
@@ -389,8 +440,8 @@ function readSavedVoice(text, language, side) {
     } catch {
       failed();
     }
-  };
-  worker.postMessage({text, language});
+  }, {signal: events.signal});
+  worker.postMessage({id, text, language});
 }
 
 async function read(language) {
@@ -400,14 +451,16 @@ async function read(language) {
   const text = sentences[language];
   if (!text.trim()) return;
   const locale = language === japanese ? 'ja-JP' : chinese;
-  const voices = speech?.getVoices().filter(voice => voice.localService) ?? [];
+  const voices = speech?.getVoices() ?? [];
   const tag = voice => voice.lang.toLowerCase().replaceAll('_', '-');
   const best = candidates => candidates.find(candidate => /natural|premium|enhanced|neural/i.test(candidate.name)) || candidates[0];
-  const preferred = voices.filter(candidate => language === japanese
+  const choose = candidates => best(candidates.filter(candidate => language === japanese
     ? /^ja(-|$)/.test(tag(candidate))
-    : /^(zh|cmn)(-hant)?-tw$|^zh-hant$/.test(tag(candidate)));
-  const otherMandarin = voices.filter(candidate => /^(zh|cmn)(-hans)?(-cn|-sg)?$/.test(tag(candidate)));
-  const voice = best(preferred) || (language === chinese ? best(otherMandarin) : undefined);
+    : /^(zh|cmn)(-hant)?-tw$|^zh-hant$/.test(tag(candidate))))
+    || (language === chinese && best(candidates.filter(candidate => /^(zh|cmn)(-hans)?(-cn|-sg)?$/.test(tag(candidate)))));
+  const local = choose(voices.filter(voice => voice.localService));
+  const network = !local && navigator.onLine && choose(voices.filter(voice => !voice.localService));
+  const voice = local || network;
   if (!voice) {
     readSavedVoice(text, language, side);
     return;
@@ -416,13 +469,27 @@ async function read(language) {
   line.lang = voice?.lang ?? locale;
   line.rate = language === chinese ? .94 : .97;
   if (voice) line.voice = voice;
-  line.onerror = () => {
+  function nativeFailed() {
     if (utterance !== line) return;
-    readSavedVoice(text, language, side);
+    stopNativeSpeech();
+    if (!fallbackSpeech) readSavedVoice(text, language, side);
+  }
+  line.onerror = nativeFailed;
+  line.onstart = () => {
+    if (utterance !== line) return;
+    clearTimeout(voiceStartupTimer);
+    stopSavedSpeech();
+  };
+  line.onend = () => {
+    if (utterance !== line) return;
+    clearTimeout(voiceStartupTimer);
+    utterance = undefined;
   };
   utterance = line;
   if (side.feedback.textContent === copy[language].noVoice) side.feedback.textContent = '';
-  speech.speak(line);
+  if (network) readSavedVoice(text, language, side);
+  voiceStartupTimer = setTimeout(nativeFailed, 12000);
+  try { speech.speak(line); } catch { nativeFailed(); }
 }
 
 for (const [language, side] of Object.entries(panels)) {
@@ -442,50 +509,43 @@ async function translate() {
   if (!text || request || recognition) return;
   panels[source].draft.blur();
   stopTyping();
-  if (!translationEndpoint) {
-    showStatus('翻訳サービスは準備中です。');
-    return;
-  }
-
   const to = resultLanguage();
+  const from = source;
   const side = panels[to];
   const active = new AbortController();
   request = active;
-  const timeout = setTimeout(() => active.abort(), 15000);
   stopSpeech();
   showStatus();
   side.feedback.textContent = copy[to].translating;
   paint();
 
+  let local = false;
+  let timeout;
   try {
-    const response = await fetch(translationEndpoint, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({text, source, target: to}),
-      signal: active.signal,
-    });
+    const mode = await localTranslation.mode();
     if (request !== active) return;
-    if (response.status === 456) {
-      showStatus('DeepL の翻訳文字数の上限に達しました。');
+    if (mode === 'preparing') {
+      showStatus('翻訳モデルを準備しています。設定で準備が完了してからお試しください。', true);
       return;
     }
-    if (response.status === 429) {
-      showStatus('翻訳リクエストが集中しています。時間をおいて再試行してください。', true);
-      return;
-    }
-    if (response.status === 503) {
-      showStatus('翻訳サービスは準備中です。', true);
-      return;
-    }
-    if (!response.ok) throw new Error();
-    const result = await response.json();
-    if (request !== active) return;
-    if (typeof result.translation !== 'string' || !result.translation.trim()) throw new Error();
-    sentences[to] = result.translation;
-    translated.add(to);
+    local = mode === 'local';
+    if (!local) localTranslation.stop();
+    timeout = setTimeout(() => {
+      active.abort();
+      if (local) localTranslation.stop();
+    }, local ? 60000 : 15000);
+    const translation = local
+      ? await localTranslation.translate(text, from, active.signal)
+      : await translateOnline(text, from, to, active.signal);
+    if (request !== active || translation === null) return;
+    if (typeof translation !== 'string' || !translation.trim()) throw new Error('Empty translation');
+    sentences[to] = translation;
+    translated.set(to, local ? 'local' : 'deepl');
     animate(side.phrase, 'updated');
   } catch {
-    if (request === active) showStatus('翻訳できませんでした。通信を確認して再試行してください。', true);
+    if (request === active) showStatus(local
+      ? '端末内で翻訳できませんでした。再試行するか、設定でモデルの準備状況を確認してください。'
+      : '翻訳できませんでした。通信を確認して再試行してください。', true);
   } finally {
     clearTimeout(timeout);
     if (request === active) {
@@ -496,12 +556,48 @@ async function translate() {
   }
 }
 
+async function translateOnline(text, from, to, signal) {
+  if (!translationEndpoint) {
+    showStatus('翻訳サービスは準備中です。');
+    return null;
+  }
+  if (!navigator.onLine) {
+    showStatus('オフラインです。事前に設定で翻訳モデルを保存すると、通信なしで使えます。', true);
+    return null;
+  }
+  const response = await fetch(translationEndpoint, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({text, source: from, target: to}),
+    signal,
+  });
+  signal.throwIfAborted();
+  if (response.status === 456) {
+    showStatus('DeepL の翻訳文字数の上限に達しました。');
+    return null;
+  }
+  if (response.status === 429) {
+    showStatus('翻訳リクエストが集中しています。時間をおいて再試行してください。', true);
+    return null;
+  }
+  if (response.status === 503) {
+    showStatus('翻訳サービスは準備中です。', true);
+    return null;
+  }
+  if (!response.ok) throw new Error('Online translation failed');
+  return (await response.json()).translation;
+}
+
 window.addEventListener('pagehide', () => {
   stopTyping();
   cancelRequest();
   cancelRecognition();
-  stopSpeech();
+  updateVoiceEngine(false);
+  localTranslation.stop();
   paint();
+});
+window.addEventListener('pageshow', event => {
+  if (event.persisted) void localVoice.isEnabled().then(updateVoiceEngine);
 });
 navigator.serviceWorker?.register(new URL('../../sw.js', import.meta.url)).catch(() => {});
 paint();
