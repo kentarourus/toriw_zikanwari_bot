@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#e7efe5">
+  <title>対面翻訳 | 台湾研修旅行</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main class="conversation" aria-label="対面翻訳">
+    <section class="panel partner" data-language="zh-TW" lang="zh-TW" aria-labelledby="chinese-heading">
+      <header><h1 id="chinese-heading">台灣華語</h1><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a></header>
+      <p class="phrase" data-phrase tabindex="0"></p>
+      <div class="actions">
+        <button type="button" data-action="mic">語音輸入</button>
+        <button type="button" data-action="edit">打字</button>
+        <button type="button" data-action="read">朗讀</button>
+      </div>
+      <p class="feedback" data-feedback role="status"></p>
+    </section>
+
+    <div class="controls">
+      <div class="direction">
+        <a href="../" aria-label="台湾サイトへ戻る">‹ 台湾</a>
+        <button type="button" id="flip"><span class="arrow" aria-hidden="true">↑</span> 方向切替</button>
+        <button type="button" id="translate" class="primary">DeepL で翻訳</button>
+      </div>
+      <p id="direction-label"></p>
+      <div class="utilities">
+        <button type="button" id="clear">全消去</button>
+        <button type="button" id="retry" hidden>再試行</button>
+        <button type="button" id="larger" aria-pressed="false">文字を拡大</button>
+      </div>
+      <button type="button" id="show-info" class="info">翻訳について</button>
+      <p id="status" role="status" hidden></p>
+    </div>
+
+    <section class="panel" data-language="ja" aria-labelledby="japanese-heading">
+      <header><h2 id="japanese-heading">日本語</h2><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a></header>
+      <p class="phrase" data-phrase tabindex="0"></p>
+      <div class="actions">
+        <button type="button" data-action="mic">音声入力</button>
+        <button type="button" data-action="edit">文字入力</button>
+        <button type="button" data-action="read">読み上げ</button>
+      </div>
+      <p class="feedback" data-feedback role="status"></p>
+    </section>
+  </main>
+  <dialog id="editor" aria-labelledby="editor-title">
+    <form id="edit-form">
+      <h2 id="editor-title"></h2>
+      <textarea id="draft" rows="4" maxlength="1000" autofocus></textarea>
+      <div class="actions">
+        <button type="button" data-close>取消 / キャンセル</button>
+        <button type="submit" id="save-text" class="primary"></button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="access" aria-labelledby="access-title">
+    <form id="access-form">
+      <h2 id="access-title">翻訳の利用コード</h2>
+      <p>管理者から案内された利用コードを入力してください。</p>
+      <input id="access-code" type="password" aria-labelledby="access-title" required autocomplete="off">
+      <div class="actions">
+        <button type="button" data-close>キャンセル</button>
+        <button type="submit" class="primary">DeepL で翻訳</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="info" aria-labelledby="info-title">
+    <h2 id="info-title">翻訳について</h2>
+    <p>このアプリは <a href="https://www.deepl.com/pro-api">DeepL API</a> を使って自動翻訳します。翻訳時に入力した文章を DeepL に送信します。</p>
+    <form method="dialog"><button>閉じる</button></form>
+  </dialog>
+</body>
+</html>

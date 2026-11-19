@@ -1,0 +1,30 @@
+.sound-table { max-width: 720px; }
+.sound-table h1 { margin: 12px 0 0; line-height: 1.35; }
+.sound-table h2 { font-size: 1.25rem; }
+#sound-status { min-height: 1.65em; color: var(--muted); }
+.sound-list { padding: 0; list-style: none; }
+.sound-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.sound-list li + li { margin-top: 6px; }
+.sound-list [lang] { display: block; font-size: 1.25rem; font-weight: 700; }
+.sound-list small { display: block; color: var(--muted); }
+.sound-list button {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--control-line);
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green);
+  cursor: pointer;
+}
+.sound-list button:hover { background: var(--green-hover); }
+.sound-list button[data-playing] { color: white; background: var(--green); }

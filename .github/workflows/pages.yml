@@ -29,6 +29,10 @@ jobs:
         env:
           GOATCOUNTER_SITE: ${{ vars.GOATCOUNTER_SITE }}
         run: node scripts/write-stats-config.mjs
+      - name: Configure Taiwan translation
+        env:
+          TAIWAN_TRANSLATION_ENDPOINT: ${{ vars.TAIWAN_TRANSLATION_ENDPOINT }}
+        run: node scripts/write-translation-config.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

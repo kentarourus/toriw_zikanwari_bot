@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v32';
+const CACHE = 'timetable-v35';
 const APP_FILES = [
   './',
   './index.html',
@@ -40,7 +40,30 @@ const APP_FILES = [
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
   './taiwan/',
-  './taiwan/style.css?v=21',
+  './taiwan/translate/',
+  './taiwan/translate/style.css',
+  './taiwan/translate/app.js',
+  './taiwan/translate/config.js',
+  './taiwan/sounds/',
+  './taiwan/sounds/app.js',
+  './taiwan/sounds/style.css',
+  './taiwan/sounds/audio/hello.mp3',
+  './taiwan/sounds/audio/well.mp3',
+  './taiwan/sounds/audio/bye.mp3',
+  './taiwan/sounds/audio/thanks.mp3',
+  './taiwan/sounds/audio/welcome.mp3',
+  './taiwan/sounds/audio/yes.mp3',
+  './taiwan/sounds/audio/no.mp3',
+  './taiwan/sounds/audio/sorry.mp3',
+  './taiwan/sounds/audio/please.mp3',
+  './taiwan/sounds/audio/toilet.mp3',
+  './taiwan/sounds/audio/station.mp3',
+  './taiwan/sounds/audio/recommend.mp3',
+  './taiwan/sounds/audio/tasty.mp3',
+  './taiwan/sounds/audio/price.mp3',
+  './taiwan/sounds/audio/discount.mp3',
+  './taiwan/sounds/audio/return.mp3',
+  './taiwan/style.css?v=22',
   './taiwan/app.js?v=packing-edit-6',
   './taiwan/travel-ui.js?v=4',
   './taiwan/weather.js?v=3',
@@ -75,8 +98,36 @@ self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('timetable-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 
+async function soundResponse(request) {
+  const cache = await caches.open(CACHE);
+  const saved = await cache.match(request);
+  if (!saved) return fetch(request);
+  const range = request.headers.get('Range');
+  if (!range) return saved;
+  const body = await saved.blob();
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  if (!match || (!match[1] && !match[2])) return new Response(null, {status: 416, headers: {'Content-Range': `bytes */${body.size}`}});
+  const start = match[1] ? Number(match[1]) : Math.max(0, body.size - Number(match[2]));
+  const end = match[1] && match[2] ? Math.min(Number(match[2]), body.size - 1) : body.size - 1;
+  if (start > end) return new Response(null, {status: 416, headers: {'Content-Range': `bytes */${body.size}`}});
+  return new Response(body.slice(start, end + 1), {
+    status: 206,
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': String(end - start + 1),
+      'Content-Range': `bytes ${start}-${end}/${body.size}`,
+      'Accept-Ranges': 'bytes'
+    }
+  });
+}
+
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || new URL(event.request.url).origin !== location.origin) return;
+  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (/\/taiwan\/sounds\/audio\/[\w-]+\.mp3$/.test(url.pathname)) {
+    event.respondWith(soundResponse(event.request));
+    return;
+  }
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).then(async response => {
       if (response.ok) {
