@@ -136,7 +136,7 @@ function openTool(trigger) {
     frame.src = `${href}#embedded`;
     frame.title = title;
     frame.className = 'local-tool-frame';
-    if (key === 'translate') frame.allow = "microphone 'self'";
+    if (key === 'translate') frame.allow = "microphone 'self'; fullscreen 'self'";
     toolContent.append(frame);
     restoreSection = () => frame.remove();
   } else {
@@ -156,6 +156,8 @@ if (typeof toolDialog.showModal === 'function') {
     if (!frame || event.source !== frame.contentWindow) return;
     if (event.data === 'taiwan-translate:ready') toolDialog.classList.add('translation-tool');
     if (event.data === 'taiwan-translate:close') toolDialog.close();
+    if (event.data === 'taiwan-translate:maximize') toolDialog.classList.add('is-maximized');
+    if (event.data === 'taiwan-translate:restore') toolDialog.classList.remove('is-maximized');
   });
   toolFolder.hidden = false;
   toolFolder.addEventListener('click', () => folderDialog.showModal());
@@ -175,7 +177,7 @@ if (typeof toolDialog.showModal === 'function') {
     });
   }
   toolDialog.addEventListener('close', () => {
-    toolDialog.classList.remove('translation-tool');
+    toolDialog.classList.remove('translation-tool', 'is-maximized');
     finishLaunch();
     restoreSection?.();
     restoreSection = undefined;

@@ -6,14 +6,16 @@ const chinese = 'zh-TW';
 const japanese = 'ja';
 const copy = {
   [chinese]: {
-    source: '輸入', result: '翻譯結果', empty: '請說話或打字', waiting: '翻譯將顯示在這裡',
-    translating: '翻譯中…', edit: '輸入繁體中文', save: '送出翻譯', close: '關閉', placeholder: '在這裡輸入文字',
+    source: '輸入', result: '翻譯結果', waiting: '翻譯將顯示在這裡',
+    translating: '翻譯中…', placeholder: '點這裡輸入文字',
+    controls: ['切換方向', '送出翻譯', '清除全部', '放大文字', '全螢幕', '還原視窗', '關閉', '重試'],
     listening: '聆聽中…', stop: '停止錄音', mic: '語音輸入',
     noMic: '無法使用語音輸入，請改用打字。', noVoice: '無法朗讀，請查看畫面上的文字。',
   },
   [japanese]: {
-    source: '入力', result: '翻訳結果', empty: '話すか文字を入力', waiting: 'ここに翻訳結果が表示されます',
-    translating: '翻訳中…', edit: '日本語を入力', save: '翻訳する', close: '閉じる', placeholder: 'ここに文章を入力',
+    source: '入力', result: '翻訳結果', waiting: 'ここに翻訳結果が表示されます',
+    translating: '翻訳中…', placeholder: 'タップして文字を入力',
+    controls: ['方向切替', '翻訳する', '全消去', '文字を拡大', '最大化', '元の大きさに戻す', '閉じる', '再試行'],
     listening: '聞き取り中…', stop: '録音停止', mic: '音声入力',
     noMic: '音声入力を利用できません。文字入力をお使いください。', noVoice: '読み上げを利用できません。',
   },
@@ -21,15 +23,14 @@ const copy = {
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speech = window.speechSynthesis;
 const panels = Object.fromEntries([...document.querySelectorAll('.panel')].map(panel => {
-  const buttons = Object.fromEntries([...panel.querySelectorAll('button')].map(button => [button.dataset.action, button]));
+  const buttons = Object.fromEntries([...panel.querySelectorAll('button[data-action]')].map(button => [button.dataset.action, button]));
   return [panel.dataset.language, {
     panel, buttons, phrase: panel.querySelector('[data-phrase]'),
+    draft: panel.querySelector('textarea'),
     attribution: panel.querySelector('[data-attribution]'),
     role: panel.querySelector('[data-role]'), feedback: panel.querySelector('[data-feedback]'),
   }];
 }));
-const editor = find('#editor');
-const draft = find('#draft');
 const sentences = {[chinese]: '', [japanese]: ''};
 const translated = new Set();
 const resultLanguage = () => source === japanese ? chinese : japanese;
@@ -37,20 +38,45 @@ let source = japanese;
 let request;
 let recognition;
 let utterance;
+let retryAvailable = false;
+let viewportMaximized = false;
+
+function labelControl(selector, name) {
+  const control = find(selector);
+  control.setAttribute('aria-label', name);
+  control.title = name;
+}
+
+function paintControls() {
+  const [flip, send, clear, size, expand, restore, close, retry] = copy[source].controls;
+  const expanded = viewportMaximized || Boolean(document.fullscreenElement);
+  labelControl('#flip', flip);
+  labelControl('#translate', retryAvailable ? retry : send);
+  labelControl('#clear', clear);
+  labelControl('#larger', size);
+  labelControl('#maximize', expanded ? restore : expand);
+  labelControl('#close-translation', close);
+  find('#maximize').setAttribute('aria-pressed', String(expanded));
+  find('#maximize use').setAttribute('href', expanded ? '#translate-icon-min' : '#translate-icon-max');
+}
 
 function paint() {
   find('.conversation').classList.toggle('reverse', source === chinese);
+  find('.controls').lang = source;
   find('#direction-label').textContent = source === japanese ? '日本語 → 繁體中文' : '繁體中文 → 日本語';
   for (const [language, side] of Object.entries(panels)) {
     const input = source === language;
     const words = copy[language];
     side.panel.toggleAttribute('data-input', input);
     side.role.textContent = input ? words.source : words.result;
-    side.attribution.hidden = !translated.has(language);
-    const phrase = sentences[language] || (input ? words.empty : words.waiting);
+    if (side.attribution) side.attribution.hidden = !translated.has(language);
+    side.phrase.hidden = input;
+    side.draft.hidden = !input;
+    side.draft.placeholder = words.placeholder;
+    if (side.draft.value !== sentences[language]) side.draft.value = sentences[language];
+    const phrase = sentences[language] || words.waiting;
     if (side.phrase.textContent !== phrase) side.phrase.textContent = phrase;
     side.phrase.classList.toggle('empty', !sentences[language]);
-    side.buttons.edit.disabled = !input;
     side.buttons.mic.disabled = !input || !SpeechRecognition;
     side.buttons.mic.querySelector('span').textContent = input && recognition ? words.stop : words.mic;
     side.buttons.mic.querySelector('use').setAttribute('href', input && recognition ? '#translate-icon-stop' : '#translate-icon-mic');
@@ -58,17 +84,16 @@ function paint() {
     side.panel.setAttribute('aria-busy', String(Boolean(request && !input)));
   }
   find('#translate').disabled = Boolean(request || recognition || !sentences[source].trim());
+  paintControls();
 }
 
 function showStatus(message = '', retry = false) {
   const status = find('#status');
   status.hidden = !message;
   status.textContent = message;
-  const button = find('#translate');
-  const label = retry ? '再試行' : '翻訳する';
-  button.setAttribute('aria-label', label);
-  button.title = label;
-  button.querySelector('use').setAttribute('href', retry ? '#translate-icon-retry' : '#translate-icon-send');
+  retryAvailable = retry;
+  find('#translate use').setAttribute('href', retry ? '#translate-icon-retry' : '#translate-icon-send');
+  paintControls();
 }
 
 function stopSpeech() {
@@ -139,38 +164,28 @@ find('#close-translation').addEventListener('click', event => {
   parent.postMessage('taiwan-translate:close', location.origin);
 });
 
+find('#maximize').addEventListener('click', async () => {
+  if (document.fullscreenElement) {
+    await document.exitFullscreen().catch(() => {});
+    return;
+  }
+  if (!viewportMaximized && document.fullscreenEnabled) {
+    try {
+      await document.documentElement.requestFullscreen();
+      return;
+    } catch {}
+  }
+  viewportMaximized = !viewportMaximized;
+  document.documentElement.classList.toggle('full-layout', viewportMaximized);
+  if (embedded) parent.postMessage(viewportMaximized ? 'taiwan-translate:maximize' : 'taiwan-translate:restore', location.origin);
+  paintControls();
+});
+document.addEventListener('fullscreenchange', paintControls);
+
 find('#larger').addEventListener('click', event => {
   const large = find('.conversation').classList.toggle('large');
   event.currentTarget.setAttribute('aria-pressed', String(large));
 });
-
-function openEditor(language) {
-  cancelRecognition();
-  stopSpeech();
-  paint();
-  editor.lang = language;
-  const title = copy[language].edit;
-  find('#editor-title').textContent = title;
-  find('#save-text span').textContent = copy[language].save;
-  find('#editor-cancel').setAttribute('aria-label', copy[language].close);
-  draft.setAttribute('aria-label', title);
-  draft.placeholder = copy[language].placeholder;
-  draft.value = sentences[language];
-  editor.showModal();
-  draft.focus();
-}
-
-find('#edit-form').addEventListener('submit', event => {
-  event.preventDefault();
-  if (!draft.value.trim()) return;
-  setSourceText(draft.value);
-  editor.close();
-  void translate();
-});
-editor.addEventListener('close', () => { draft.value = ''; });
-for (const button of document.querySelectorAll('[data-close]')) {
-  button.addEventListener('click', () => button.closest('dialog').close());
-}
 
 function startMic(language) {
   if (recognition) {
@@ -229,7 +244,11 @@ function read(language) {
 }
 
 for (const [language, side] of Object.entries(panels)) {
-  side.buttons.edit.addEventListener('click', () => openEditor(language));
+  side.draft.addEventListener('input', () => {
+    if (source !== language) return;
+    cancelRecognition();
+    setSourceText(side.draft.value);
+  });
   side.buttons.mic.addEventListener('click', () => startMic(language));
   side.buttons.read.addEventListener('click', () => read(language));
   if (!SpeechRecognition) side.buttons.mic.title = copy[language].noMic;
@@ -238,6 +257,7 @@ for (const [language, side] of Object.entries(panels)) {
 async function translate() {
   const text = sentences[source].trim();
   if (!text || request || recognition) return;
+  panels[source].draft.blur();
   if (!translationEndpoint) {
     showStatus('翻訳サービスは準備中です。');
     return;
