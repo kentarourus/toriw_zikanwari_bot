@@ -3,6 +3,10 @@
 .sound-table h1 { margin: 12px 0 0; line-height: 1.35; }
 .sound-table h2 { font-size: 1.25rem; }
 #sound-status { min-height: 1.65em; color: var(--muted); }
+.embedded .sound-table h1 { display: none; }
+.embedded .sound-table #sound-status { margin: 8px 0 12px; }
+.embedded .sound-table > section { margin-bottom: 20px; }
+.embedded .sound-list { margin-block: 6px; }
 .sound-list { padding: 0; list-style: none; }
 .sound-list li {
   display: flex;

@@ -133,11 +133,12 @@ function paintSend() {
 
 function paintControls() {
   const [flip, clear, size, expand, restore, close] = copy[source].controls;
-  const expanded = viewportMaximized || Boolean(document.fullscreenElement);
+  const expanded = Boolean(document.fullscreenElement) || (!embedded && viewportMaximized);
   labelControl(find('#flip'), flip);
   labelControl(find('#clear'), clear);
   labelControl(find('#larger'), size);
   labelControl(find('#maximize'), expanded ? restore : expand);
+  find('#maximize').hidden = embedded && !document.fullscreenEnabled;
   labelControl(find('#close-translation'), close);
   find('#maximize').setAttribute('aria-pressed', String(expanded));
   find('#maximize use').setAttribute('href', expanded ? '#translate-icon-min' : '#translate-icon-max');
@@ -331,15 +332,15 @@ find('#maximize').addEventListener('click', async () => {
     await document.exitFullscreen().catch(() => {});
     return;
   }
-  if (!viewportMaximized && document.fullscreenEnabled) {
+  if ((embedded || !viewportMaximized) && document.fullscreenEnabled) {
     try {
       await document.documentElement.requestFullscreen();
       return;
     } catch {}
   }
+  if (embedded) return;
   viewportMaximized = !viewportMaximized;
   document.documentElement.classList.toggle('full-layout', viewportMaximized);
-  if (embedded) parent.postMessage(viewportMaximized ? 'taiwan-translate:maximize' : 'taiwan-translate:restore', location.origin);
   paintControls();
 });
 document.addEventListener('fullscreenchange', paintControls);

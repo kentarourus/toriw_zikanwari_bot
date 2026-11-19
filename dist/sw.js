@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v50';
+const CACHE = 'timetable-v51';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -54,7 +54,7 @@ const APP_FILES = [
   './taiwan/',
   './taiwan/translate/',
   './taiwan/translate/style.css?v=11',
-  './taiwan/translate/app.js?v=13',
+  './taiwan/translate/app.js?v=14',
   './taiwan/translate/local-voice.js?v=4',
   './taiwan/translate/local-translation.js?v=1',
   './taiwan/translate/translation-pack.js?v=1',
@@ -63,7 +63,7 @@ const APP_FILES = [
   './taiwan/translate/config.js',
   './taiwan/sounds/',
   './taiwan/sounds/app.js?v=2',
-  './taiwan/sounds/style.css?v=2',
+  './taiwan/sounds/style.css?v=3',
   './taiwan/sounds/audio/hello.mp3',
   './taiwan/sounds/audio/well.mp3',
   './taiwan/sounds/audio/bye.mp3',
@@ -80,9 +80,9 @@ const APP_FILES = [
   './taiwan/sounds/audio/price.mp3',
   './taiwan/sounds/audio/discount.mp3',
   './taiwan/sounds/audio/return.mp3',
-  './taiwan/style.css?v=27',
+  './taiwan/style.css?v=28',
   './taiwan/app.js?v=packing-edit-6',
-  './taiwan/travel-ui.js?v=8',
+  './taiwan/travel-ui.js?v=9',
   './taiwan/weather.js?v=3',
   './taiwan/currency.js',
   './taiwan/offline-data.js',

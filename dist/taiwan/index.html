@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
   <svg aria-hidden="true" class="travel-icon-library" xmlns="http://www.w3.org/2000/svg">
@@ -202,7 +202,10 @@
   <dialog id="travel-tool" class="tools-dialog tool-window" aria-labelledby="travel-tool-title">
     <div class="tools-heading">
       <h2 id="travel-tool-title"></h2>
-      <form method="dialog"><button type="submit" aria-label="閉じる" autofocus>×</button></form>
+      <div class="tool-actions">
+        <a id="travel-tool-external" target="_blank" rel="noopener noreferrer" hidden></a>
+        <form method="dialog"><button type="submit" aria-label="閉じる" autofocus>×</button></form>
+      </div>
     </div>
     <div id="travel-tool-content"></div>
     <div class="tool-launch" aria-hidden="true" hidden></div>
@@ -222,7 +225,7 @@
       <p class="currency-source">参考レート · <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a></p>
     </div>
   </template>
-  <script type="module" src="travel-ui.js?v=8"></script>
+  <script type="module" src="travel-ui.js?v=9"></script>
   <script type="module" src="weather.js?v=3"></script>
 </body>
 </html>

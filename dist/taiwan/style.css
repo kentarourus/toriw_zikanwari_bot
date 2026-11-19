@@ -200,35 +200,58 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12
 .tools-dialog::backdrop { background: #15332b80; }
 body:has(.tools-dialog[open]) { overflow: hidden; }
 .tool-window {
-  width: calc(100% - 24px);
+  position: fixed;
+  inset: 0;
+  width: 100%;
   max-width: none;
-  height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  height: 100vh;
+  height: 100dvh;
   max-height: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  --tool-left: max(18px, env(safe-area-inset-left));
+  --tool-right: max(18px, env(safe-area-inset-right));
 }
 .tool-window[open] { display: flex; flex-direction: column; overflow: hidden; }
 .tool-window .tools-heading {
-  margin: -18px -18px 12px;
-  padding: 12px 18px;
+  flex: none;
+  margin: 0;
+  padding: max(4px, env(safe-area-inset-top)) var(--tool-right) 4px var(--tool-left);
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
-#travel-tool-content { flex: 1; min-height: 0; overflow: auto; }
-.local-tool-frame { display: block; width: 100%; height: 100%; border: 0; border-radius: 12px; }
-.tool-window.translation-tool { padding: 0; }
-.tool-window.is-maximized { width: 100%; height: 100dvh; border-radius: 0; }
+.tool-window .tools-heading h2 { font-size: clamp(1.05rem, 4vw, 1.35rem); }
+.tool-actions { display: flex; align-items: center; flex: none; gap: 8px; }
+#travel-tool-external { display: inline-flex; align-items: center; min-height: 44px; font-size: .8rem; white-space: nowrap; }
+#travel-tool-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px var(--tool-right) max(12px, env(safe-area-inset-bottom)) var(--tool-left);
+}
+.tool-window:has(:where(.tool-embed:not([hidden]), .local-tool-frame)) #travel-tool-content {
+  padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.local-tool-frame { display: block; width: 100%; height: 100%; border: 0; }
 .translation-tool .tools-heading { display: none; }
-.translation-tool .local-tool-frame { border-radius: 0; }
+.tool-window.translation-tool #travel-tool-content {
+  background: #eef2eb;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
 .tool-section-heading { display: none; }
-.tool-window .section-title { align-items: center; }
-.tool-embed { min-height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; }
+.tool-window .section-title { align-items: center; margin-bottom: 8px; }
+.tool-embed { height: 100%; }
 .tool-embed iframe {
+  display: block;
   width: 100%;
   height: 100%;
-  min-height: 240px;
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 0;
 }
+.tool-offline-content { padding: 8px 14px; }
 .tool-offline-map { display: block; max-width: min(100%, 760px); height: auto; margin-inline: auto; }
 .tool-launch {
   position: absolute;

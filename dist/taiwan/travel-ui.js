@@ -24,6 +24,7 @@ const toolFolder = document.getElementById('open-travel-tools');
 const folderDialog = document.getElementById('travel-tools');
 const toolDialog = document.getElementById('travel-tool');
 const toolContent = document.getElementById('travel-tool-content');
+const externalToolLink = document.getElementById('travel-tool-external');
 const launch = toolDialog.querySelector('.tool-launch');
 const sections = {
   '#prepare': document.getElementById('prepare'),
@@ -48,12 +49,8 @@ function getPanel(key, title, fallback) {
   } else {
     const frame = document.createElement('iframe');
     frame.title = title;
-    const link = document.createElement('a');
-    link.href = fallback;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = key === 'map' ? 'Google マップで開く ↗' : '別のタブで開く ↗';
     const offline = document.createElement('div');
+    offline.className = 'tool-offline-content';
     if (key === 'map') {
       const image = document.createElement('img');
       image.src = 'guide-assets/mrt-map.png';
@@ -70,11 +67,14 @@ function getPanel(key, title, fallback) {
     panel.refresh = () => {
       const online = navigator.onLine;
       if (online && !frame.hasAttribute('src')) frame.src = embeds[key];
-      frame.hidden = link.hidden = !online;
+      frame.hidden = !online;
       offline.hidden = online;
+      externalToolLink.href = fallback;
+      externalToolLink.textContent = key === 'map' ? '地図で開く ↗' : '別タブで開く ↗';
+      externalToolLink.hidden = !online;
     };
     panel.className = 'tool-embed';
-    panel.append(frame, offline, link);
+    panel.append(frame, offline);
   }
   mounted.set(key, panel);
   toolContent.append(panel);
@@ -108,7 +108,16 @@ function finishLaunch() {
   toolContent.inert = false;
 }
 
+function resetTool() {
+  toolDialog.classList.remove('translation-tool');
+  finishLaunch();
+  restoreSection?.();
+  restoreSection = undefined;
+}
+
 function openTool(trigger) {
+  if (toolDialog.open) return;
+  resetTool();
   const href = trigger.getAttribute('href');
   const section = sections[href];
   const key = trigger.dataset.openTool || (href?.startsWith('https:') ? 'map' : 'chat');
@@ -116,6 +125,7 @@ function openTool(trigger) {
   const origin = trigger.querySelector('.tool-icon').getBoundingClientRect();
   returnFocus = folderDialog.open ? toolFolder : trigger;
   if (folderDialog.open) folderDialog.close();
+  externalToolLink.hidden = true;
   document.getElementById('travel-tool-title').textContent =
     section?.querySelector('h2').textContent || (key === 'currency' ? '日本円・台湾ドル換算' : title);
   for (const panel of mounted.values()) panel.hidden = true;
@@ -136,10 +146,7 @@ function openTool(trigger) {
     frame.src = `${href}#embedded`;
     frame.title = title;
     frame.className = 'local-tool-frame';
-    if (key === 'translate') {
-      frame.allow = "microphone 'self'; fullscreen 'self'";
-      toolDialog.classList.add('is-maximized');
-    }
+    if (key === 'translate') frame.allow = "microphone 'self'; fullscreen 'self'";
     toolContent.append(frame);
     restoreSection = () => frame.remove();
   } else {
@@ -159,8 +166,6 @@ if (typeof toolDialog.showModal === 'function') {
     if (!frame || event.source !== frame.contentWindow) return;
     if (event.data === 'taiwan-translate:ready') toolDialog.classList.add('translation-tool');
     if (event.data === 'taiwan-translate:close') toolDialog.close();
-    if (event.data === 'taiwan-translate:maximize') toolDialog.classList.add('is-maximized');
-    if (event.data === 'taiwan-translate:restore') toolDialog.classList.remove('is-maximized');
   });
   toolFolder.hidden = false;
   toolFolder.addEventListener('click', () => folderDialog.showModal());
@@ -171,19 +176,16 @@ if (typeof toolDialog.showModal === 'function') {
       openTool(trigger);
     });
   }
-  for (const dialog of [folderDialog, toolDialog]) {
-    dialog.addEventListener('click', event => {
-      if (event.target !== dialog) return;
-      const bounds = dialog.getBoundingClientRect();
-      if (event.clientX < bounds.left || event.clientX > bounds.right ||
-          event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
-    });
-  }
+  folderDialog.addEventListener('click', event => {
+    if (event.target !== folderDialog) return;
+    const bounds = folderDialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right ||
+        event.clientY < bounds.top || event.clientY > bounds.bottom) folderDialog.close();
+  });
   toolDialog.addEventListener('close', () => {
-    toolDialog.classList.remove('translation-tool', 'is-maximized');
-    finishLaunch();
-    restoreSection?.();
-    restoreSection = undefined;
+    if (toolDialog.open) return;
+    resetTool();
     returnFocus?.focus({preventScroll: true});
+    returnFocus = undefined;
   });
 }
