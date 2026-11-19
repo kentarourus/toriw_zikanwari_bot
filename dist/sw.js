@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v51';
+const CACHE = 'timetable-v52';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -41,9 +41,9 @@ const APP_FILES = [
   './assets/js/app.js?v=18',
   './assets/js/pwa.js?v=10',
   './assets/js/pwa.js?v=21',
-  './assets/js/pwa.js?v=22',
+  './assets/js/pwa.js?v=23',
   './assets/styles/ui.css?v=26',
-  './assets/styles/install.css?v=2',
+  './assets/styles/install.css?v=3',
   './assets/js/notices.js',
   './assets/js/timetable-dates.js?v=2',
   './assets/styles/install.css',

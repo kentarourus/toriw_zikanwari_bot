@@ -25,8 +25,23 @@ if (travelLink) {
     const frame = document.createElement('iframe');
     frame.src = travelLink.href;
     frame.title = '台湾研修旅行';
+    const innerDialogObserver = new MutationObserver(syncCloseButton);
+    function syncCloseButton() {
+      const page = frame.contentDocument;
+      close.hidden = Boolean(page?.querySelector('#travel-tools[open], #travel-tool[open]'));
+    }
+    frame.addEventListener('load', () => {
+      innerDialogObserver.disconnect();
+      for (const innerDialog of frame.contentDocument?.querySelectorAll('#travel-tools, #travel-tool') ?? []) {
+        innerDialogObserver.observe(innerDialog, {attributes: true, attributeFilter: ['open']});
+      }
+      syncCloseButton();
+    });
     dialog.append(close, frame);
-    dialog.addEventListener('close', () => dialog.remove(), {once: true});
+    dialog.addEventListener('close', () => {
+      innerDialogObserver.disconnect();
+      dialog.remove();
+    }, {once: true});
     document.body.append(dialog);
     dialog.showModal();
   });
