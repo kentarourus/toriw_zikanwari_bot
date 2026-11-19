@@ -1,0 +1,24 @@
+{
+  "name": "円・台湾ドル換算",
+  "short_name": "円・台湾ドル換算",
+  "start_url": "../?tool=currency",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#fffefa",
+  "theme_color": "#e7efe5",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "currency-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "currency-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

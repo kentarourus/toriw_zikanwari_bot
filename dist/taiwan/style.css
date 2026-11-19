@@ -223,6 +223,7 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 }
 .tool-window .tools-heading h2 { font-size: clamp(1.05rem, 4vw, 1.35rem); }
 .tool-actions { display: flex; align-items: center; flex: none; gap: 8px; }
+.tool-actions #install-travel-app { background: var(--green); color: white; font-size: .8rem; font-weight: 700; }
 #travel-tool-external { display: inline-flex; align-items: center; min-height: 44px; font-size: .8rem; white-space: nowrap; }
 #travel-tool-content {
   flex: 1;
@@ -236,6 +237,8 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 }
 .local-tool-frame { display: block; width: 100%; height: 100%; border: 0; }
 .translation-tool .tools-heading { display: none; }
+.translation-tool .tools-heading:has(#install-travel-app:not([hidden])) { display: flex; }
+.translation-tool .tools-heading form { display: none; }
 .tool-window.translation-tool #travel-tool-content {
   background: #eef2eb;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
@@ -253,6 +256,11 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 }
 .tool-offline-content { padding: 8px 14px; }
 .tool-offline-map { display: block; max-width: min(100%, 760px); height: auto; margin-inline: auto; }
+#install-travel-apps { margin-top: 12px; font-size: .88rem; }
+#install-travel-apps summary { cursor: pointer; font-weight: 700; color: var(--green); padding-block: 8px; }
+#install-travel-apps p { max-width: 48ch; margin: 4px 0; }
+#install-travel-apps ul { display: flex; flex-wrap: wrap; gap: 0 14px; padding: 0; margin: 0; list-style: none; }
+#install-travel-apps li a { display: inline-grid; align-items: center; min-height: 44px; }
 .tool-launch {
   position: absolute;
   top: 50%;

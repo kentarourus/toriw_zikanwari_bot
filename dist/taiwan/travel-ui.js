@@ -36,6 +36,10 @@ const embeds = {
   chat: '../taiwan-chat/'
 };
 const mounted = new Map();
+const tools = [...document.querySelectorAll('.bottom-tools .tool-icons > *')];
+const requestedTool = new URLSearchParams(location.search).get('tool');
+const appTrigger = tools.find(trigger => toolKey(trigger) === requestedTool);
+let directApp = Boolean(appTrigger);
 let restoreSection;
 let returnFocus;
 let animation;
@@ -115,12 +119,17 @@ function resetTool() {
   restoreSection = undefined;
 }
 
-function openTool(trigger) {
+function toolKey(trigger) {
+  const href = trigger.getAttribute('href');
+  return trigger.dataset.openTool || (sections[href] ? href.slice(1) : href?.startsWith('https:') ? 'map' : 'chat');
+}
+
+function openTool(trigger, direct = false) {
   if (toolDialog.open) return;
   resetTool();
   const href = trigger.getAttribute('href');
   const section = sections[href];
-  const key = trigger.dataset.openTool || (href?.startsWith('https:') ? 'map' : 'chat');
+  const key = toolKey(trigger);
   const title = trigger.lastElementChild.textContent;
   const origin = trigger.querySelector('.tool-icon').getBoundingClientRect();
   returnFocus = folderDialog.open ? toolFolder : trigger;
@@ -156,7 +165,7 @@ function openTool(trigger) {
   }
   toolDialog.showModal();
   toolContent.scrollTop = 0;
-  animateLaunch(trigger, origin);
+  if (!direct) animateLaunch(trigger, origin);
 }
 
 if (typeof toolDialog.showModal === 'function') {
@@ -187,5 +196,66 @@ if (typeof toolDialog.showModal === 'function') {
     resetTool();
     returnFocus?.focus({preventScroll: true});
     returnFocus = undefined;
+    if (directApp) {
+      directApp = false;
+      document.getElementById('install-travel-app').hidden = true;
+      document.querySelectorAll('[data-travel-app-link]').forEach(link => link.remove());
+      document.title = '台湾研修旅行 2026';
+      const url = new URL(location.href);
+      url.searchParams.delete('tool');
+      history.replaceState(history.state, '', url);
+    }
   });
+
+  const installList = document.getElementById('install-travel-apps');
+  for (const trigger of tools) {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = `?tool=${toolKey(trigger)}`;
+    link.textContent = trigger.lastElementChild.textContent;
+    if (self !== top) {
+      link.target = '_blank';
+      link.rel = 'noopener';
+    }
+    item.append(link);
+    installList.querySelector('ul').append(item);
+  }
+  installList.hidden = false;
+  if (appTrigger) {
+    document.title = appTrigger.lastElementChild.textContent;
+    if (self === top) {
+      for (const [rel, href] of [
+        ['manifest', `apps/${requestedTool}.webmanifest`],
+        ['apple-touch-icon', `apps/${requestedTool}-192.png`],
+        ['icon', `apps/${requestedTool}-192.png`],
+      ]) {
+        const link = document.createElement('link');
+        link.rel = rel;
+        link.href = href;
+        link.dataset.travelAppLink = '';
+        document.head.append(link);
+      }
+      const button = document.getElementById('install-travel-app');
+      const standalone = matchMedia('(display-mode: standalone)');
+      const update = () => { button.hidden = !directApp || !installPrompt || standalone.matches || navigator.standalone === true; };
+      let installPrompt;
+      addEventListener('beforeinstallprompt', event => {
+        event.preventDefault();
+        installPrompt = event;
+        update();
+      });
+      addEventListener('appinstalled', () => {
+        installPrompt = undefined;
+        update();
+      });
+      standalone.addEventListener('change', update);
+      button.addEventListener('click', async () => {
+        const event = installPrompt;
+        installPrompt = undefined;
+        update();
+        await event?.prompt();
+      });
+    }
+    openTool(appTrigger, true);
+  }
 }

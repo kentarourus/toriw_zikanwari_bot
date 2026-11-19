@@ -1,0 +1,24 @@
+{
+  "name": "サウンドテーブル",
+  "short_name": "サウンドテーブル",
+  "start_url": "../?tool=sounds",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#fffefa",
+  "theme_color": "#e7efe5",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "sounds-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "sounds-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

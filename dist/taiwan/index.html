@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
   <svg aria-hidden="true" class="travel-icon-library" xmlns="http://www.w3.org/2000/svg">
@@ -195,6 +195,11 @@
         <a href="translate/" data-open-tool="translate"><span class="tool-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#travel-icon-translate"/></svg></span><span>対面翻訳</span></a>
         <a href="sounds/" data-open-tool="sounds"><span class="tool-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#travel-icon-sounds"/></svg></span><span>サウンドテーブル</span></a>
       </nav>
+      <details id="install-travel-apps" hidden>
+        <summary>便利ツールをホーム画面に追加</summary>
+        <p>追加したいアプリを開き、ブラウザのメニューからインストールできます。iPhoneではSafariの共有メニューから「ホーム画面に追加」を選びます。</p>
+        <ul></ul>
+      </details>
     </section>
     <footer><a href="#top">ページ上部へ ↑</a><a href="../">クラス一覧に戻る</a></footer>
   </main>
@@ -203,6 +208,7 @@
     <div class="tools-heading">
       <h2 id="travel-tool-title"></h2>
       <div class="tool-actions">
+        <button id="install-travel-app" type="button" hidden>アプリを追加</button>
         <a id="travel-tool-external" target="_blank" rel="noopener noreferrer" hidden></a>
         <form method="dialog"><button type="submit" aria-label="閉じる" autofocus>×</button></form>
       </div>
@@ -225,7 +231,7 @@
       <p class="currency-source">参考レート · <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter</a></p>
     </div>
   </template>
-  <script type="module" src="travel-ui.js?v=9"></script>
+  <script type="module" src="travel-ui.js?v=10"></script>
   <script type="module" src="weather.js?v=3"></script>
 </body>
 </html>

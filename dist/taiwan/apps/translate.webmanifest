@@ -1,0 +1,24 @@
+{
+  "name": "対面翻訳",
+  "short_name": "対面翻訳",
+  "start_url": "../?tool=translate",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#fffefa",
+  "theme_color": "#e7efe5",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "translate-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "translate-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
