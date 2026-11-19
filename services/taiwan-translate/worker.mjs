@@ -69,19 +69,22 @@ export default {
     const text = typeof raw === 'string' ? raw.trim() : '';
     const supported = (source === 'ja' && target === 'zh-TW') || (source === 'zh-TW' && target === 'ja');
     if (!supported || !text || text.length > 1000) return json(400, {error: 'invalid_translation_input'});
+    if (!/^[!-~]+$/.test(key)) return json(502, {error: 'invalid_deepl_key_format'});
 
     const site = key.endsWith(':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
+    let upstreamStatus;
     try {
       const response = await fetch(site + '/v2/translate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', Authorization: 'DeepL-Auth-Key ' + key},
         body: JSON.stringify({text: [text], source_lang: languages[source].source, target_lang: languages[target].target}),
         signal: AbortSignal.timeout(8000),
-        redirect: 'error',
+        redirect: 'manual',
       });
+      upstreamStatus = response.status;
       if (response.status === 456) return json(456, {error: 'translation_quota_exceeded'});
       if (response.status === 429) return json(429, {error: 'translation_rate_limited'});
-      if (!response.ok) return json(502, {error: 'translation_unavailable'});
+      if (!response.ok) return json(502, {error: 'translation_unavailable', upstreamStatus: response.status});
       const result = await response.json();
       const translation = result.translations?.[0]?.text;
       if (typeof translation !== 'string' || !translation.trim()) {
@@ -89,7 +92,7 @@ export default {
       }
       return json(200, {translation});
     } catch {
-      return json(502, {error: 'translation_unavailable'});
+      return json(502, {error: 'translation_unavailable', upstreamStatus: upstreamStatus ?? null});
     }
   },
 };
