@@ -345,7 +345,7 @@ function readMandarin(text, side) {
   let worker;
   try {
     speechContext ??= new AudioContext();
-    worker = new Worker(new URL('./mandarin-worker.js', import.meta.url), {type: 'module'});
+    worker = new Worker(new URL('./mandarin-worker.js?v=2', import.meta.url), {type: 'module'});
   } catch {
     side.feedback.textContent = copy[chinese].noVoice;
     return;
@@ -354,7 +354,7 @@ function readMandarin(text, side) {
   const pendingMessage = '正在準備中文語音…';
   side.feedback.textContent = pendingMessage;
   let node;
-  const timer = setTimeout(failed, 30000);
+  const timer = setTimeout(failed, 38000);
   const cancel = () => {
     clearTimeout(timer);
     worker.terminate();
@@ -399,11 +399,12 @@ function read(language) {
   const locale = language === japanese ? 'ja-JP' : chinese;
   const voices = speech?.getVoices() ?? [];
   const tag = voice => voice.lang.toLowerCase().replaceAll('_', '-');
-  const voice = voices.find(candidate => tag(candidate) === locale.toLowerCase())
-    || (language === japanese
-      ? voices.find(candidate => /^ja(-|$)/.test(tag(candidate)))
-      : voices.find(candidate => /^(zh|cmn)(-hant)?-tw$|^zh-hant$/.test(tag(candidate)))
-        || voices.find(candidate => /^(zh|cmn)(-hans)?(-cn|-sg)?$/.test(tag(candidate))));
+  const best = candidates => candidates.find(candidate => /natural|premium|enhanced|neural/i.test(candidate.name)) || candidates[0];
+  const preferred = voices.filter(candidate => language === japanese
+    ? /^ja(-|$)/.test(tag(candidate))
+    : /^(zh|cmn)(-hant)?-tw$|^zh-hant$/.test(tag(candidate)));
+  const otherMandarin = voices.filter(candidate => /^(zh|cmn)(-hans)?(-cn|-sg)?$/.test(tag(candidate)));
+  const voice = best(preferred) || (language === chinese ? best(otherMandarin) : undefined);
   if (language === chinese && !voice) {
     readMandarin(text, side);
     return;
@@ -414,6 +415,7 @@ function read(language) {
   }
   const line = new SpeechSynthesisUtterance(text);
   line.lang = voice?.lang ?? locale;
+  line.rate = language === chinese ? .94 : .97;
   if (voice) line.voice = voice;
   line.onerror = () => {
     if (utterance !== line) return;
