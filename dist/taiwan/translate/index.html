@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>対面翻訳 | 台湾研修旅行</title>
-  <link rel="stylesheet" href="style.css?v=4">
-  <script type="module" src="app.js?v=4"></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script type="module" src="app.js?v=5"></script>
 </head>
 <body>
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -25,11 +25,14 @@
   <main class="conversation" aria-label="対面翻訳">
     <section class="panel partner" data-language="zh-TW" lang="zh-TW" aria-labelledby="chinese-heading">
       <header><h1 id="chinese-heading">台灣華語</h1><span data-role></span><a class="attribution" data-attribution href="https://www.deepl.com/translator" hidden>DeepL</a></header>
-      <p class="phrase" data-phrase tabindex="0"></p>
-      <textarea class="phrase phrase-input" aria-label="輸入台灣華語" maxlength="1000" hidden></textarea>
-      <div class="actions">
-        <button type="button" data-action="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-mic"/></svg><span>語音輸入</span></button>
-        <button type="button" data-action="read"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-speaker"/></svg><span>朗讀</span></button>
+      <div class="message">
+        <p class="phrase" data-phrase tabindex="0"></p>
+        <textarea class="phrase phrase-input" aria-label="輸入台灣華語" maxlength="1000" hidden></textarea>
+        <div class="actions">
+          <button type="button" data-action="mic" aria-label="語音輸入" title="語音輸入" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-mic"/></svg></button>
+          <button type="button" data-action="read" aria-label="朗讀" title="朗讀"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-speaker"/></svg></button>
+          <button type="button" data-action="send" class="primary" aria-label="送出翻譯" title="送出翻譯" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-send"/></svg></button>
+        </div>
       </div>
       <p class="feedback" data-feedback role="status"></p>
     </section>
@@ -38,7 +41,6 @@
       <p id="direction-label"></p>
       <div class="control-row" role="group" aria-label="翻訳の操作">
         <button type="button" id="flip" aria-label="方向切替" title="方向切替"><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-flip"/></svg></button>
-        <button type="button" id="translate" class="primary" aria-label="翻訳する" title="翻訳する"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-send"/></svg></button>
         <button type="button" id="clear" aria-label="全消去" title="全消去"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-clear"/></svg></button>
         <button type="button" id="larger" aria-pressed="false" aria-label="文字を拡大" title="文字を拡大"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-size"/></svg></button>
         <button type="button" id="maximize" aria-label="最大化" title="最大化" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-max"/></svg></button>
@@ -49,11 +51,14 @@
 
     <section class="panel" data-language="ja" aria-labelledby="japanese-heading">
       <header><h2 id="japanese-heading">日本語</h2><span data-role></span><button class="attribution" id="show-info" type="button" aria-label="DeepL翻訳について">DeepL</button></header>
-      <p class="phrase" data-phrase tabindex="0"></p>
-      <textarea class="phrase phrase-input" aria-label="日本語を入力" maxlength="1000"></textarea>
-      <div class="actions">
-        <button type="button" data-action="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-mic"/></svg><span>音声入力</span></button>
-        <button type="button" data-action="read"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-speaker"/></svg><span>読み上げ</span></button>
+      <div class="message">
+        <p class="phrase" data-phrase tabindex="0" hidden></p>
+        <textarea class="phrase phrase-input" aria-label="日本語を入力" maxlength="1000"></textarea>
+        <div class="actions">
+          <button type="button" data-action="mic" aria-label="音声入力" title="音声入力"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-mic"/></svg></button>
+          <button type="button" data-action="read" aria-label="読み上げ" title="読み上げ"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-speaker"/></svg></button>
+          <button type="button" data-action="send" class="primary" aria-label="翻訳する" title="翻訳する"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-send"/></svg></button>
+        </div>
       </div>
       <p class="feedback" data-feedback role="status"></p>
     </section>

@@ -35,7 +35,7 @@ button svg, .control-row a svg {
   grid-row: 3;
   min-width: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
   padding: clamp(8px, 2.5vw, 18px);
   background: #fffef9;
@@ -64,6 +64,9 @@ h1, h2 { margin: 0; font-size: 1rem; }
   line-height: 1.35;
 }
 .phrase.empty { color: #50665a; font-size: clamp(1rem, 4vw, 1.5rem); }
+.message { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; min-height: 0; }
+.panel[data-input] .message { padding: 4px; border-radius: 14px; background: #edf3ec; }
+.panel[data-input] .message:focus-within { box-shadow: inset 0 0 0 1px #89a697; }
 .phrase-input {
   width: 100%;
   min-width: 0;
@@ -71,7 +74,7 @@ h1, h2 { margin: 0; font-size: 1rem; }
   resize: none;
   border: 0;
   border-radius: 10px;
-  background: #edf3ec;
+  background: transparent;
   color: inherit;
   font-family: inherit;
 }
@@ -79,7 +82,7 @@ h1, h2 { margin: 0; font-size: 1rem; }
 .large .phrase:not(.empty) { font-size: clamp(1.875rem, 8vw, 3.5rem); }
 .phrase.updated { animation: reveal 200ms ease-out; }
 @keyframes reveal { from { opacity: .55; } }
-.actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.actions { display: flex; align-items: center; gap: 5px; }
 button, .control-row a {
   min-height: 44px;
   padding: 5px 9px;
@@ -92,7 +95,8 @@ button, .control-row a {
   font-weight: 700;
   cursor: pointer;
 }
-.actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.actions button { display: grid; place-items: center; width: 44px; padding: 0; }
+.actions [data-action="send"] { margin-inline-start: auto; }
 .control-row {
   display: flex;
   flex-wrap: nowrap;

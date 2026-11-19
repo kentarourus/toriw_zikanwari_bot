@@ -8,14 +8,14 @@ const copy = {
   [chinese]: {
     source: '輸入', result: '翻譯結果', waiting: '翻譯將顯示在這裡',
     translating: '翻譯中…', placeholder: '點這裡輸入文字',
-    controls: ['切換方向', '送出翻譯', '清除全部', '放大文字', '全螢幕', '還原視窗', '關閉', '重試'],
+    controls: ['切換方向', '清除全部', '放大文字', '全螢幕', '還原視窗', '關閉'], send: '送出翻譯', retry: '重試',
     listening: '聆聽中…', stop: '停止錄音', mic: '語音輸入',
     noMic: '無法使用語音輸入，請改用打字。', noVoice: '無法朗讀，請查看畫面上的文字。',
   },
   [japanese]: {
     source: '入力', result: '翻訳結果', waiting: 'ここに翻訳結果が表示されます',
     translating: '翻訳中…', placeholder: 'タップして文字を入力',
-    controls: ['方向切替', '翻訳する', '全消去', '文字を拡大', '最大化', '元の大きさに戻す', '閉じる', '再試行'],
+    controls: ['方向切替', '全消去', '文字を拡大', '最大化', '元の大きさに戻す', '閉じる'], send: '翻訳する', retry: '再試行',
     listening: '聞き取り中…', stop: '録音停止', mic: '音声入力',
     noMic: '音声入力を利用できません。文字入力をお使いください。', noVoice: '読み上げを利用できません。',
   },
@@ -41,21 +41,27 @@ let utterance;
 let retryAvailable = false;
 let viewportMaximized = false;
 
-function labelControl(selector, name) {
-  const control = find(selector);
+function labelControl(control, name) {
   control.setAttribute('aria-label', name);
   control.title = name;
 }
 
+function paintSend() {
+  const button = panels[source].buttons.send;
+  const {send, retry} = copy[source];
+  labelControl(button, retryAvailable ? retry : send);
+  button.querySelector('use').setAttribute('href', retryAvailable ? '#translate-icon-retry' : '#translate-icon-send');
+  button.disabled = Boolean(request || recognition || !sentences[source].trim());
+}
+
 function paintControls() {
-  const [flip, send, clear, size, expand, restore, close, retry] = copy[source].controls;
+  const [flip, clear, size, expand, restore, close] = copy[source].controls;
   const expanded = viewportMaximized || Boolean(document.fullscreenElement);
-  labelControl('#flip', flip);
-  labelControl('#translate', retryAvailable ? retry : send);
-  labelControl('#clear', clear);
-  labelControl('#larger', size);
-  labelControl('#maximize', expanded ? restore : expand);
-  labelControl('#close-translation', close);
+  labelControl(find('#flip'), flip);
+  labelControl(find('#clear'), clear);
+  labelControl(find('#larger'), size);
+  labelControl(find('#maximize'), expanded ? restore : expand);
+  labelControl(find('#close-translation'), close);
   find('#maximize').setAttribute('aria-pressed', String(expanded));
   find('#maximize use').setAttribute('href', expanded ? '#translate-icon-min' : '#translate-icon-max');
 }
@@ -77,13 +83,14 @@ function paint() {
     const phrase = sentences[language] || words.waiting;
     if (side.phrase.textContent !== phrase) side.phrase.textContent = phrase;
     side.phrase.classList.toggle('empty', !sentences[language]);
-    side.buttons.mic.disabled = !input || !SpeechRecognition;
-    side.buttons.mic.querySelector('span').textContent = input && recognition ? words.stop : words.mic;
+    side.buttons.mic.hidden = side.buttons.send.hidden = !input;
+    side.buttons.mic.disabled = !SpeechRecognition;
+    labelControl(side.buttons.mic, !SpeechRecognition ? words.noMic : input && recognition ? words.stop : words.mic);
     side.buttons.mic.querySelector('use').setAttribute('href', input && recognition ? '#translate-icon-stop' : '#translate-icon-mic');
     side.buttons.read.disabled = !speech || !sentences[language];
     side.panel.setAttribute('aria-busy', String(Boolean(request && !input)));
   }
-  find('#translate').disabled = Boolean(request || recognition || !sentences[source].trim());
+  paintSend();
   paintControls();
 }
 
@@ -92,8 +99,7 @@ function showStatus(message = '', retry = false) {
   status.hidden = !message;
   status.textContent = message;
   retryAvailable = retry;
-  find('#translate use').setAttribute('href', retry ? '#translate-icon-retry' : '#translate-icon-send');
-  paintControls();
+  paintSend();
 }
 
 function stopSpeech() {
@@ -251,7 +257,7 @@ for (const [language, side] of Object.entries(panels)) {
   });
   side.buttons.mic.addEventListener('click', () => startMic(language));
   side.buttons.read.addEventListener('click', () => read(language));
-  if (!SpeechRecognition) side.buttons.mic.title = copy[language].noMic;
+  side.buttons.send.addEventListener('click', translate);
 }
 
 async function translate() {
@@ -312,7 +318,6 @@ async function translate() {
   }
 }
 
-find('#translate').addEventListener('click', translate);
 window.addEventListener('pagehide', () => {
   cancelRequest();
   cancelRecognition();
