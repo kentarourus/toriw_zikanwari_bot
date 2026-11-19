@@ -42,6 +42,7 @@ let utterance;
 let retryAvailable = false;
 let viewportMaximized = false;
 let typing;
+let turning = false;
 
 function stopTyping() {
   if (!typing) return;
@@ -202,17 +203,51 @@ function setSourceText(text) {
   paint();
 }
 
-find('#flip').addEventListener('click', () => {
-  stopTyping();
-  cancelRequest();
-  cancelRecognition();
-  stopSpeech();
+function flipDirection() {
   panels[source].feedback.textContent = '';
   source = resultLanguage();
   panels[source].feedback.textContent = '';
   showStatus();
   paint();
   animate(panels[source].panel, 'changed');
+}
+
+find('#flip').addEventListener('click', async () => {
+  if (turning) return;
+  panels[source].draft.blur();
+  stopTyping();
+  cancelRequest();
+  cancelRecognition();
+  stopSpeech();
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    flipDirection();
+    return;
+  }
+
+  const previous = source;
+  turning = true;
+  try {
+    if (document.startViewTransition) {
+      await document.startViewTransition(flipDirection).finished;
+    } else {
+      const outgoing = conversation.animate(
+        [{rotate: '0deg', opacity: 1}, {rotate: '90deg', opacity: 0}],
+        {duration: 150, easing: 'ease-in', fill: 'forwards'}
+      );
+      await outgoing.finished;
+      flipDirection();
+      outgoing.cancel();
+      await conversation.animate(
+        [{rotate: '-90deg', opacity: 0}, {rotate: '0deg', opacity: 1}],
+        {duration: 150, easing: 'ease-out'}
+      ).finished;
+    }
+  } catch {
+    if (source === previous) flipDirection();
+  } finally {
+    turning = false;
+  }
 });
 
 find('#clear').addEventListener('click', () => {

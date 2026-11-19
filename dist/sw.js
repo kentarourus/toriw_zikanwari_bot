@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v40';
+const CACHE = 'timetable-v41';
 const APP_FILES = [
   './',
   './index.html',
@@ -41,8 +41,8 @@ const APP_FILES = [
   './assets/icons/icon-512.png',
   './taiwan/',
   './taiwan/translate/',
-  './taiwan/translate/style.css?v=6',
-  './taiwan/translate/app.js?v=6',
+  './taiwan/translate/style.css?v=7',
+  './taiwan/translate/app.js?v=7',
   './taiwan/translate/config.js',
   './taiwan/sounds/',
   './taiwan/sounds/app.js?v=2',

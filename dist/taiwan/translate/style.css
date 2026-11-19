@@ -46,6 +46,18 @@ button svg, .control-row a svg {
 @keyframes slide-input {
   from { translate: 0 18%; opacity: .55; }
 }
+::view-transition-old(root) { animation: turn-away 300ms ease-in-out both; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: turn-in 300ms ease-in-out both; mix-blend-mode: normal; }
+@keyframes turn-away {
+  0% { transform: rotate(0deg); opacity: 1; }
+  50%, 100% { opacity: 0; }
+  100% { transform: rotate(180deg); }
+}
+@keyframes turn-in {
+  0% { transform: rotate(-180deg); }
+  0%, 42% { opacity: 0; }
+  100% { transform: rotate(0deg); opacity: 1; }
+}
 .panel {
   grid-column: 1;
   grid-row: 3;
