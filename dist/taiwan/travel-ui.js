@@ -150,6 +150,13 @@ function openTool(trigger) {
 }
 
 if (typeof toolDialog.showModal === 'function') {
+  window.addEventListener('message', event => {
+    if (event.origin !== location.origin || !toolDialog.open) return;
+    const frame = toolContent.querySelector('.local-tool-frame[src="translate/#embedded"]');
+    if (!frame || event.source !== frame.contentWindow) return;
+    if (event.data === 'taiwan-translate:ready') toolDialog.classList.add('translation-tool');
+    if (event.data === 'taiwan-translate:close') toolDialog.close();
+  });
   toolFolder.hidden = false;
   toolFolder.addEventListener('click', () => folderDialog.showModal());
   for (const trigger of document.querySelectorAll('.tool-icons a, .tool-icons button')) {
@@ -168,6 +175,7 @@ if (typeof toolDialog.showModal === 'function') {
     });
   }
   toolDialog.addEventListener('close', () => {
+    toolDialog.classList.remove('translation-tool');
     finishLaunch();
     restoreSection?.();
     restoreSection = undefined;

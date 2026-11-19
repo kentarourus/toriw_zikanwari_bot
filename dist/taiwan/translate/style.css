@@ -7,9 +7,8 @@
 }
 body { margin: 0; }
 [hidden] { display: none !important; }
-.embedded .standalone-nav { display: none; }
 .icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
-button svg, .input-icon svg {
+button svg, .input-icon svg, .control-row a svg {
   width: 19px;
   height: 19px;
   flex: none;
@@ -45,7 +44,6 @@ button svg, .input-icon svg {
 .panel header { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 [data-role] { margin-inline-start: auto; }
 .attribution { color: #365b4d; font-size: .8rem; }
-.info { min-height: 28px; padding: 0 4px; border-color: transparent; background: transparent; text-decoration: underline; }
 #info p { line-height: 1.5; }
 h1, h2 { margin: 0; font-size: 1rem; }
 [data-role] { color: #365b4d; font-size: .8rem; font-weight: 700; }
@@ -63,9 +61,8 @@ h1, h2 { margin: 0; font-size: 1rem; }
 .large .phrase:not(.empty) { font-size: clamp(1.875rem, 8vw, 3.5rem); }
 .phrase.updated { animation: reveal 200ms ease-out; }
 @keyframes reveal { from { opacity: .55; } }
-.actions, .direction, .utilities { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.direction, .utilities { justify-content: center; }
-button, .direction a {
+.actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+button, .control-row a {
   min-height: 44px;
   padding: 5px 9px;
   border-radius: 10px;
@@ -78,7 +75,16 @@ button, .direction a {
   cursor: pointer;
 }
 .actions button, #save-text { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.direction a { display: inline-flex; align-items: center; text-decoration: none; }
+.control-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: clamp(2px, 1.2vw, 8px);
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 3px;
+}
+.control-row > :is(button, a) { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; }
+@media (max-width: 360px) { .control-row { gap: 2px; } }
 button:disabled { opacity: .55; cursor: default; }
 .primary { color: white; background: #215e48; border-color: #215e48; }
 button[aria-pressed="true"] { background: #cce8da; }

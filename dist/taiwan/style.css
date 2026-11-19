@@ -229,6 +229,9 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 }
 #travel-tool-content { flex: 1; min-height: 0; overflow: auto; }
 .local-tool-frame { display: block; width: 100%; height: 100%; border: 0; border-radius: 12px; }
+.tool-window.translation-tool { padding: 0; }
+.translation-tool .tools-heading { display: none; }
+.translation-tool .local-tool-frame { border-radius: 0; }
 .tool-section-heading { display: none; }
 .tool-window .section-title { align-items: center; }
 .tool-embed { min-height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; }

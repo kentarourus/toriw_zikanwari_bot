@@ -5,11 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>対面翻訳 | 台湾研修旅行</title>
-  <link rel="stylesheet" href="style.css?v=2">
-  <script type="module" src="app.js?v=2"></script>
+  <link rel="stylesheet" href="style.css?v=3">
+  <script type="module" src="app.js?v=3"></script>
 </head>
 <body>
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="translate-icon-flip" viewBox="0 0 24 24"><path d="M12 20V4m-5 5 5-5 5 5"/></symbol>
+    <symbol id="translate-icon-send" viewBox="0 0 24 24"><path d="M21 3 3 10l7 3 3 8 8-18ZM10 13l11-10"/></symbol>
+    <symbol id="translate-icon-retry" viewBox="0 0 24 24"><path d="M18 8a7 7 0 1 0 1.1 8M19 4v5h-5"/></symbol>
+    <symbol id="translate-icon-clear" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 10v6m4-6v6"/></symbol>
+    <symbol id="translate-icon-size" viewBox="0 0 24 24"><path d="m3 19 6-14 6 14M5 15h8m3-2h5m-2.5-2.5v5"/></symbol>
+    <symbol id="translate-icon-info" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 8v5m0-8h.01"/></symbol>
     <symbol id="translate-icon-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3m-3 0h6"/></symbol>
     <symbol id="translate-icon-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
     <symbol id="translate-icon-edit" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h1m3.5 0h1m3.5 0h1M7 14h1m3.5 0H17"/></symbol>
@@ -30,18 +36,15 @@
     </section>
 
     <div class="controls">
-      <div class="direction">
-        <a href="../" class="standalone-nav" aria-label="台湾サイトへ戻る">‹ 台湾</a>
-        <button type="button" id="flip"><span class="arrow" aria-hidden="true">↑</span> 方向切替</button>
-        <button type="button" id="translate" class="primary">翻訳する</button>
-      </div>
       <p id="direction-label"></p>
-      <div class="utilities">
-        <button type="button" id="clear">全消去</button>
-        <button type="button" id="retry" hidden>再試行</button>
-        <button type="button" id="larger" aria-pressed="false">文字を拡大</button>
+      <div class="control-row" role="group" aria-label="翻訳の操作">
+        <button type="button" id="flip" aria-label="方向切替" title="方向切替"><svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-flip"/></svg></button>
+        <button type="button" id="translate" class="primary" aria-label="翻訳する" title="翻訳する"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-send"/></svg></button>
+        <button type="button" id="clear" aria-label="全消去" title="全消去"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-clear"/></svg></button>
+        <button type="button" id="larger" aria-pressed="false" aria-label="文字を拡大" title="文字を拡大"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-size"/></svg></button>
+        <button type="button" id="show-info" aria-label="翻訳について" title="翻訳について"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-info"/></svg></button>
+        <a href="../" id="close-translation" aria-label="対面翻訳を閉じる" title="対面翻訳を閉じる"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-close"/></svg></a>
       </div>
-      <button type="button" id="show-info" class="info">翻訳について</button>
       <p id="status" role="status" hidden></p>
     </div>
 

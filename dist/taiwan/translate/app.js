@@ -1,5 +1,5 @@
 import {translationEndpoint} from './config.js';
-document.documentElement.classList.toggle('embedded', location.hash === '#embedded' && self !== top);
+const embedded = location.hash === '#embedded' && self !== parent;
 
 const find = selector => document.querySelector(selector);
 const chinese = 'zh-TW';
@@ -64,7 +64,11 @@ function showStatus(message = '', retry = false) {
   const status = find('#status');
   status.hidden = !message;
   status.textContent = message;
-  find('#retry').hidden = !retry;
+  const button = find('#translate');
+  const label = retry ? '再試行' : '翻訳する';
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  button.querySelector('use').setAttribute('href', retry ? '#translate-icon-retry' : '#translate-icon-send');
 }
 
 function stopSpeech() {
@@ -129,11 +133,15 @@ find('#clear').addEventListener('click', () => {
 });
 
 find('#show-info').addEventListener('click', () => find('#info').showModal());
+find('#close-translation').addEventListener('click', event => {
+  if (!embedded) return;
+  event.preventDefault();
+  parent.postMessage('taiwan-translate:close', location.origin);
+});
 
 find('#larger').addEventListener('click', event => {
   const large = find('.conversation').classList.toggle('large');
   event.currentTarget.setAttribute('aria-pressed', String(large));
-  event.currentTarget.textContent = large ? '文字を戻す' : '文字を拡大';
 });
 
 function openEditor(language) {
@@ -285,7 +293,6 @@ async function translate() {
 }
 
 find('#translate').addEventListener('click', translate);
-find('#retry').addEventListener('click', translate);
 window.addEventListener('pagehide', () => {
   cancelRequest();
   cancelRecognition();
@@ -294,3 +301,4 @@ window.addEventListener('pagehide', () => {
 });
 navigator.serviceWorker?.register(new URL('../../sw.js', import.meta.url)).catch(() => {});
 paint();
+if (embedded) parent.postMessage('taiwan-translate:ready', location.origin);
