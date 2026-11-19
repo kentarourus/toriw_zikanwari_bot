@@ -1,7 +1,9 @@
 import {translationEndpoint} from './config.js';
+import {createVoiceWorker, setupLocalVoice} from './local-voice.js';
 const embedded = location.hash === '#embedded' && self !== parent;
 
 const find = selector => document.querySelector(selector);
+const localVoice = setupLocalVoice(find('#voice-settings'), find('#show-settings'), stopSpeech);
 const conversation = find('.conversation');
 const chinese = 'zh-TW';
 const japanese = 'ja';
@@ -157,7 +159,6 @@ function paint() {
     side.buttons.mic.disabled = !SpeechRecognition;
     labelControl(side.buttons.mic, !SpeechRecognition ? words.noMic : input && recognition ? words.stop : words.mic);
     side.buttons.mic.querySelector('use').setAttribute('href', input && recognition ? '#translate-icon-stop' : '#translate-icon-mic');
-    side.buttons.read.disabled = !sentences[language] || (!speech && !(language === chinese && AudioContext));
     side.panel.setAttribute('aria-busy', String(Boolean(request && !input)));
   }
   paintSend();
@@ -335,9 +336,9 @@ function startMic(language) {
   paint();
 }
 
-function readMandarin(text, side) {
+function readSavedVoice(text, language, side) {
   if (!AudioContext) {
-    side.feedback.textContent = copy[chinese].noVoice;
+    side.feedback.textContent = copy[language].noVoice;
     return;
   }
 
@@ -345,13 +346,13 @@ function readMandarin(text, side) {
   let worker;
   try {
     speechContext ??= new AudioContext();
-    worker = new Worker(new URL('./mandarin-worker.js?v=2', import.meta.url), {type: 'module'});
+    worker = createVoiceWorker();
   } catch {
-    side.feedback.textContent = copy[chinese].noVoice;
+    side.feedback.textContent = copy[language].noVoice;
     return;
   }
   const audioReady = speechContext.resume().catch(() => {});
-  const pendingMessage = '正在準備中文語音…';
+  const pendingMessage = language === chinese ? '正在準備語音…' : '音声を準備しています…';
   side.feedback.textContent = pendingMessage;
   let node;
   const timer = setTimeout(failed, 38000);
@@ -365,7 +366,7 @@ function readMandarin(text, side) {
     if (fallbackSpeech !== cancel) return;
     cancel();
     fallbackSpeech = undefined;
-    side.feedback.textContent = '無法朗讀。請連線後再試一次。';
+    side.feedback.textContent = copy[language].noVoice;
   }
   fallbackSpeech = cancel;
   worker.onerror = failed;
@@ -389,15 +390,17 @@ function readMandarin(text, side) {
       failed();
     }
   };
-  worker.postMessage({text});
+  worker.postMessage({text, language});
 }
 
-function read(language) {
+async function read(language) {
+  if (!await localVoice.requireEnabled()) return;
   stopSpeech();
   const side = panels[language];
   const text = sentences[language];
+  if (!text.trim()) return;
   const locale = language === japanese ? 'ja-JP' : chinese;
-  const voices = speech?.getVoices() ?? [];
+  const voices = speech?.getVoices().filter(voice => voice.localService) ?? [];
   const tag = voice => voice.lang.toLowerCase().replaceAll('_', '-');
   const best = candidates => candidates.find(candidate => /natural|premium|enhanced|neural/i.test(candidate.name)) || candidates[0];
   const preferred = voices.filter(candidate => language === japanese
@@ -405,12 +408,8 @@ function read(language) {
     : /^(zh|cmn)(-hant)?-tw$|^zh-hant$/.test(tag(candidate)));
   const otherMandarin = voices.filter(candidate => /^(zh|cmn)(-hans)?(-cn|-sg)?$/.test(tag(candidate)));
   const voice = best(preferred) || (language === chinese ? best(otherMandarin) : undefined);
-  if (language === chinese && !voice) {
-    readMandarin(text, side);
-    return;
-  }
-  if (voices.length && !voice) {
-    side.feedback.textContent = copy[language].noVoice;
+  if (!voice) {
+    readSavedVoice(text, language, side);
     return;
   }
   const line = new SpeechSynthesisUtterance(text);
@@ -419,8 +418,7 @@ function read(language) {
   if (voice) line.voice = voice;
   line.onerror = () => {
     if (utterance !== line) return;
-    if (language === chinese) readMandarin(text, side);
-    else side.feedback.textContent = copy[language].noVoice;
+    readSavedVoice(text, language, side);
   };
   utterance = line;
   if (side.feedback.textContent === copy[language].noVoice) side.feedback.textContent = '';

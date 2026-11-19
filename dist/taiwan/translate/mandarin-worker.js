@@ -8,23 +8,25 @@ async function synthesizeNeural(text) {
   return (await voice.predict(simplified)).arrayBuffer();
 }
 
-async function synthesizeBasic(text) {
+async function synthesizeBasic(text, language) {
   const {default: createEngine} = await import('https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/dist/espeak-ng.js');
   const engine = await createEngine({
-    arguments: ['-b', '1', '-v', 'cmn', '-s', '145', '-w', '/speech.wav', '--', text],
+    arguments: ['-b', '1', '-v', language === 'ja' ? 'ja' : 'cmn', '-s', '145', '-w', '/speech.wav', '--', text],
   });
   return engine.FS.readFile('/speech.wav').buffer;
 }
 
-self.addEventListener('message', async ({data: {text}}) => {
+self.addEventListener('message', async ({data: {text, language, prepare}}) => {
   try {
-    let timer;
-    const deadline = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error('Neural voice load timed out')), 26000);
-    });
-    const wave = await Promise.race([synthesizeNeural(text), deadline])
-      .finally(() => clearTimeout(timer))
-      .catch(() => synthesizeBasic(text));
+    if (prepare) {
+      const mandarin = await synthesizeNeural('你好，請問車站在哪裡？');
+      const japanese = await synthesizeBasic('こんにちは。', 'ja');
+      if (mandarin.byteLength <= 44 || japanese.byteLength <= 44) throw new Error('Voice sample is empty');
+      self.postMessage({ready: true});
+      return;
+    }
+    const wave = language === 'ja' ? await synthesizeBasic(text, language)
+      : await synthesizeNeural(text).catch(() => synthesizeBasic(text, language));
     self.postMessage({wave}, [wave]);
   } catch {
     self.postMessage({error: true});

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>対面翻訳 | 台湾研修旅行</title>
-  <link rel="stylesheet" href="style.css?v=8">
-  <script type="module" src="app.js?v=9"></script>
+  <link rel="stylesheet" href="style.css?v=9">
+  <script type="module" src="app.js?v=10"></script>
 </head>
 <body>
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -21,6 +21,7 @@
     <symbol id="translate-icon-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
     <symbol id="translate-icon-speaker" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4Zm12-1a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/></symbol>
     <symbol id="translate-icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="translate-icon-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="currentColor"/><circle cx="15" cy="17" r="2.5" fill="currentColor"/></symbol>
   </svg>
   <main class="conversation" aria-label="対面翻訳">
     <section class="panel partner" data-language="zh-TW" lang="zh-TW" aria-labelledby="chinese-heading">
@@ -44,6 +45,7 @@
         <button type="button" id="clear" aria-label="全消去" title="全消去"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-clear"/></svg></button>
         <button type="button" id="larger" aria-pressed="false" aria-label="文字を拡大" title="文字を拡大"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-size"/></svg></button>
         <button type="button" id="maximize" aria-label="最大化" title="最大化" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-max"/></svg></button>
+        <button type="button" id="show-settings" aria-label="設定" title="設定" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-settings"/></svg></button>
         <a href="../" id="close-translation" aria-label="対面翻訳を閉じる" title="対面翻訳を閉じる"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#translate-icon-close"/></svg></a>
       </div>
       <p id="status" role="status" hidden></p>
@@ -63,6 +65,20 @@
       <p class="feedback" data-feedback role="status"></p>
     </section>
   </main>
+  <dialog id="voice-settings" aria-labelledby="voice-settings-title">
+    <form method="dialog">
+      <header class="settings-heading">
+        <h2 id="voice-settings-title">設定</h2>
+        <button type="submit" aria-label="設定を閉じる">×</button>
+      </header>
+    </form>
+    <label class="voice-toggle">
+      <span>音声のローカル利用</span>
+      <input type="checkbox" role="switch" aria-describedby="voice-description voice-status">
+    </label>
+    <p id="voice-description">初回に音声データを保存します。保存後はネットなしで読み上げできます。</p>
+    <p id="voice-status" role="status"></p>
+  </dialog>
   <dialog id="info" aria-labelledby="info-title">
     <h2 id="info-title">翻訳について</h2>
     <p>このアプリは <a href="https://www.deepl.com/pro-api">DeepL API</a> を使って自動翻訳します。翻訳時に入力した文章を DeepL に送信します。</p>

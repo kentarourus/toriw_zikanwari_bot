@@ -1,4 +1,16 @@
-const CACHE = 'timetable-v45';
+const CACHE = 'timetable-v46';
+const VOICE_CACHE = 'taiwan-local-voice-v1';
+const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
+const VOICE_ASSETS = [
+  'https://esm.sh/@realtimex/piper-tts-web@1.1.1',
+  'https://esm.sh/onnxruntime-web@1.22.0',
+  'https://esm.sh/node/',
+  'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/',
+  'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/',
+  'https://cdn.jsdelivr.net/npm/opencc-js@1.4.2/',
+  'https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/',
+  'https://huggingface.co/diffusionstudio/piper-voices/resolve/main/'
+];
 const APP_FILES = [
   './',
   './index.html',
@@ -41,9 +53,10 @@ const APP_FILES = [
   './assets/icons/icon-512.png',
   './taiwan/',
   './taiwan/translate/',
-  './taiwan/translate/style.css?v=8',
-  './taiwan/translate/app.js?v=9',
-  './taiwan/translate/mandarin-worker.js?v=2',
+  './taiwan/translate/style.css?v=9',
+  './taiwan/translate/app.js?v=10',
+  './taiwan/translate/local-voice.js',
+  './taiwan/translate/mandarin-worker.js?v=3',
   './taiwan/translate/config.js',
   './taiwan/sounds/',
   './taiwan/sounds/app.js?v=2',
@@ -122,9 +135,24 @@ async function soundResponse(request) {
   });
 }
 
+async function voiceAsset(request) {
+  if (!await caches.has(VOICE_CACHE)) return fetch(request);
+  const cache = await caches.open(VOICE_CACHE);
+  const saved = await cache.match(request);
+  if (saved) return saved;
+  if (await cache.match(VOICE_READY)) return Response.error();
+  const response = await fetch(request);
+  if (response.ok) await cache.put(request, response.clone());
+  return response;
+}
+
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (event.request.method !== 'GET') return;
+  if (url.origin !== location.origin) {
+    if (VOICE_ASSETS.some(prefix => url.href.startsWith(prefix))) event.respondWith(voiceAsset(event.request));
+    return;
+  }
   if (/\/taiwan\/sounds\/audio\/[\w-]+\.mp3$/.test(url.pathname)) {
     event.respondWith(soundResponse(event.request));
     return;
