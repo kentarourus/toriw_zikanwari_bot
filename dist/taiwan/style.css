@@ -387,19 +387,28 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 #currency-refresh { font-size: .82rem; font-weight: 700; white-space: nowrap; }
 .currency-rate-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; margin-top: 5px; font-size: .75rem; }
 #currency-status { margin: 0; color: var(--muted); }
-.currency-display { display: grid; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 82px; gap: 8px; }
-.currency-display > * { display: flex; flex-direction: column; justify-content: center; padding: 10px 12px; border-radius: 14px; background: var(--row-tint); }
-.currency-display .currency-output { background: var(--green-soft); }
-.currency-display span { display: block; font-size: .8rem; font-weight: 700; color: var(--muted); }
+.currency-display {
+  display: grid;
+  flex: 1;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  min-height: 112px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.currency-display > * { display: flex; align-items: center; gap: 12px; padding: 4px 12px; background: var(--row-tint); }
+.currency-display .currency-output { border-block-start: 1px solid var(--control-line); background: var(--green-soft); }
+.currency-display span { flex: none; font-size: .8rem; font-weight: 700; color: var(--muted); }
 #currency-amount, #currency-result {
   display: block;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 4px 0;
   background: transparent;
   font-size: clamp(1.4rem, 7vw, 2.1rem);
   font-weight: 780;
   font-variant-numeric: tabular-nums;
   line-height: 1.25;
+  text-align: end;
   overflow-wrap: anywhere;
 }
 #currency-result { color: var(--green); }
@@ -410,6 +419,12 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 #currency-swap { background: var(--green); color: white; }
 .currency-keypad { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .currency-keypad button { min-height: clamp(44px, 7.5dvh, 64px); background: var(--row-tint); font-size: 1.3rem; font-weight: 700; }
+@media (height < 640px) {
+  .currency-display { grid-template: 1fr / repeat(2, minmax(0, 1fr)); min-height: 82px; }
+  .currency-display > * { flex-direction: column; align-items: stretch; justify-content: center; gap: 0; }
+  .currency-display .currency-output { border-block-start: 0; border-inline-start: 1px solid var(--control-line); }
+  #currency-amount, #currency-result { flex: none; text-align: start; }
+}
 @media (min-width: 640px) and (max-height: 540px) {
   .currency-tool { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto 1fr; align-items: start; max-width: 760px; }
   .currency-display { align-self: stretch; }
