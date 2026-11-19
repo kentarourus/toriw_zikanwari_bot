@@ -2,6 +2,7 @@ import {translationEndpoint} from './config.js';
 const embedded = location.hash === '#embedded' && self !== parent;
 
 const find = selector => document.querySelector(selector);
+const conversation = find('.conversation');
 const chinese = 'zh-TW';
 const japanese = 'ja';
 const copy = {
@@ -40,6 +41,69 @@ let recognition;
 let utterance;
 let retryAvailable = false;
 let viewportMaximized = false;
+let typing;
+
+function stopTyping() {
+  if (!typing) return;
+  typing.events.abort();
+  typing = undefined;
+  conversation.classList.remove('is-typing');
+  conversation.style.removeProperty('--typing-top');
+  conversation.style.removeProperty('--typing-height');
+}
+
+function startTyping(draft) {
+  if (typing) return;
+  const frames = [];
+  let view = window;
+  while (view !== view.parent && view.frameElement) {
+    frames.push(view.frameElement);
+    view = view.parent;
+  }
+
+  const events = new AbortController();
+  const options = {signal: events.signal};
+  const viewport = view.visualViewport;
+  const initialHeight = viewport?.height ?? view.innerHeight;
+  let keyboardWasVisible = false;
+  function fit() {
+    const height = viewport?.height ?? view.innerHeight;
+    const top = viewport?.offsetTop ?? 0;
+    if (height < initialHeight - 70) keyboardWasVisible = true;
+    if (keyboardWasVisible && height >= initialHeight - 24) {
+      draft.blur();
+      stopTyping();
+      return;
+    }
+    const frameTop = frames.reduce((offset, frame) => offset + frame.getBoundingClientRect().top + frame.clientTop, 0);
+    const visibleTop = Math.max(0, top - frameTop);
+    const visibleBottom = Math.min(innerHeight, top + height - frameTop);
+    conversation.style.setProperty('--typing-top', `${visibleTop}px`);
+    conversation.style.setProperty('--typing-height', `${Math.max(0, visibleBottom - visibleTop)}px`);
+  }
+
+  typing = {events};
+  fit();
+  conversation.classList.add('is-typing');
+  viewport?.addEventListener('resize', fit, options);
+  viewport?.addEventListener('scroll', fit, options);
+  view.addEventListener('resize', fit, options);
+  if (view !== window) window.addEventListener('resize', fit, options);
+}
+
+conversation.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !typing) return;
+  event.preventDefault();
+  panels[source].draft.blur();
+  stopTyping();
+});
+conversation.addEventListener('focusout', event => {
+  if (!typing || conversation.contains(event.relatedTarget)) return;
+  const activeTyping = typing;
+  setTimeout(() => {
+    if (typing === activeTyping && !conversation.contains(document.activeElement)) stopTyping();
+  }, 180);
+});
 
 function labelControl(control, name) {
   control.setAttribute('aria-label', name);
@@ -139,6 +203,7 @@ function setSourceText(text) {
 }
 
 find('#flip').addEventListener('click', () => {
+  stopTyping();
   cancelRequest();
   cancelRecognition();
   stopSpeech();
@@ -151,6 +216,7 @@ find('#flip').addEventListener('click', () => {
 });
 
 find('#clear').addEventListener('click', () => {
+  if (typing) panels[source].draft.focus({preventScroll: true});
   cancelRequest();
   cancelRecognition();
   stopSpeech();
@@ -250,6 +316,7 @@ function read(language) {
 }
 
 for (const [language, side] of Object.entries(panels)) {
+  side.draft.addEventListener('focus', () => startTyping(side.draft));
   side.draft.addEventListener('input', () => {
     if (source !== language) return;
     cancelRecognition();
@@ -264,6 +331,7 @@ async function translate() {
   const text = sentences[source].trim();
   if (!text || request || recognition) return;
   panels[source].draft.blur();
+  stopTyping();
   if (!translationEndpoint) {
     showStatus('翻訳サービスは準備中です。');
     return;
@@ -319,6 +387,7 @@ async function translate() {
 }
 
 window.addEventListener('pagehide', () => {
+  stopTyping();
   cancelRequest();
   cancelRecognition();
   stopSpeech();

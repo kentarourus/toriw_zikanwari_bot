@@ -30,6 +30,22 @@ button svg, .control-row a svg {
 }
 .conversation.reverse { transform: rotate(180deg); }
 .full-layout .conversation, :fullscreen .conversation { max-width: none; }
+.conversation.is-typing {
+  position: fixed;
+  inset: var(--typing-top, 0px) 0 auto;
+  height: var(--typing-height, 100dvh);
+  grid-template-rows: auto minmax(0, 1fr);
+  background: #eef2eb;
+}
+.conversation.is-typing .controls { grid-row: 1; }
+.conversation.is-typing .panel[data-input] {
+  grid-row: 2;
+  animation: slide-input 200ms ease-out;
+}
+.conversation.is-typing .panel:not([data-input]) { display: none; }
+@keyframes slide-input {
+  from { translate: 0 18%; opacity: .55; }
+}
 .panel {
   grid-column: 1;
   grid-row: 3;
@@ -106,6 +122,8 @@ button, .control-row a {
   padding: 3px;
 }
 .control-row > :is(button, a) { flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; }
+.control-row #close-translation { color: #fff; background: #ae342d; }
+.control-row #close-translation:hover { background: #902822; }
 @media (max-width: 360px) { .control-row { gap: 2px; } }
 button:disabled { opacity: .55; cursor: default; }
 .primary { color: white; background: #215e48; border-color: #215e48; }
