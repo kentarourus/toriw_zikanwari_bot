@@ -424,8 +424,12 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 .currency-actions { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); margin-bottom: 6px; }
 .currency-actions button { font-size: .9rem; font-weight: 700; }
 #currency-swap { background: var(--green); color: white; }
+#currency-clear { background: #9d2931; color: white; }
+#currency-clear:hover { background: #842129; }
 .currency-keypad { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .currency-keypad button { min-height: clamp(44px, 7.5dvh, 64px); background: var(--row-tint); font-size: 1.3rem; font-weight: 700; }
+.currency-keypad [data-currency-key="backspace"] { background: #f6e3e2; color: #922a30; }
+.currency-keypad [data-currency-key="backspace"]:hover { background: #f0d3d2; }
 @media (height < 640px) {
   .currency-display { grid-template: 1fr / repeat(2, minmax(0, 1fr)); min-height: 82px; }
   .currency-display > * { flex-direction: column; align-items: stretch; justify-content: center; gap: 0; }
