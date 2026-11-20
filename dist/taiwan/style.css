@@ -388,6 +388,7 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 .currency-rate-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; margin-top: 5px; font-size: .75rem; }
 #currency-status { margin: 0; color: var(--muted); }
 .currency-display {
+  --currency-input-border: 3px solid #8eab99;
   display: grid;
   flex: 1;
   grid-template-rows: repeat(2, minmax(0, 1fr));
@@ -397,10 +398,12 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 }
 .currency-display > * { display: flex; align-items: center; gap: 12px; padding: 4px 12px; background: var(--row-tint); }
 .currency-display .currency-input {
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 2px #c4d5c9;
+  border: var(--currency-input-border);
+  border-block-end: 0;
+  border-start-start-radius: 14px;
+  border-start-end-radius: 14px;
 }
-.currency-display .currency-output { border-block-start: 1px solid var(--control-line); background: var(--green-soft); }
+.currency-display .currency-output { border-block-start: var(--currency-input-border); background: var(--green-soft); }
 .currency-display span { flex: none; font-size: .8rem; font-weight: 700; color: var(--muted); }
 #currency-amount, #currency-result {
   display: block;
@@ -426,7 +429,13 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 @media (height < 640px) {
   .currency-display { grid-template: 1fr / repeat(2, minmax(0, 1fr)); min-height: 82px; }
   .currency-display > * { flex-direction: column; align-items: stretch; justify-content: center; gap: 0; }
-  .currency-display .currency-output { border-block-start: 0; border-inline-start: 1px solid var(--control-line); }
+  .currency-display .currency-input {
+    border-block-end: var(--currency-input-border);
+    border-inline-end: 0;
+    border-start-end-radius: 0;
+    border-end-start-radius: 14px;
+  }
+  .currency-display .currency-output { border-block-start: 0; border-inline-start: var(--currency-input-border); }
   #currency-amount, #currency-result { flex: none; text-align: start; }
 }
 @media (min-width: 640px) and (max-height: 540px) {
