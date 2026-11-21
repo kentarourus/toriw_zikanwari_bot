@@ -1,4 +1,4 @@
-import {initCurrencyTool} from './currency.js?v=2';
+import {initCurrencyTool} from './currency.js?v=3';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register(new URL('../sw.js', import.meta.url)).catch(() => {});

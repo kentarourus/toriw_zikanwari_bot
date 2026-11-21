@@ -12,6 +12,8 @@ export function initCurrencyTool(panel) {
   const amount = panel.querySelector('#currency-amount');
   const from = panel.querySelector('#currency-from');
   const to = panel.querySelector('#currency-to');
+  const fromFlag = from.parentElement.querySelector('use');
+  const toFlag = to.parentElement.querySelector('use');
   const rate = panel.querySelector('#currency-rate');
   const refresh = panel.querySelector('#currency-refresh');
   const result = panel.querySelector('#currency-result');
@@ -82,6 +84,8 @@ export function initCurrencyTool(panel) {
     toYen = !toYen;
     from.textContent = toYen ? '台湾ドル' : '日本円';
     to.textContent = toYen ? '日本円' : '台湾ドル';
+    fromFlag.setAttribute('href', toYen ? '#currency-flag-twd' : '#currency-flag-jpy');
+    toFlag.setAttribute('href', toYen ? '#currency-flag-jpy' : '#currency-flag-twd');
     convert();
   });
   panel.querySelector('#currency-clear').addEventListener('click', () => setAmount(''));

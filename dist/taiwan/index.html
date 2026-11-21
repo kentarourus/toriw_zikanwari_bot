@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#e7efe5">
   <title>台湾研修旅行 2026</title>
-  <link rel="stylesheet" href="style.css?v=34">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
   <svg aria-hidden="true" class="travel-icon-library" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="currency-flag-jpy" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/></symbol>
+    <symbol id="currency-flag-twd" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fe0000"/><rect width="15" height="10" fill="#000095"/><polygon fill="#fff" points="7.5,1.85 8.02,3.07 9.07,2.27 8.91,3.59 10.23,3.42 9.43,4.48 10.65,5 9.43,5.52 10.23,6.58 8.91,6.41 9.07,7.73 8.02,6.93 7.5,8.15 6.98,6.93 5.93,7.73 6.09,6.41 4.77,6.58 5.57,5.52 4.35,5 5.57,4.48 4.77,3.42 6.09,3.59 5.93,2.27 6.98,3.07"/><circle cx="7.5" cy="5" r="1.86" fill="#fff" stroke="#000095" stroke-width=".28"/></symbol>
     <symbol id="travel-icon-translate" viewBox="0 0 24 24"><path d="M3 5h11M8.5 3v2m3 0c-.5 4.5-3.4 7.3-7.5 9m1.5-7c.8 2.6 2.8 4.6 5.5 6m2 7 4-9 4 9m-6.5-3h5"/></symbol>
     <symbol id="travel-icon-sounds" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4Zm12-1a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10"/></symbol>
     <symbol id="travel-icon-currency" viewBox="0 0 24 24"><path d="M4 8h16m-4-4 4 4-4 4M20 16H4m4-4-4 4 4 4"/></symbol>
@@ -230,11 +232,11 @@
       </div>
       <div class="currency-display">
         <label class="currency-input">
-          <span id="currency-from">台湾ドル</span>
+          <span class="currency-unit"><svg aria-hidden="true" viewBox="0 0 30 20"><use href="#currency-flag-twd"/></svg><span id="currency-from">台湾ドル</span></span>
           <input id="currency-amount" aria-label="金額" aria-describedby="currency-from" type="text" inputmode="none" maxlength="16" autocomplete="off" value="100">
         </label>
         <div class="currency-output">
-          <span id="currency-to">日本円</span>
+          <span class="currency-unit"><svg aria-hidden="true" viewBox="0 0 30 20"><use href="#currency-flag-jpy"/></svg><span id="currency-to">日本円</span></span>
           <output id="currency-result" for="currency-amount currency-rate" aria-live="polite">—</output>
         </div>
       </div>
@@ -252,7 +254,7 @@
       </div>
     </div>
   </template>
-  <script type="module" src="travel-ui.js?v=11"></script>
+  <script type="module" src="travel-ui.js?v=12"></script>
   <script type="module" src="weather.js?v=3"></script>
 </body>
 </html>
