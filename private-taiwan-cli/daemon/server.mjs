@@ -11,7 +11,7 @@ import {guidePolicyFor} from '../runner/context-policy.mjs';
 import {CodexProvider} from './codex-provider.mjs';
 import {CopilotProvider} from './copilot-provider.mjs';
 import {runWithFallback,providerLabel} from './provider-routing.mjs';
-import {hydrogenExecutable,runHydrogen} from './hydrogen-provider.mjs';
+import {hydrogenExecutable,runHydrogen,stopHydrogen,warmHydrogen} from './hydrogen-provider.mjs';
 const root=path.resolve(process.env.TAIWAN_RUNNER_ROOT||'.');
 const config=JSON.parse(await fs.readFile(path.join(root,'runtime.json'),'utf8'));
 const mode=process.env.TAIWAN_PROVIDER_MODE||config.providerMode||'auto';
@@ -19,6 +19,7 @@ const port=Number(process.env.TAIWAN_CHAT_PORT||8793);
 const plan=new ChatgptPlanProvider({root});
 const codex=new CodexProvider({root}),copilot=new CopilotProvider({root});
 const hydrogenAvailable=await fs.access(hydrogenExecutable,constants.X_OK).then(()=>true,()=>false);
+if(hydrogenAvailable)warmHydrogen();
 const jobs=new Map();let active=0,providerReady=false;
 (mode==='chatgpt-plan'?plan:mode==='copilot-test'?copilot:codex).start().then(()=>{providerReady=true;console.log('Chat provider ready');}).catch(()=>console.error('Chat provider is not ready'));
 
@@ -84,4 +85,4 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(port,'127.0.0.1',()=>console.log('Local chat service ready'));
 setInterval(()=>{for(const [id,job] of jobs)if(Date.now()-job.createdAt>86400000)jobs.delete(id);},3600000).unref();
-process.on('SIGTERM',async()=>{await Promise.allSettled([codex.stop(),copilot.stop()]);server.close(()=>process.exit(0));});
+process.on('SIGTERM',async()=>{stopHydrogen();await Promise.allSettled([codex.stop(),copilot.stop()]);server.close(()=>process.exit(0));});

@@ -150,10 +150,7 @@ async function resume(chat){
   if(!chat.pending?.id){
    $('status').textContent='';
    const payload={messages:contextFor(chat)};
-   if(selected==='hydrogen'){
-    if(!(await api('/provider-status')).hydrogenAvailable)throw Error('Hydrogenに接続できません。');
-    payload.provider='hydrogen';
-   }
+   if(selected==='hydrogen')payload.provider='hydrogen';
    const {id,backend,provider}=await api('/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    if(selected==='hydrogen'&&provider!=='hydrogen')throw Error('Hydrogenに接続できませんでした。');
    chat.pending={id,backend,provider,startedAt:progressStart};
