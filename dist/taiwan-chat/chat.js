@@ -64,7 +64,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){menu(false);attachm
 function renderUsage(chat){const sum=sumUsage(chat.messages);$('usage-total').hidden=!sum.count&&!sum.unknown;$('usage-detail').hidden=!sum.count;$('usage-summary').textContent=sum.count?'この会話：'+sum.total.toLocaleString('ja-JP')+' トークン':'過去の使用量：記録なし';$('usage-detail').textContent=`入力 ${sum.input.toLocaleString('ja-JP')} / 出力 ${sum.output.toLocaleString('ja-JP')}（キャッシュ報告値 ${sum.cached==null?'未取得':sum.cached.toLocaleString('ja-JP')}）`;$('usage-note').textContent=!sum.count?'過去の回答には使用量データが保存されていません。新しい回答から表示します。':`取得できた${sum.count}回答分の累計です。${sum.unknown?'過去の未取得分は含みません。':''}プランの残り利用枠や料金を示すものではありません。`;}
 function renderList(){const holder=$('conversations');holder.replaceChildren();[...store.chats].sort((a,b)=>b.updatedAt-a.updatedAt).forEach(chat=>{const button=document.createElement('button');button.type='button';button.textContent=chat.title;button.title=chat.title;if(chat.id===store.active)button.setAttribute('aria-current','page');button.disabled=busy;button.onclick=()=>{clearLocation();clearPacking();followLatest=true;store.active=chat.id;save();render();menu(false);if(chat.pending?.id)resume(chat);};holder.append(button);});}
 let defaultProvider='codex';
-const modelSwitch=$('model-switch');
+const modelSelect=$('model-select');
 const modelPreferenceKey='taiwan-chat-use-hydrogen';
 let hydrogenAvailable=false;
 let useHydrogen=false;
@@ -78,13 +78,14 @@ function updateProviderLabel(chat, provider){
  const lastProvider=lastAnswer?.provider;
  const current=provider??chat.pending?.provider??(selected==='hydrogen'?'hydrogen':(lastProvider==='hydrogen'?selected:lastProvider??selected));
  $('provider-label').textContent=current==='hydrogen'?'Gemini 4 Hydrogen':current==='copilot'?'Copilot':'GPT-6 Luna';
- modelSwitch.hidden=!hydrogenAvailable;
- modelSwitch.disabled=busy;
- modelSwitch.setAttribute('aria-pressed',String(selected==='hydrogen'));
+ $('model-standard').textContent=defaultProvider==='copilot'?'Copilot':'Luna';
+ $('model-hydrogen').disabled=!hydrogenAvailable;
+ modelSelect.value=selected==='hydrogen'?'hydrogen':'standard';
+ modelSelect.disabled=busy;
 }
-modelSwitch.onclick=()=>{
- if(busy||!hydrogenAvailable)return;
- useHydrogen=!useHydrogen;
+modelSelect.onchange=()=>{
+ if(busy)return;
+ useHydrogen=hydrogenAvailable&&modelSelect.value==='hydrogen';
  try{localStorage.setItem(modelPreferenceKey,String(useHydrogen));}catch{}
  updateProviderLabel(active(),selectedProvider());
 };
