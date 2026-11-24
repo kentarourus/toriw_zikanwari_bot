@@ -23,7 +23,7 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
    ({messages:sentMessages,provider:requestedProvider}=JSON.parse(options.body));
    return Response.json({id:'job',provider:requestedProvider??'codex'});
   }
-  if(requestedProvider==='hydrogen')return Response.json({status:'completed',provider:'hydrogen',model:'gemini-4-hydrogen-medium',answer:'Hydrogenの回答'});
+  if(requestedProvider==='hydrogen')return Response.json({status:'completed',provider:'hydrogen',model:'gemini-4-hydrogen-low',answer:'Hydrogenの回答'});
   return Response.json({status:'completed',provider:'copilot',model:'auto',answer:'参照 [公式](https://example.com/)\n```packing-suggestions\n[{"group":"carry","text":"折りたたみ傘"}]\n```',usage:{input_tokens:100,output_tokens:40,cached_input_tokens:80}});
  }
  });
@@ -48,7 +48,7 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  $('question').value='続けて質問';await $('chat-form').onsubmit({preventDefault(){}});
  assert.equal(requestedProvider,'hydrogen');
  assert.equal(sentMessages.length,3);
- assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'gemini-4-hydrogen-medium');
+ assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'gemini-4-hydrogen-low');
  $('model-select').value='standard';$('model-select').onchange();
  assert.equal($('model-select').value,'standard');
  assert.equal($('provider-label').textContent,'GPT-6 Luna');

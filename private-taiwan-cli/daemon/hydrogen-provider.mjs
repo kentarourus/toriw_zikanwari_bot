@@ -5,7 +5,7 @@ import path from 'node:path';
 import {createInterface} from 'node:readline';
 
 export const hydrogenExecutable = path.join(homedir(), '.local', 'bin', 'agy');
-const model = 'gemini-4-hydrogen-medium';
+const model = 'gemini-4-hydrogen-low';
 const settings = {
   toolPermission: 'strict',
   allowNonWorkspaceAccess: false,
