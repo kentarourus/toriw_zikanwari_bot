@@ -484,3 +484,60 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
   .hero { grid-template-columns: minmax(0, 1fr); }
   .hero-photo { min-height: 150px; }
 }
+
+.arrival-card-reminder {
+  width: min(30rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 18px 55px #192c2855;
+}
+.arrival-card-reminder::backdrop { background: #192c28a8; }
+.arrival-card-dismiss { position: absolute; inset: .65rem .65rem auto auto; }
+.arrival-card-dismiss button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 1.5rem/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+.arrival-card-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fbe7b8;
+  color: #744310;
+  font-size: 1.45rem;
+  font-weight: 750;
+}
+#arrival-card-title { margin: .85rem 0 .35rem; font-size: clamp(1.15rem, 4vw, 1.4rem); }
+#arrival-card-note { margin: 0; color: var(--muted); }
+.arrival-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .45rem 1rem;
+  margin-top: 1rem;
+}
+.arrival-card-actions a { display: inline-flex; min-height: 44px; align-items: center; }
+.arrival-card-actions button {
+  min-height: 44px;
+  padding: .45rem 1rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--green);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
