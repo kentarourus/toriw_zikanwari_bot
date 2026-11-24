@@ -10,11 +10,20 @@ class Element{
 }
 test('a real chat submission saves usage and sidebar can be tucked away without losing history',async()=>{
  const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id)};const app=new Element();$('progress-steps').children=Array.from({length:4},()=>new Element());
- let geolocationCalls=0,fetchCalls=0,sentMessages;const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
+ let geolocationCalls=0,fetchCalls=0,sentMessages,requestedProvider;const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
  const values=new Map();const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
  const document={getElementById:$,querySelector:()=>app,querySelectorAll:()=>[],createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener(){}};
  const context=vm.createContext({createSmoothText,...storageModule,...progressModule,...usageModule,renderMarkdown,locationAttachment,packingSnapshot,packingProposals,addPackingItems,navigator,document,localStorage:storage,sessionStorage:storage,window:{localStorage:storage,history:{replaceState(){}}},location:{hash:'',pathname:'/taiwan-chat/'},matchMedia:()=>({matches:false}),URL,URLSearchParams,AbortSignal,requestAnimationFrame:fn=>fn(),setInterval:()=>1,clearInterval(){},confirm:()=>true,
- fetch:async(_url,options)=>{if(String(_url).endsWith('/provider-status'))return Response.json({mode:'auto',label:'Luna medium · Copilot予備'});fetchCalls++;if(options.method==='POST')sentMessages=JSON.parse(options.body).messages;return Response.json(options.method==='POST'?{id:'job',provider:'codex'}:{status:'completed',provider:'copilot',model:'auto',answer:'参照 [公式](https://example.com/)\n```packing-suggestions\n[{"group":"carry","text":"折りたたみ傘"}]\n```',usage:{input_tokens:100,output_tokens:40,cached_input_tokens:80}});}
+ fetch:async(_url,options)=>{
+  if(String(_url).endsWith('/provider-status'))return Response.json({mode:'auto',hydrogenAvailable:true});
+  fetchCalls++;
+  if(options.method==='POST'){
+   ({messages:sentMessages,provider:requestedProvider}=JSON.parse(options.body));
+   return Response.json({id:'job',provider:requestedProvider??'codex'});
+  }
+  if(requestedProvider==='hydrogen')return Response.json({status:'completed',provider:'hydrogen',model:'gemini-4-hydrogen-medium',answer:'Hydrogenの回答'});
+  return Response.json({status:'completed',provider:'copilot',model:'auto',answer:'参照 [公式](https://example.com/)\n```packing-suggestions\n[{"group":"carry","text":"折りたたみ傘"}]\n```',usage:{input_tokens:100,output_tokens:40,cached_input_tokens:80}});
+ }
  });
  const source=(await fs.readFile('dist/taiwan-chat/chat.js','utf8')).replace(/^import .*;\r?\n/gm,'');vm.runInContext(source,context);
  assert.equal($('provider-label').textContent,'GPT-6 Luna');
@@ -29,4 +38,16 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  assert.match($('usage-summary').textContent,/140/);assert.equal($('progress').hidden,true);assert.equal($('send').disabled,false);
  const assistant=$('messages').children.at(-1);assert.match(assistant.children[1].innerHTML,/<a href="https:\/\/example.com\/"/);assert.match(assistant.children[1].innerHTML,/rel="noopener noreferrer"/);const card=assistant.children.find(x=>x.className==='packing-proposals');assert.ok(card);assert.equal(storage.getItem('taiwan-packing-items-2026-v2'),null);card.children.at(-2).onclick();const packing=JSON.parse(storage.getItem('taiwan-packing-items-2026-v2'));assert.equal(packing.carry.find(x=>x.text==='折りたたみ傘').checked,false);
  $('scroll-area').scrollHeight=1000;$('scroll-area').clientHeight=100;$('scroll-area').scrollTop=100;$('scroll-area').handlers.scroll();vm.runInContext('scrollToLatest()',context);assert.equal($('scroll-area').scrollTop,100);assert.equal($('jump-latest').hidden,false);$('jump-latest').onclick();assert.equal($('scroll-area').scrollTop,1000);assert.equal($('jump-latest').hidden,true);
+ assert.equal(requestedProvider,undefined);
+ assert.equal($('model-switch').hidden,false);
+ $('model-switch').onclick();
+ assert.equal($('model-switch').attributes['aria-pressed'],'true');
+ assert.equal($('provider-label').textContent,'Gemini 4 Hydrogen');
+ $('question').value='続けて質問';await $('chat-form').onsubmit({preventDefault(){}});
+ assert.equal(requestedProvider,'hydrogen');
+ assert.equal(sentMessages.length,3);
+ assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'gemini-4-hydrogen-medium');
+ $('model-switch').onclick();
+ assert.equal($('model-switch').attributes['aria-pressed'],'false');
+ assert.equal($('provider-label').textContent,'GPT-6 Luna');
 });
