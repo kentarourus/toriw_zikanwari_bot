@@ -1,0 +1,10 @@
+[Unit]
+Description=Check the Taiwan chat tunnel every minute
+
+[Timer]
+OnStartupSec=45s
+OnUnitInactiveSec=60s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

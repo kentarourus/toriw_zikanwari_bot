@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v59';
+const CACHE = 'timetable-v60';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -110,12 +110,33 @@ const APP_FILES = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_FILES)).then(() => self.skipWaiting()));
+  const freshFiles = APP_FILES.map(file => new Request(new URL(file, self.registration.scope), {cache: 'reload'}));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(freshFiles)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('timetable-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(activate());
 });
+
+function classPage(url) {
+  const classes = new URL('classes/', self.registration.scope);
+  return url.origin === classes.origin && url.pathname.startsWith(classes.pathname)
+    && /^[1-3]-[1-7](?:\/(?:index\.html)?)?$/.test(url.pathname.slice(classes.pathname.length));
+}
+
+async function activate() {
+  const olderCaches = (await caches.keys()).filter(key => key.startsWith('timetable-') && key !== CACHE);
+  // Take a snapshot before claiming so this update refreshes only existing, controlled pages.
+  const windows = olderCaches.length ? await self.clients.matchAll({type: 'window'}) : [];
+  await Promise.all(olderCaches.map(key => caches.delete(key)));
+  await self.clients.claim();
+  for (const client of windows) {
+    if (client.frameType === 'top-level' && classPage(new URL(client.url))) {
+      // Finish activation before the new navigation reaches this worker's fetch handler.
+      client.navigate(client.url).catch(() => {});
+    }
+  }
+}
 
 async function soundResponse(request) {
   const cache = await caches.open(CACHE);
@@ -164,7 +185,8 @@ self.addEventListener('fetch', event => {
     return;
   }
   if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request).then(async response => {
+    const options = classPage(url) ? {cache: 'no-cache'} : undefined;
+    event.respondWith(fetch(event.request, options).then(async response => {
       if (response.ok) {
         const cache = await caches.open(CACHE);
         await cache.put(event.request, response.clone());
