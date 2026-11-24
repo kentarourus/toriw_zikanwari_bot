@@ -33,7 +33,7 @@ jobs:
         env:
           TAIWAN_TRANSLATION_ENDPOINT: ${{ vars.TAIWAN_TRANSLATION_ENDPOINT }}
         run: node scripts/write-translation-config.mjs
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
       - name: Deploy
