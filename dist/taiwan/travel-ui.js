@@ -210,6 +210,13 @@ if (typeof toolDialog.showModal === 'function') {
   });
 
   const installList = document.getElementById('install-travel-apps');
+  folderDialog.querySelector('.tools-install-link')?.addEventListener('click', event => {
+    event.preventDefault();
+    folderDialog.close();
+    installList.open = true;
+    installList.querySelector('summary').focus({preventScroll: true});
+    installList.scrollIntoView({block: 'center'});
+  });
   for (const trigger of tools) {
     const item = document.createElement('li');
     const link = document.createElement('a');
@@ -239,24 +246,49 @@ if (typeof toolDialog.showModal === 'function') {
       }
       const button = document.getElementById('install-travel-app');
       const standalone = matchMedia('(display-mode: standalone)');
-      const update = () => { button.hidden = !directApp || !installPrompt || standalone.matches || navigator.standalone === true; };
+      const guide = document.getElementById('travel-install-help');
+      let installed = false;
+      const update = () => {
+        button.hidden = !directApp || installed || standalone.matches || navigator.standalone === true;
+      };
       let installPrompt;
       addEventListener('beforeinstallprompt', event => {
+        if (!directApp) return;
         event.preventDefault();
         installPrompt = event;
         update();
       });
       addEventListener('appinstalled', () => {
+        installed = true;
         installPrompt = undefined;
+        if (guide.open) guide.close();
         update();
       });
       standalone.addEventListener('change', update);
       button.addEventListener('click', async () => {
         const event = installPrompt;
+        if (!event) {
+          guide.showModal();
+          return;
+        }
         installPrompt = undefined;
+        try {
+          await event.prompt();
+          const choice = await event.userChoice;
+          if (choice?.outcome === 'accepted') installed = true;
+        } catch {
+          if (directApp && !guide.open) guide.showModal();
+        }
         update();
-        await event?.prompt();
       });
+      update();
+      navigator.getInstalledRelatedApps?.().then(apps => {
+        const manifestUrl = new URL(`apps/${requestedTool}.webmanifest`, location.href).href;
+        if (apps.some(app => app.platform === 'webapp' && app.url === manifestUrl)) {
+          installed = true;
+          update();
+        }
+      }).catch(() => {});
     }
     openTool(appTrigger, true);
   }

@@ -20,5 +20,11 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/apps/sounds.webmanifest"
+    }
   ]
 }

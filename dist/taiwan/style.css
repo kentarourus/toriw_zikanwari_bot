@@ -281,6 +281,10 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 #install-travel-apps p { max-width: 48ch; margin: 4px 0; }
 #install-travel-apps ul { display: flex; flex-wrap: wrap; gap: 0 14px; padding: 0; margin: 0; list-style: none; }
 #install-travel-apps li a { display: inline-grid; align-items: center; min-height: 44px; }
+.tools-install-link { display: inline-grid; align-items: center; min-height: 44px; margin-top: 8px; }
+.install-help { width: min(30rem, calc(100% - 2rem)); }
+.install-help .tools-heading h2 { margin: 0; font-size: 1.15rem; }
+.install-help p { margin: .8rem 0 0; color: var(--muted); }
 .tool-launch {
   position: absolute;
   top: 50%;
