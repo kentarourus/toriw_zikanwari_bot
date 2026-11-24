@@ -19,7 +19,11 @@ export default {async fetch(request,env){
  if(origin!==env.ALLOWED_ORIGIN)return reply({error:'Origin not allowed'},403);
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
  if(request.method==='GET'&&url.pathname.endsWith('/provider-status')){try{return reply(await local('/provider-status')||{mode:'legacy',label:'Luna medium'});}catch{return reply({error:'常駐PCに接続できません。'},503);}}
- if(request.method==='GET'&&/\/jobs\/pc-[-a-f0-9]{36}$/.test(url.pathname)){try{const result=await local('/jobs/'+url.pathname.split('/').at(-1));return result?reply(result):reply({error:'常駐PCに接続できません。'},503);}catch{return reply({error:'常駐PCに接続できません。電源とネットワークを確認してください。'},503);}}
+ if(request.method==='GET'&&/\/jobs\/pc-[-a-f0-9]{36}$/.test(url.pathname)){
+  const waitForFirst=url.searchParams.get('wait')==='first'?'?wait=first':'';
+  try{const result=await local('/jobs/'+url.pathname.split('/').at(-1)+waitForFirst);return result?reply(result):reply({error:'常駐PCに接続できません。'},503);}
+  catch{return reply({error:'常駐PCに接続できません。電源とネットワークを確認してください。'},503);}
+ }
  const base=`https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}`;
  const github=async(path,options={})=>fetch(base+path,{...options,headers:{Authorization:'Bearer '+env.GITHUB_TOKEN,Accept:'application/vnd.github+json','User-Agent':'Taiwan-private-CLI','X-GitHub-Api-Version':'2022-11-28',...options.headers}});
  try{

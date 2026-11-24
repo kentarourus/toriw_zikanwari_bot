@@ -54,7 +54,7 @@ export class CodexProvider {
       job.usage = {input_tokens: u.inputTokens, output_tokens: u.outputTokens, cached_input_tokens: u.cachedInputTokens, reasoning_output_tokens: u.reasoningOutputTokens};
     }
     if (message.method === 'turn/completed') {
-      setTimeout(() => {
+      const complete = () => {
         if (p.turn.status !== 'completed') {
           entry.reject(Object.assign(new Error('回答を作成できませんでした。'), {codexErrorInfo: p.turn.error?.codexErrorInfo}));
         } else {
@@ -62,7 +62,9 @@ export class CodexProvider {
           if (!answer?.trim()) entry.reject(new Error('回答を取得できませんでした。'));
           else entry.resolve({answer, usage: job.usage, provider: 'codex', model: 'gpt-6-luna'});
         }
-      }, 100);
+      };
+      if (job.usage || p.turn.status !== 'completed') complete();
+      else setTimeout(complete, 100);
     }
   }
 

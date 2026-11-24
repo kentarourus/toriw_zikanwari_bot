@@ -10,7 +10,7 @@ class Element{
 }
 test('a real chat submission saves usage and sidebar can be tucked away without losing history',async()=>{
  const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id)};const app=new Element();$('progress-steps').children=Array.from({length:4},()=>new Element());
- let geolocationCalls=0,fetchCalls=0,sentMessages,requestedProvider,confirmation;
+ let geolocationCalls=0,fetchCalls=0,sentMessages,requestedProvider,confirmation,pollUrl;
  let allowDelete=false;
  const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
  const values=new Map();const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
@@ -21,8 +21,9 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
   fetchCalls++;
   if(options.method==='POST'){
    ({messages:sentMessages,provider:requestedProvider}=JSON.parse(options.body));
-   return Response.json({id:'job',provider:requestedProvider??'codex'});
+   return Response.json({id:'job',backend:'pc',provider:requestedProvider??'codex'});
   }
+  pollUrl=String(_url);
   if(requestedProvider==='hydrogen')return Response.json({status:'completed',provider:'hydrogen',model:'gemini-4-hydrogen-low',answer:'Hydrogenの回答'});
   return Response.json({status:'completed',provider:'copilot',model:'auto',answer:'参照 [公式](https://example.com/)\n```packing-suggestions\n[{"group":"carry","text":"折りたたみ傘"}]\n```',usage:{input_tokens:100,output_tokens:40,cached_input_tokens:80}});
  }
@@ -34,6 +35,7 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  assert.equal(storage.getItem('taiwan-packing-items-2026-v2'),null);$('share-packing').onclick();assert.equal($('packing-preview').hidden,false);assert.equal(fetchCalls,0);$('remove-packing').onclick();assert.equal($('packing-preview').hidden,true);
  assert.equal(geolocationCalls,0);$('share-location').onclick();assert.equal(geolocationCalls,1);assert.equal(fetchCalls,0);assert.equal($('location-preview').hidden,false);$('remove-location').onclick();assert.equal($('location-preview').hidden,true);$('share-location').onclick();
  $('question').value='台北について';await $('chat-form').onsubmit({preventDefault(){}});
+ assert.match(pollUrl,/\/jobs\/job\?wait=first$/);
  assert.match(sentMessages[0].content,/共有した現在地/);assert.equal($('location-preview').hidden,true);
  assert.equal($('provider-label').textContent,'Copilot');
  const saved=JSON.parse(storage.getItem(storageModule.storageKey));assert.equal(saved.chats[0].messages.length,2);assert.equal(saved.chats[0].messages[1].usage.input_tokens,100);assert.equal(saved.chats[0].messages[1].provider,'copilot');
@@ -47,6 +49,7 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  assert.equal($('provider-label').textContent,'Gemini 4 Hydrogen');
  $('question').value='続けて質問';await $('chat-form').onsubmit({preventDefault(){}});
  assert.equal(requestedProvider,'hydrogen');
+ assert.match(pollUrl,/\/jobs\/job$/);
  assert.equal(sentMessages.length,3);
  assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'gemini-4-hydrogen-low');
  $('model-select').value='standard';$('model-select').onchange();

@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import {constants} from 'node:fs';
 import path from 'node:path';
 import {randomUUID,timingSafeEqual} from 'node:crypto';
+import {setTimeout as wait} from 'node:timers/promises';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions as instructions} from '../runner/assistant-instructions.mjs';
 import {readGuides} from '../runner/guide-mcp.mjs';
@@ -75,9 +76,15 @@ const server=http.createServer(async(req,res)=>{
    const job={id:'pc-'+randomUUID(),status:'in_progress',stage:'preparing',createdAt:Date.now(),partial:'',usage:null,webSearches:0,guideReads:0,provider:provider==='hydrogen'?'hydrogen':mode==='chatgpt-plan'?'chatgpt-plan':mode==='copilot-test'?'copilot':'codex'};
    jobs.set(job.id,job);active++;reply({id:job.id,backend:'pc',provider:job.provider});answer(job,messages);return;
   }
-  if(req.method==='GET'&&/^\/jobs\/pc-[-a-f0-9]{36}$/.test(req.url)){
-   const job=jobs.get(req.url.split('/').at(-1));
+  const jobRequest=req.method==='GET'&&/^\/jobs\/(pc-[-a-f0-9]{36})(\?wait=first)?$/.exec(req.url);
+  if(jobRequest){
+   const job=jobs.get(jobRequest[1]);
    if(!job)return reply({status:'failed',error:'PCの再起動などでこの実行は終了しました。もう一度送信してください。'});
+   if(jobRequest[2]&&job.provider==='codex'){
+    const deadline=Date.now()+2000;
+    while(!res.destroyed&&job.status==='in_progress'&&job.stage==='answering'&&!job.partial&&Date.now()<deadline)await wait(50);
+    if(res.destroyed)return;
+   }
    return reply({status:job.status,stage:job.stage,partial:job.partial,answer:job.status==='completed'?job.answer:undefined,error:job.error,usage:job.usage,webSearches:job.webSearches,guideReads:job.guideReads,directions:job.directions||0,provider:job.provider,model:job.model,switchedFrom:job.switchedFrom,firstTokenMs:job.firstTokenAt?job.firstTokenAt-job.createdAt:null,elapsedMs:(job.completedAt||Date.now())-job.createdAt});
   }
   return reply({error:'Not found'},404);
