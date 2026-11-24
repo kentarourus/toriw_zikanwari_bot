@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8faf7">
   <title>丹陽さん</title>
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 <div class="app">
@@ -16,6 +16,7 @@
     <button id="new-chat" type="button" class="new-chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>新しいチャット</button>
     <p class="sidebar-label">チャット履歴</p>
     <nav id="conversations" aria-label="保存済みの会話"></nav>
+    <button id="delete-chat" class="history-delete" type="button" disabled>表示中の会話を削除</button>
     <div class="sidebar-footer"><a href="../taiwan/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1m0-14c3-2 6-2 9-1v14c-3-1-6-1-9 1V6"/></svg>旅行ガイドを開く</a><a href="../taiwan/#packing" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg>持ち物チェック</a><p class="storage-note">履歴はこのブラウザーに保存されます。</p></div>
   </aside>
   <button id="shade" class="shade" type="button" aria-label="会話一覧を閉じる" tabindex="-1"></button>
@@ -24,7 +25,6 @@
       <button id="open-menu" class="icon-button" type="button" aria-label="会話一覧を開く" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="header-title"><h1 id="chat-title">丹陽さん</h1><div class="header-subtitle"><span>台湾旅行アシスタント</span><span class="model-badge" id="provider-label">GPT-6 Luna</span><button id="model-switch" type="button" aria-label="Gemini 4 Hydrogenを使う" aria-pressed="false" hidden><span aria-hidden="true">⇄</span> Hydrogen</button></div></div>
       <a class="header-guide" href="../taiwan/" target="_blank" rel="noopener" aria-label="旅行ガイドを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1m0-14c3-2 6-2 9-1v14c-3-1-6-1-9 1V6"/></svg><span>旅行ガイド</span></a>
-      <button id="delete-chat" class="icon-button" type="button" aria-label="この会話を削除" title="この会話を削除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6"/></svg></button>
     </header>
     <div class="conversation-pane">
       <div id="scroll-area">

@@ -114,7 +114,7 @@ function finishLaunch() {
 }
 
 function resetTool() {
-  toolDialog.classList.remove('translation-tool');
+  toolDialog.classList.remove('translation-tool', 'chat-tool');
   finishLaunch();
   restoreSection?.();
   restoreSection = undefined;
@@ -131,6 +131,7 @@ function openTool(trigger, direct = false) {
   const href = trigger.getAttribute('href');
   const section = sections[href];
   const key = toolKey(trigger);
+  toolDialog.classList.toggle('chat-tool', key === 'chat');
   const title = trigger.lastElementChild.textContent;
   const origin = trigger.querySelector('.tool-icon').getBoundingClientRect();
   returnFocus = folderDialog.open ? toolFolder : trigger;
