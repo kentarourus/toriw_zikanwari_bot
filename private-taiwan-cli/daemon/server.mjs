@@ -83,6 +83,7 @@ const server=http.createServer(async(req,res)=>{
    if(jobRequest[2]&&job.provider==='codex'){
     const deadline=Date.now()+2000;
     while(!res.destroyed&&job.status==='in_progress'&&job.stage==='answering'&&!job.partial&&Date.now()<deadline)await wait(50);
+    if(job.status==='in_progress'&&job.partial&&!res.destroyed)await wait(75);
     if(res.destroyed)return;
    }
    return reply({status:job.status,stage:job.stage,partial:job.partial,answer:job.status==='completed'?job.answer:undefined,error:job.error,usage:job.usage,webSearches:job.webSearches,guideReads:job.guideReads,directions:job.directions||0,provider:job.provider,model:job.model,switchedFrom:job.switchedFrom,firstTokenMs:job.firstTokenAt?job.firstTokenAt-job.createdAt:null,elapsedMs:(job.completedAt||Date.now())-job.createdAt});
