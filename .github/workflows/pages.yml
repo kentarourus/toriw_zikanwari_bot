@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -34,8 +35,18 @@ jobs:
           TAIWAN_TRANSLATION_ENDPOINT: ${{ vars.TAIWAN_TRANSLATION_ENDPOINT }}
         run: node scripts/write-translation-config.mjs
       - uses: actions/upload-pages-artifact@v5
+        id: pages-artifact
         with:
           path: dist
+      - name: Wait for the Pages artifact
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.pages-artifact.outputs.artifact_id }}
+        run: |
+          curl --fail --silent --show-error --output /dev/null \
+            --max-time 10 --retry 8 --retry-delay 3 --retry-all-errors \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID"
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
