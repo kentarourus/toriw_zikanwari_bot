@@ -37,9 +37,30 @@ function startProgress(){updateProgress('queued');}
 function stopProgress(){$('progress').hidden=true;}
 let storageError=false;function save(){try{localStorage.setItem(storageKey,JSON.stringify(store));storageError=false}catch{storageError=true;$('status').textContent='この端末に履歴を保存できません。画面を閉じると会話が失われる場合があります。';}}
 const app=document.querySelector('.app');
+const historyPanel=$('sidebar');
+const historyToggle=$('open-menu');
+const closeHistory=$('close-menu');
+const historyViewport=matchMedia('(max-width:750px)');
 try{app.classList.toggle('history-collapsed',localStorage.getItem('taiwan-chat-history-collapsed')==='true');}catch{}
-function menu(open,explicit=false){const narrow=matchMedia('(max-width:750px)').matches;if(narrow){$('sidebar').classList.toggle('is-open',open);$('shade').hidden=!open;}else if(explicit){app.classList.toggle('history-collapsed',!open);try{localStorage.setItem('taiwan-chat-history-collapsed',String(!open));}catch{}}$('open-menu').setAttribute('aria-expanded',String(narrow?open:!app.classList.contains('history-collapsed')));}
-$('open-menu').onclick=()=>menu(true,true);$('close-menu').onclick=()=>menu(false,true);$('shade').onclick=()=>menu(false);document.addEventListener('keydown',e=>{if(e.key==='Escape'){menu(false);attachmentMenu(false);}});
+function menu(open,explicit=false){
+ const narrow=historyViewport.matches;
+ const wasDrawerOpen=historyPanel.classList.contains('is-open');
+ historyPanel.classList.toggle('is-open',narrow&&open);
+ if(!narrow&&explicit){
+  app.classList.toggle('history-collapsed',!open);
+  try{localStorage.setItem('taiwan-chat-history-collapsed',String(!open));}catch{}
+ }
+ const expanded=narrow?open:!app.classList.contains('history-collapsed');
+ historyPanel.inert=!expanded;
+ historyToggle.setAttribute('aria-expanded',String(expanded));
+ if(explicit&&open)closeHistory.focus();
+ if(!expanded&&(explicit||wasDrawerOpen))historyToggle.focus();
+}
+historyViewport.addEventListener?.('change',()=>menu(false));
+historyToggle.onclick=()=>menu(true,true);
+closeHistory.onclick=()=>menu(false,true);
+$('shade').onclick=()=>menu(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){menu(false);attachmentMenu(false);}});
 function renderUsage(chat){const sum=sumUsage(chat.messages);$('usage-total').hidden=!sum.count&&!sum.unknown;$('usage-detail').hidden=!sum.count;$('usage-summary').textContent=sum.count?'この会話：'+sum.total.toLocaleString('ja-JP')+' トークン':'過去の使用量：記録なし';$('usage-detail').textContent=`入力 ${sum.input.toLocaleString('ja-JP')} / 出力 ${sum.output.toLocaleString('ja-JP')}（キャッシュ報告値 ${sum.cached==null?'未取得':sum.cached.toLocaleString('ja-JP')}）`;$('usage-note').textContent=!sum.count?'過去の回答には使用量データが保存されていません。新しい回答から表示します。':`取得できた${sum.count}回答分の累計です。${sum.unknown?'過去の未取得分は含みません。':''}プランの残り利用枠や料金を示すものではありません。`;}
 function renderList(){const holder=$('conversations');holder.replaceChildren();[...store.chats].sort((a,b)=>b.updatedAt-a.updatedAt).forEach(chat=>{const button=document.createElement('button');button.type='button';button.textContent=chat.title;button.title=chat.title;if(chat.id===store.active)button.setAttribute('aria-current','page');button.disabled=busy;button.onclick=()=>{clearLocation();clearPacking();followLatest=true;store.active=chat.id;save();render();menu(false);if(chat.pending?.id)resume(chat);};holder.append(button);});}
 let defaultProvider='codex';

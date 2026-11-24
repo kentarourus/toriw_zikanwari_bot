@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8faf7">
   <title>丹陽さん</title>
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 <div class="app">
@@ -18,10 +18,10 @@
     <nav id="conversations" aria-label="保存済みの会話"></nav>
     <div class="sidebar-footer"><a href="../taiwan/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1m0-14c3-2 6-2 9-1v14c-3-1-6-1-9 1V6"/></svg>旅行ガイドを開く</a><a href="../taiwan/#packing" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg>持ち物チェック</a><p class="storage-note">履歴はこのブラウザーに保存されます。</p></div>
   </aside>
-  <button id="shade" class="shade" aria-label="会話一覧を閉じる" hidden></button>
+  <button id="shade" class="shade" type="button" aria-label="会話一覧を閉じる" tabindex="-1"></button>
   <main>
     <header>
-      <button id="open-menu" class="icon-button" type="button" aria-label="会話一覧を開く" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <button id="open-menu" class="icon-button" type="button" aria-label="会話一覧を開く" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="header-title"><h1 id="chat-title">丹陽さん</h1><div class="header-subtitle"><span>台湾旅行アシスタント</span><span class="model-badge" id="provider-label">GPT-6 Luna</span></div></div>
       <a class="header-guide" href="../taiwan/" target="_blank" rel="noopener" aria-label="旅行ガイドを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1m0-14c3-2 6-2 9-1v14c-3-1-6-1-9 1V6"/></svg><span>旅行ガイド</span></a>
       <button id="delete-chat" class="icon-button" type="button" aria-label="この会話を削除" title="この会話を削除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6m4-6v6"/></svg></button>
@@ -64,5 +64,5 @@
     </div>
   </main>
 </div>
-<script type="module" src="chat.js?v=provider-14"></script>
+<script type="module" src="chat.js?v=15"></script>
 </body></html>
