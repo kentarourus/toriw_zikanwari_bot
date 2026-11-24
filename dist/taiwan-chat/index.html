@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8faf7">
   <title>丹陽さん</title>
-  <link rel="stylesheet" href="style.css?v=16">
+  <link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
 <div class="app">
@@ -16,7 +16,6 @@
     <button id="new-chat" type="button" class="new-chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>新しいチャット</button>
     <p class="sidebar-label">チャット履歴</p>
     <nav id="conversations" aria-label="保存済みの会話"></nav>
-    <button id="delete-chat" class="history-delete" type="button" disabled>表示中の会話を削除</button>
     <div class="sidebar-footer"><a href="../taiwan/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1m0-14c3-2 6-2 9-1v14c-3-1-6-1-9 1V6"/></svg>旅行ガイドを開く</a><a href="../taiwan/#packing" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg>持ち物チェック</a><p class="storage-note">履歴はこのブラウザーに保存されます。</p></div>
   </aside>
   <button id="shade" class="shade" type="button" aria-label="会話一覧を閉じる" tabindex="-1"></button>
@@ -57,10 +56,14 @@
           <div id="attach-menu" hidden><p class="menu-heading">相談に添付する</p><button id="share-location" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong>現在地</strong><small>天気や近くの場所を相談</small></span></button><button id="share-packing" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg><span><strong>持ち物チェック</strong><small>この端末のチェック状況を共有</small></span></button><a class="packing-open" href="../taiwan/#packing" target="_blank" rel="noopener">持ち物チェックを開く ↗</a></div>
         </div>
         <label class="sr-only" for="question">メッセージ</label><textarea id="question" rows="1" maxlength="1500" placeholder="丹陽さんにメッセージ…"></textarea>
-        <select id="model-select" aria-label="回答に使うモデル">
-          <option id="model-standard" value="standard">Luna</option>
-          <option id="model-hydrogen" value="hydrogen" disabled>Hydrogen</option>
-        </select>
+        <div class="model-picker">
+          <span id="model-short-name" aria-hidden="true">Luna</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+          <select id="model-select" aria-label="回答に使うモデル">
+            <option id="model-standard" value="standard">GPT-6 Luna</option>
+            <option id="model-hydrogen" value="hydrogen" disabled>Gemini 4 Hydrogen (Medium)</option>
+          </select>
+        </div>
         <button id="send" type="submit" aria-label="送信" title="メッセージを送信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
       </form>
       <div class="composer-meta"><details id="usage-total" hidden><summary id="usage-summary"></summary><p id="usage-detail"></p><p id="usage-note"></p></details><span class="keyboard-hint">Ctrl / ⌘ + Enter で送信</span></div>
@@ -68,5 +71,5 @@
     </div>
   </main>
 </div>
-<script type="module" src="chat.js?v=18"></script>
+<script type="module" src="chat.js?v=19"></script>
 </body></html>

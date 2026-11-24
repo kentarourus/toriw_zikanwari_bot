@@ -10,10 +10,12 @@ class Element{
 }
 test('a real chat submission saves usage and sidebar can be tucked away without losing history',async()=>{
  const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id)};const app=new Element();$('progress-steps').children=Array.from({length:4},()=>new Element());
- let geolocationCalls=0,fetchCalls=0,sentMessages,requestedProvider;const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
+ let geolocationCalls=0,fetchCalls=0,sentMessages,requestedProvider,confirmation;
+ let allowDelete=false;
+ const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
  const values=new Map();const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
  const document={getElementById:$,querySelector:()=>app,querySelectorAll:()=>[],createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener(){}};
- const context=vm.createContext({createSmoothText,...storageModule,...progressModule,...usageModule,renderMarkdown,locationAttachment,packingSnapshot,packingProposals,addPackingItems,navigator,document,localStorage:storage,sessionStorage:storage,window:{localStorage:storage,history:{replaceState(){}}},location:{hash:'',pathname:'/taiwan-chat/'},matchMedia:()=>({matches:false}),URL,URLSearchParams,AbortSignal,requestAnimationFrame:fn=>fn(),setInterval:()=>1,clearInterval(){},confirm:()=>true,
+ const context=vm.createContext({createSmoothText,...storageModule,...progressModule,...usageModule,renderMarkdown,locationAttachment,packingSnapshot,packingProposals,addPackingItems,navigator,document,localStorage:storage,sessionStorage:storage,window:{localStorage:storage,history:{replaceState(){}}},location:{hash:'',pathname:'/taiwan-chat/'},matchMedia:()=>({matches:false}),URL,URLSearchParams,AbortSignal,requestAnimationFrame:fn=>fn(),setInterval:()=>1,clearInterval(){},confirm:message=>{confirmation=message;return allowDelete;},
  fetch:async(_url,options)=>{
   if(String(_url).endsWith('/provider-status'))return Response.json({mode:'auto',hydrogenAvailable:true});
   fetchCalls++;
@@ -50,4 +52,18 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  $('model-select').value='standard';$('model-select').onchange();
  assert.equal($('model-select').value,'standard');
  assert.equal($('provider-label').textContent,'GPT-6 Luna');
+ assert.equal($('model-standard').textContent,'GPT-6 Luna');
+ vm.runInContext("store.chats.push({id:'other',title:'別の会話',messages:[{role:'user',content:'別の質問'}],updatedAt:0});renderList()",context);
+ const remove=$('conversations').children[1].children[1];
+ assert.equal(remove.attributes['aria-label'],'「別の会話」を削除');
+ $('question').value='編集中の文章';
+ remove.onclick();
+ assert.match(confirmation,/「別の会話」/);
+ assert.equal($('conversations').children.length,2);
+ allowDelete=true;
+ remove.onclick();
+ const remaining=JSON.parse(storage.getItem(storageModule.storageKey));
+ assert.equal(remaining.active,saved.active);
+ assert.deepEqual(remaining.chats.map(chat=>chat.id),[saved.active]);
+ assert.equal($('question').value,'編集中の文章');
 });

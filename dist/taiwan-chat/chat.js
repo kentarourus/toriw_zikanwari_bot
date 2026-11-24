@@ -62,7 +62,49 @@ closeHistory.onclick=()=>menu(false,true);
 $('shade').onclick=()=>menu(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){menu(false);attachmentMenu(false);}});
 function renderUsage(chat){const sum=sumUsage(chat.messages);$('usage-total').hidden=!sum.count&&!sum.unknown;$('usage-detail').hidden=!sum.count;$('usage-summary').textContent=sum.count?'この会話：'+sum.total.toLocaleString('ja-JP')+' トークン':'過去の使用量：記録なし';$('usage-detail').textContent=`入力 ${sum.input.toLocaleString('ja-JP')} / 出力 ${sum.output.toLocaleString('ja-JP')}（キャッシュ報告値 ${sum.cached==null?'未取得':sum.cached.toLocaleString('ja-JP')}）`;$('usage-note').textContent=!sum.count?'過去の回答には使用量データが保存されていません。新しい回答から表示します。':`取得できた${sum.count}回答分の累計です。${sum.unknown?'過去の未取得分は含みません。':''}プランの残り利用枠や料金を示すものではありません。`;}
-function renderList(){const holder=$('conversations');holder.replaceChildren();[...store.chats].sort((a,b)=>b.updatedAt-a.updatedAt).forEach(chat=>{const button=document.createElement('button');button.type='button';button.textContent=chat.title;button.title=chat.title;if(chat.id===store.active)button.setAttribute('aria-current','page');button.disabled=busy;button.onclick=()=>{clearLocation();clearPacking();followLatest=true;store.active=chat.id;save();render();menu(false);if(chat.pending?.id)resume(chat);};holder.append(button);});}
+function renderList(){
+ const holder=$('conversations');
+ holder.replaceChildren();
+ for(const chat of [...store.chats].sort((a,b)=>b.updatedAt-a.updatedAt)){
+  const row=document.createElement('div');
+  row.className='history-row';
+  const open=document.createElement('button');
+  open.className='history-open';
+  open.type='button';
+  open.textContent=chat.title;
+  open.title=chat.title;
+  open.disabled=busy;
+  if(chat.id===store.active)open.setAttribute('aria-current','page');
+  open.onclick=()=>{clearLocation();clearPacking();followLatest=true;store.active=chat.id;save();render();menu(false);if(chat.pending?.id)resume(chat);};
+  const remove=document.createElement('button');
+  remove.className='history-delete';
+  remove.type='button';
+  remove.textContent='削除';
+  remove.setAttribute('aria-label',`「${chat.title}」を削除`);
+  remove.disabled=busy;
+  remove.hidden=store.chats.length===1&&!chat.messages.length;
+  remove.onclick=()=>deleteConversation(chat);
+  row.append(open,remove);
+  holder.append(row);
+ }
+}
+
+function deleteConversation(chat){
+ if(busy||!confirm(`この端末から「${chat.title}」の会話履歴を削除しますか？`))return;
+ const wasActive=chat.id===store.active;
+ store.chats=store.chats.filter(item=>item.id!==chat.id);
+ if(wasActive){
+  clearLocation();
+  clearPacking();
+  followLatest=true;
+  if(!store.chats.length)store.chats.push(createChat());
+  store.active=store.chats[0].id;
+ }
+ save();
+ if(wasActive)render();
+ else renderList();
+ $('new-chat').focus();
+}
 let defaultProvider='codex';
 const modelSelect=$('model-select');
 const modelPreferenceKey='taiwan-chat-use-hydrogen';
@@ -78,7 +120,8 @@ function updateProviderLabel(chat, provider){
  const lastProvider=lastAnswer?.provider;
  const current=provider??chat.pending?.provider??(selected==='hydrogen'?'hydrogen':(lastProvider==='hydrogen'?selected:lastProvider??selected));
  $('provider-label').textContent=current==='hydrogen'?'Gemini 4 Hydrogen':current==='copilot'?'Copilot':'GPT-6 Luna';
- $('model-standard').textContent=defaultProvider==='copilot'?'Copilot':'Luna';
+ $('model-standard').textContent=defaultProvider==='copilot'?'GitHub Copilot':'GPT-6 Luna';
+ $('model-short-name').textContent=selected==='hydrogen'?'Hydrogen':defaultProvider==='copilot'?'Copilot':'Luna';
  $('model-hydrogen').disabled=!hydrogenAvailable;
  modelSelect.value=selected==='hydrogen'?'hydrogen':'standard';
  modelSelect.disabled=busy;
@@ -89,8 +132,8 @@ modelSelect.onchange=()=>{
  try{localStorage.setItem(modelPreferenceKey,String(useHydrogen));}catch{}
  updateProviderLabel(active(),selectedProvider());
 };
-function render(){const chat=active();updateProviderLabel(chat);document.title=chat.title+' · 丹陽さん';$('chat-title').textContent=chat.messages.length?chat.title:'丹陽さん';$('chat-title').title=chat.title;$('welcome').hidden=chat.messages.length>0;$('delete-chat').disabled=busy||!chat.messages.length;$('messages').replaceChildren();for(const item of chat.messages){const row=document.createElement('article');row.className='message '+item.role;const label=document.createElement('small');label.textContent=item.role==='user'?'あなた':'丹陽さん';const text=document.createElement('div');const proposal=item.role==='assistant'?packingProposals(item.content):{text:item.content,suggestions:[]};text.innerHTML=renderMarkdown(proposal.text);row.append(label,text);if(proposal.suggestions.length)row.append(proposalCard(proposal.suggestions));if(item.role==='assistant'){const usage=normaliseUsage(item.usage);const info=document.createElement('details');info.className='message-usage';info.hidden=!usage;const usageTitle=document.createElement('summary'),usageBody=document.createElement('p');usageTitle.textContent=usage?'使用量 '+(usage.input_tokens+usage.output_tokens).toLocaleString('ja-JP')+' トークン':'使用量';usageBody.textContent=usage?`入力 ${usage.input_tokens.toLocaleString('ja-JP')} / 出力 ${usage.output_tokens.toLocaleString('ja-JP')}${usage.cached_input_tokens!=null?' / キャッシュ報告値 '+usage.cached_input_tokens.toLocaleString('ja-JP'):''} トークン`:'';info.append(usageTitle,usageBody);row.append(info);}$('messages').append(row);}$('retry').hidden=!chat.error||busy;$('status').textContent=chat.error||(storageError?'この端末に履歴を保存できません。':!endpoint?'専用の起動リンクから開いてください。':'');renderUsage(chat);renderList();scrollToLatest();}
-function setBusy(value){busy=value;$('add-attachment').disabled=value||locating;attachmentMenu(false);$('send').disabled=value;$('question').disabled=value;$('new-chat').disabled=value;$('delete-chat').disabled=value||!active().messages.length;$('retry').hidden=value||!active().error;renderList();}
+function render(){const chat=active();updateProviderLabel(chat);document.title=chat.title+' · 丹陽さん';$('chat-title').textContent=chat.messages.length?chat.title:'丹陽さん';$('chat-title').title=chat.title;$('welcome').hidden=chat.messages.length>0;$('messages').replaceChildren();for(const item of chat.messages){const row=document.createElement('article');row.className='message '+item.role;const label=document.createElement('small');label.textContent=item.role==='user'?'あなた':'丹陽さん';const text=document.createElement('div');const proposal=item.role==='assistant'?packingProposals(item.content):{text:item.content,suggestions:[]};text.innerHTML=renderMarkdown(proposal.text);row.append(label,text);if(proposal.suggestions.length)row.append(proposalCard(proposal.suggestions));if(item.role==='assistant'){const usage=normaliseUsage(item.usage);const info=document.createElement('details');info.className='message-usage';info.hidden=!usage;const usageTitle=document.createElement('summary'),usageBody=document.createElement('p');usageTitle.textContent=usage?'使用量 '+(usage.input_tokens+usage.output_tokens).toLocaleString('ja-JP')+' トークン':'使用量';usageBody.textContent=usage?`入力 ${usage.input_tokens.toLocaleString('ja-JP')} / 出力 ${usage.output_tokens.toLocaleString('ja-JP')}${usage.cached_input_tokens!=null?' / キャッシュ報告値 '+usage.cached_input_tokens.toLocaleString('ja-JP'):''} トークン`:'';info.append(usageTitle,usageBody);row.append(info);}$('messages').append(row);}$('retry').hidden=!chat.error||busy;$('status').textContent=chat.error||(storageError?'この端末に履歴を保存できません。':!endpoint?'専用の起動リンクから開いてください。':'');renderUsage(chat);renderList();scrollToLatest();}
+function setBusy(value){busy=value;$('add-attachment').disabled=value||locating;attachmentMenu(false);$('send').disabled=value;$('question').disabled=value;$('new-chat').disabled=value;$('retry').hidden=value||!active().error;renderList();}
 async function api(path,options={}){const r=await fetch(endpoint+path,{...options,referrerPolicy:'no-referrer',signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok||data.error)throw Error(data.error||'接続できませんでした。');return data;}
 function showPartial(content){let row=document.getElementById('live-answer');if(!row){row=document.createElement('article');row.id='live-answer';row.className='message assistant';$('messages').append(row);}if(!row._streamBody){const label=document.createElement('small');label.textContent='丹陽さん';row._streamBody=document.createElement('div');row.append(label,row._streamBody);row.setAttribute('aria-busy','true');}let visible=packingProposals(content).text;const pendingFence=visible.indexOf('```packing-suggestions');if(pendingFence>=0)visible=visible.slice(0,pendingFence);row._streamBody.innerHTML=renderMarkdown(visible);scrollToLatest();}
 const smoothText=createSmoothText({write:showPartial,reducedMotion:()=>Boolean(document.hidden)||matchMedia('(prefers-reduced-motion: reduce)').matches});
@@ -122,7 +165,6 @@ async function resume(chat){
  finally{smoothText.reset();stopProgress();setBusy(false);updateProviderLabel(chat);if(followLatest&&matchMedia('(pointer:fine)').matches)$('question').focus();}
 }
 $('new-chat').onclick=()=>{if(busy)return;clearLocation();clearPacking();followLatest=true;const current=active();if(!current.messages.length){menu(false);return;}const chat=createChat();store.chats.push(chat);store.active=chat.id;save();render();menu(false);$('question').focus();};
-$('delete-chat').onclick=()=>{if(busy||!confirm('この端末から、この会話の履歴を削除しますか？'))return;clearLocation();clearPacking();followLatest=true;store.chats=store.chats.filter(c=>c.id!==store.active);if(!store.chats.length)store.chats.push(createChat());store.active=store.chats[0].id;save();render();};
 $('retry').onclick=()=>resume(active());
 $('chat-form').onsubmit=async event=>{event.preventDefault();if(busy)return;if(!endpoint){$('status').textContent='専用の起動リンクから開いてください。';return;}let text=$('question').value.trim();if(!text&&!attachedLocation&&!attachedPacking)return;if(attachedPacking)text=(text||'持ち物チェックを確認して、不足するものを提案してください。')+'\n\n'+attachedPacking.content;if(attachedLocation)text=(text||'この現在地を参考に案内してください。')+'\n\n'+attachedLocation.content;if(text.length>1500){$('status').textContent='添付情報を含めて1500文字以内になるよう、メッセージを短くしてください。';return;}const chat=active();if(chat.pending?.id){$('status').textContent='前の回答を「再試行」で取得してから送信してください。';return;}chat.error='';followLatest=true;chat.messages.push({role:'user',content:text});if(chat.messages.filter(m=>m.role==='user').length===1)chat.title=text.slice(0,32);chat.updatedAt=Date.now();save();clearLocation();clearPacking();$('question').value='';resizeInput();render();await resume(chat);};
 for(const button of document.querySelectorAll('.suggestions button'))button.onclick=()=>{$('question').value=button.dataset.question||button.textContent;resizeInput();$('question').focus();};
