@@ -31,9 +31,9 @@ export default {async fetch(request,env){
    if(!env.REQUEST_LIMIT||!(await env.REQUEST_LIMIT.limit({key:request.headers.get('CF-Connecting-IP')||'unknown'})).success)return reply({error:'少し待ってから送信してください。'},429);
    const raw=await request.text();if(raw.length>14000)return reply({error:'会話が長すぎます。新しい会話にしてください。'},400);
    const {messages,provider}=JSON.parse(raw);if(!Array.isArray(messages)||!messages.length||messages.length>8||messages.some(m=>!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>1500))return reply({error:'質問は1500文字以内で送ってください。'},400);
-   if(provider!==undefined&&provider!=='hydrogen')return reply({error:'指定されたモデルは利用できません。'},400);
+   if(provider!==undefined&&provider!=='hydrogen'&&provider!=='sonnet')return reply({error:'指定されたモデルは利用できません。'},400);
    if(await localURL()){try{return reply(await local('/jobs',{method:'POST',body:JSON.stringify({messages,provider})}));}catch{return reply({error:'常駐PCに接続できません。電源とネットワークを確認してください。'},503);}}
-   if(provider==='hydrogen')return reply({error:'Hydrogenに接続できません。'},503);
+   if(provider)return reply({error:'選択したモデルに接続できません。'},503);
    if(!env.GITHUB_TOKEN)return reply({error:'接続設定が未完了です。'},503);
    const id=crypto.randomUUID();const r=await github('/actions/workflows/chat.yml/dispatches',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{request_id:id,messages:JSON.stringify(messages)}})});
    if(!r.ok)return reply({error:'GitHubで実行を開始できませんでした。'},502);

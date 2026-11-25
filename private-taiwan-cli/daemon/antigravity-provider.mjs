@@ -4,8 +4,11 @@ import {homedir, tmpdir} from 'node:os';
 import path from 'node:path';
 import {createInterface} from 'node:readline';
 
-export const hydrogenExecutable = path.join(homedir(), '.local', 'bin', 'agy');
-const model = 'gemini-4-hydrogen-low';
+export const antigravityExecutable = path.join(homedir(), '.local', 'bin', 'agy');
+const models = {
+  hydrogen: 'gemini-4-hydrogen-low',
+  sonnet: 'claude-sonnet-5-5-low'
+};
 const settings = {
   toolPermission: 'strict',
   allowNonWorkspaceAccess: false,
@@ -17,15 +20,16 @@ const settings = {
 const environmentKeys = ['HOME', 'PATH', 'LANG', 'LC_ALL', 'XDG_RUNTIME_DIR', 'XDG_CONFIG_HOME',
   'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'DBUS_SESSION_BUS_ADDRESS'];
 
-let standby;
+const standby = new Map();
 
-async function startHydrogen() {
-  const cwd = await mkdtemp(path.join(tmpdir(), 'taiwan-hydrogen-'));
+async function startAntigravity(provider) {
+  const model = models[provider];
+  const cwd = await mkdtemp(path.join(tmpdir(), 'taiwan-llm-'));
   const env = Object.fromEntries(environmentKeys.filter(key => process.env[key]).map(key => [key, process.env[key]]));
   let closed = false;
   let onEvent;
   let onError;
-  const child = execFile(hydrogenExecutable, [
+  const child = execFile(antigravityExecutable, [
     '--disable-slash-commands',
     '--settings', JSON.stringify(settings),
     '--model', model,
@@ -60,7 +64,7 @@ async function startHydrogen() {
           child.kill();
           finish(signal.reason);
         }
-        onError = () => finish(new Error('Hydrogen did not return an answer'));
+        onError = () => finish(new Error('Antigravity did not return an answer'));
         if (signal.aborted) { abort(); return; }
         signal.addEventListener('abort', abort, {once: true});
         onEvent = event => {
@@ -75,9 +79,9 @@ async function startHydrogen() {
               input_tokens: raw.input_tokens,
               output_tokens: raw.output_tokens,
               cached_input_tokens: raw.cache_read_tokens ?? null,
-              provider: 'hydrogen'
+              provider
             } : null;
-            finish(null, {answer: result.response, usage, provider: 'hydrogen', model});
+            finish(null, {answer: result.response, usage, provider, model});
             return;
           }
           const step = event.step_update;
@@ -93,23 +97,23 @@ async function startHydrogen() {
   };
 }
 
-export function warmHydrogen() {
-  standby ??= startHydrogen().catch(() => null);
+export function warmAntigravity(provider) {
+  if(!standby.has(provider))standby.set(provider,startAntigravity(provider).catch(() => null));
 }
 
-export function stopHydrogen() {
-  const idle = standby;
-  standby = undefined;
-  void idle?.then(worker => worker?.stop());
+export function stopAntigravity() {
+  for(const idle of standby.values())void idle.then(worker => worker?.stop());
+  standby.clear();
 }
 
-export async function runHydrogen(job, prepared, {signal}) {
-  job.model = model;
+export async function runAntigravity(job, prepared, {signal}) {
+  const provider=job.provider;
+  job.model = models[provider];
   job.stage = 'answering';
-  const idle = standby;
-  standby = undefined;
-  warmHydrogen();
+  const idle = standby.get(provider);
+  standby.delete(provider);
+  warmAntigravity(provider);
   const warmed = await idle;
-  const worker = warmed?.available ? warmed : await startHydrogen();
+  const worker = warmed?.available ? warmed : await startAntigravity(provider);
   return worker.ask([prepared.instructions, prepared.prompt].join('\n\n'), job, signal);
 }

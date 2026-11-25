@@ -107,29 +107,34 @@ function deleteConversation(chat){
 }
 let defaultProvider='codex';
 const modelSelect=$('model-select');
-const modelPreferenceKey='taiwan-chat-use-hydrogen';
-let hydrogenAvailable=false;
-let useHydrogen=false;
-try{useHydrogen=localStorage.getItem(modelPreferenceKey)==='true';}catch{}
+const modelPreferenceKey='taiwan-chat-model';
+const alternateModels=new Map([
+ ['hydrogen',{name:'Gemini 4 Hydrogen',short:'Hydrogen'}],
+ ['sonnet',{name:'Claude Sonnet 5.5',short:'Sonnet'}]
+]);
+const availableModels=new Set();
+let modelPreference='standard';
+try{
+ modelPreference=localStorage.getItem(modelPreferenceKey)??(localStorage.getItem('taiwan-chat-use-hydrogen')==='true'?'hydrogen':'standard');
+}catch{}
 function selectedProvider(){
- return hydrogenAvailable&&useHydrogen?'hydrogen':defaultProvider;
+ return availableModels.has(modelPreference)?modelPreference:defaultProvider;
 }
 function updateProviderLabel(chat, provider){
- const lastAnswer=chat.messages.findLast(item=>item.role==='assistant');
  const selected=selectedProvider();
- const lastProvider=lastAnswer?.provider;
- const current=provider??chat.pending?.provider??(selected==='hydrogen'?'hydrogen':(lastProvider==='hydrogen'?selected:lastProvider??selected));
- $('provider-label').textContent=current==='hydrogen'?'Gemini 4 Hydrogen':current==='copilot'?'Copilot':'GPT-6 Luna';
+ const lastProvider=chat.messages.findLast(item=>item.role==='assistant')?.provider;
+ const current=provider??chat.pending?.provider??(alternateModels.has(selected)||alternateModels.has(lastProvider)?selected:lastProvider??selected);
+ $('provider-label').textContent=alternateModels.get(current)?.name??(current==='copilot'?'Copilot':'GPT-6 Luna');
  $('model-standard').textContent=defaultProvider==='copilot'?'GitHub Copilot':'GPT-6 Luna';
- $('model-short-name').textContent=selected==='hydrogen'?'Hydrogen':defaultProvider==='copilot'?'Copilot':'Luna';
- $('model-hydrogen').disabled=!hydrogenAvailable;
- modelSelect.value=selected==='hydrogen'?'hydrogen':'standard';
+ $('model-short-name').textContent=alternateModels.get(selected)?.short??(defaultProvider==='copilot'?'Copilot':'Luna');
+ for(const key of alternateModels.keys())$('model-'+key).disabled=!availableModels.has(key);
+ modelSelect.value=alternateModels.has(selected)?selected:'standard';
  modelSelect.disabled=busy;
 }
 modelSelect.onchange=()=>{
  if(busy)return;
- useHydrogen=hydrogenAvailable&&modelSelect.value==='hydrogen';
- try{localStorage.setItem(modelPreferenceKey,String(useHydrogen));}catch{}
+ modelPreference=availableModels.has(modelSelect.value)?modelSelect.value:'standard';
+ try{localStorage.setItem(modelPreferenceKey,modelPreference);}catch{}
  updateProviderLabel(active(),selectedProvider());
 };
 function render(){const chat=active();updateProviderLabel(chat);document.title=chat.title+' · 丹陽さん';$('chat-title').textContent=chat.messages.length?chat.title:'丹陽さん';$('chat-title').title=chat.title;$('welcome').hidden=chat.messages.length>0;$('messages').replaceChildren();for(const item of chat.messages){const row=document.createElement('article');row.className='message '+item.role;const label=document.createElement('small');label.textContent=item.role==='user'?'あなた':'丹陽さん';const text=document.createElement('div');const proposal=item.role==='assistant'?packingProposals(item.content):{text:item.content,suggestions:[]};text.innerHTML=renderMarkdown(proposal.text);row.append(label,text);if(proposal.suggestions.length)row.append(proposalCard(proposal.suggestions));if(item.role==='assistant'){const usage=normaliseUsage(item.usage);const info=document.createElement('details');info.className='message-usage';info.hidden=!usage;const usageTitle=document.createElement('summary'),usageBody=document.createElement('p');usageTitle.textContent=usage?'使用量 '+(usage.input_tokens+usage.output_tokens).toLocaleString('ja-JP')+' トークン':'使用量';usageBody.textContent=usage?`入力 ${usage.input_tokens.toLocaleString('ja-JP')} / 出力 ${usage.output_tokens.toLocaleString('ja-JP')}${usage.cached_input_tokens!=null?' / キャッシュ報告値 '+usage.cached_input_tokens.toLocaleString('ja-JP'):''} トークン`:'';info.append(usageTitle,usageBody);row.append(info);}$('messages').append(row);}$('retry').hidden=!chat.error||busy;$('status').textContent=chat.error||(storageError?'この端末に履歴を保存できません。':!endpoint?'専用の起動リンクから開いてください。':'');renderUsage(chat);renderList();scrollToLatest();}
@@ -150,9 +155,9 @@ async function resume(chat){
   if(!chat.pending?.id){
    $('status').textContent='';
    const payload={messages:contextFor(chat)};
-   if(selected==='hydrogen')payload.provider='hydrogen';
+   if(alternateModels.has(selected))payload.provider=selected;
    const {id,backend,provider}=await api('/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-   if(selected==='hydrogen'&&provider!=='hydrogen')throw Error('Hydrogenに接続できませんでした。');
+   if(alternateModels.has(selected)&&provider!==selected)throw Error('選択したモデルに接続できませんでした。');
    chat.pending={id,backend,provider,startedAt:progressStart};
    updateProviderLabel(chat);
    save();
@@ -168,4 +173,6 @@ for(const button of document.querySelectorAll('.suggestions button'))button.oncl
 $('question').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)&&!event.isComposing){event.preventDefault();$('chat-form').requestSubmit();}});
 menu(false);render();if(active().pending?.id&&endpoint)resume(active());
 
-api('/provider-status').then(result=>{defaultProvider=result.mode==='copilot-test'?'copilot':'codex';hydrogenAvailable=result.hydrogenAvailable===true;updateProviderLabel(active());}).catch(()=>{});
+api('/provider-status').then(result=>{defaultProvider=result.mode==='copilot-test'?'copilot':'codex';for(const key of alternateModels.keys()){
+ if(result[key+'Available']===true)availableModels.add(key);
+}updateProviderLabel(active());}).catch(()=>{});

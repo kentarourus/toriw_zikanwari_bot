@@ -17,13 +17,14 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  const document={getElementById:$,querySelector:()=>app,querySelectorAll:()=>[],createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener(){}};
  const context=vm.createContext({createSmoothText,...storageModule,...progressModule,...usageModule,renderMarkdown,locationAttachment,packingSnapshot,packingProposals,addPackingItems,navigator,document,localStorage:storage,sessionStorage:storage,window:{localStorage:storage,history:{replaceState(){}}},location:{hash:'',pathname:'/taiwan-chat/'},matchMedia:()=>({matches:false}),URL,URLSearchParams,AbortSignal,requestAnimationFrame:fn=>fn(),setInterval:()=>1,clearInterval(){},confirm:message=>{confirmation=message;return allowDelete;},
  fetch:async(_url,options)=>{
-  if(String(_url).endsWith('/provider-status'))return Response.json({mode:'auto',hydrogenAvailable:true});
+  if(String(_url).endsWith('/provider-status'))return Response.json({mode:'auto',hydrogenAvailable:true,sonnetAvailable:true});
   fetchCalls++;
   if(options.method==='POST'){
    ({messages:sentMessages,provider:requestedProvider}=JSON.parse(options.body));
    return Response.json({id:'job',backend:'pc',provider:requestedProvider??'codex'});
   }
   pollUrl=String(_url);
+  if(requestedProvider==='sonnet')return Response.json({status:'completed',provider:'sonnet',model:'claude-sonnet-5-5-low',answer:'Sonnetの回答'});
   if(requestedProvider==='hydrogen')return Response.json({status:'completed',provider:'hydrogen',model:'gemini-4-hydrogen-low',answer:'Hydrogenの回答'});
   return Response.json({status:'completed',provider:'copilot',model:'auto',answer:'参照 [公式](https://example.com/)\n```packing-suggestions\n[{"group":"carry","text":"折りたたみ傘"}]\n```',usage:{input_tokens:100,output_tokens:40,cached_input_tokens:80}});
  }
@@ -52,6 +53,14 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  assert.match(pollUrl,/\/jobs\/job$/);
  assert.equal(sentMessages.length,3);
  assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'gemini-4-hydrogen-low');
+ assert.equal($('model-sonnet').disabled,false);
+ $('model-select').value='sonnet';$('model-select').onchange();
+ assert.equal(storage.getItem('taiwan-chat-model'),'sonnet');
+ assert.equal($('provider-label').textContent,'Claude Sonnet 5.5');
+ assert.equal($('model-short-name').textContent,'Sonnet');
+ $('question').value='しおりも確認';await $('chat-form').onsubmit({preventDefault(){}});
+ assert.equal(requestedProvider,'sonnet');
+ assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'claude-sonnet-5-5-low');
  $('model-select').value='standard';$('model-select').onchange();
  assert.equal($('model-select').value,'standard');
  assert.equal($('provider-label').textContent,'GPT-6 Luna');

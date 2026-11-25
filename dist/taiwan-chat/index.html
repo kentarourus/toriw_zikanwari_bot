@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8faf7">
   <title>丹陽さん</title>
-  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 <div class="app">
@@ -57,11 +57,13 @@
         </div>
         <label class="sr-only" for="question">メッセージ</label><textarea id="question" rows="1" maxlength="1500" placeholder="丹陽さんにメッセージ…"></textarea>
         <div class="model-picker">
+          <svg class="model-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m10 2 1.9 6.1L18 10l-6.1 1.9L10 18l-1.9-6.1L2 10l6.1-1.9Z"/></svg>
           <span id="model-short-name" aria-hidden="true">Luna</span>
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
           <select id="model-select" aria-label="回答に使うモデル">
             <option id="model-standard" value="standard">GPT-6 Luna</option>
             <option id="model-hydrogen" value="hydrogen" disabled>Gemini 4 Hydrogen</option>
+            <option id="model-sonnet" value="sonnet" disabled>Claude Sonnet 5.5</option>
           </select>
         </div>
         <button id="send" type="submit" aria-label="送信" title="メッセージを送信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
@@ -71,5 +73,5 @@
     </div>
   </main>
 </div>
-<script type="module" src="chat.js?v=22"></script>
+<script type="module" src="chat.js?v=23"></script>
 </body></html>

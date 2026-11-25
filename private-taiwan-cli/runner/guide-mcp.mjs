@@ -17,7 +17,7 @@ export function readGuide(topic){
  text=linkImages(text);
  return {source:'しおり暫定版の詳細Markdown（個人情報のみ非掲載）。原本の記述を保持し、推測・創作しない。',asOf:'2026-11-13',url:base+'#source-page-'+numbers[0],originalUrl:'https://drive.google.com/file/d/12cX17qVX1fxJbOhnS4W9hcOlcfBWP1nx/view',sourcePages:numbers.map(n=>({pdf:n,printed:n===1?null:n-1,url:base+'#source-page-'+n})),sections:{[topic]:text},notice:'●・後日連絡は未確定の原文表記。記載同士が異なる場合は両方を伝え、勝手に調整しない。個人情報の非掲載箇所は原本で確認する。'};
 }
-export function hydrogenGuideContext(selected, question) {
+export function readGuidePages(selected, question) {
  const numbers=new Set(selected.flatMap(topic=>pageSets[topic]??[]));
  const quotedTerms=[...question.matchAll(/「([^」]{2,36})」|『([^』]{2,36})』/g)].slice(0,3);
  const normalise=text=>text.normalize('NFKC').replace(/\s+/g,'').toLowerCase();
