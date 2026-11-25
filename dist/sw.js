@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v65';
+const CACHE = 'timetable-v67';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -82,9 +82,9 @@ const APP_FILES = [
   './taiwan/sounds/audio/return.mp3',
   ...['prepare','packing','weather','map','chat','currency','translate','sounds'].flatMap(tool =>
     [`${tool}.webmanifest`, `${tool}-192.png`, `${tool}-512.png`].map(file => './taiwan/apps/' + file)),
-  './taiwan/style.css?v=38',
+  './taiwan/style.css?v=39',
   './taiwan/app.js?v=packing-edit-6',
-  './taiwan/travel-ui.js?v=15',
+  './taiwan/travel-ui.js?v=16',
   './taiwan/arrival-card.js?v=1',
   './taiwan/weather.js?v=3',
   './taiwan/currency.js?v=3',
@@ -125,6 +125,12 @@ function classPage(url) {
     && /^[1-3]-[1-7](?:\/(?:index\.html)?)?$/.test(url.pathname.slice(classes.pathname.length));
 }
 
+function forceUpdatePage(url) {
+  const scope = new URL(self.registration.scope);
+  return classPage(url) || (url.origin === scope.origin && url.pathname.startsWith(scope.pathname) &&
+    /^taiwan(?:-chat)?\/(?:index\.html)?$/.test(url.pathname.slice(scope.pathname.length)));
+}
+
 async function activate() {
   const olderCaches = (await caches.keys()).filter(key => key.startsWith('timetable-') && key !== CACHE);
   // Take a snapshot before claiming so this update refreshes only existing, controlled pages.
@@ -132,7 +138,7 @@ async function activate() {
   await Promise.all(olderCaches.map(key => caches.delete(key)));
   await self.clients.claim();
   for (const client of windows) {
-    if (client.frameType === 'top-level' && classPage(new URL(client.url))) {
+    if (client.frameType === 'top-level' && forceUpdatePage(new URL(client.url))) {
       // Finish activation before the new navigation reaches this worker's fetch handler.
       client.navigate(client.url).catch(() => {});
     }
@@ -186,7 +192,8 @@ self.addEventListener('fetch', event => {
     return;
   }
   if (event.request.mode === 'navigate') {
-    const options = classPage(url) ? {cache: 'no-cache'} : undefined;
+    const revalidate = forceUpdatePage(url);
+    const options = revalidate ? {cache: 'no-cache'} : undefined;
     event.respondWith(fetch(event.request, options).then(async response => {
       if (response.ok) {
         const cache = await caches.open(CACHE);

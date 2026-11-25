@@ -223,11 +223,14 @@ body:has(.tools-dialog[open]) { overflow: hidden; }
 }
 .tool-window .tools-heading h2 { font-size: clamp(1.05rem, 4vw, 1.35rem); }
 .tool-window.chat-tool .tools-heading {
-  order: 1;
   justify-content: flex-end;
-  padding: 0 var(--tool-right) max(4px, env(safe-area-inset-bottom)) var(--tool-left);
+  padding: max(4px, env(safe-area-inset-top)) var(--tool-right) 4px var(--tool-left);
   border: 0;
   background: #fcfdfb;
+}
+.chat-tool.chat-frame-ready .tools-heading:not(:has(#install-travel-app:not([hidden]))),
+.chat-tool.chat-frame-ready .tools-heading form {
+  display: none;
 }
 .chat-tool #travel-tool-title {
   position: absolute;

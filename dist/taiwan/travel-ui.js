@@ -1,7 +1,8 @@
 import {initCurrencyTool} from './currency.js?v=3';
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url)).catch(() => {});
+  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url), {updateViaCache: 'none'})
+    .then(registration => registration.update()).catch(() => {});
 }
 
 function openLinkedDay() {
@@ -33,7 +34,7 @@ const sections = {
 };
 const embeds = {
   map: 'https://www.google.com/maps/embed?origin=mfe&pb=!1m2!2m1!1sTaipei,+Taiwan',
-  chat: '../taiwan-chat/'
+  chat: '../taiwan-chat/?view=2#embedded'
 };
 const mounted = new Map();
 const tools = [...document.querySelectorAll('.bottom-tools .tool-icons > *')];
@@ -73,6 +74,9 @@ function getPanel(key, title, fallback) {
       const online = navigator.onLine;
       if (online && !frame.hasAttribute('src')) frame.src = embeds[key];
       frame.hidden = !online;
+      if (key === 'chat') {
+        toolDialog.classList.toggle('chat-frame-ready', online && panel.dataset.ready === 'true');
+      }
       offline.hidden = online;
       if (key === 'map') {
         externalToolLink.href = fallback;
@@ -116,7 +120,7 @@ function finishLaunch() {
 }
 
 function resetTool() {
-  toolDialog.classList.remove('translation-tool', 'chat-tool');
+  toolDialog.classList.remove('translation-tool', 'chat-tool', 'chat-frame-ready');
   finishLaunch();
   restoreSection?.();
   restoreSection = undefined;
@@ -175,6 +179,15 @@ function openTool(trigger, direct = false) {
 if (typeof toolDialog.showModal === 'function') {
   window.addEventListener('message', event => {
     if (event.origin !== location.origin || !toolDialog.open) return;
+    const chat = mounted.get('chat');
+    if (chat && !chat.hidden && event.source === chat.querySelector('iframe').contentWindow) {
+      if (event.data === 'taiwan-chat:ready') {
+        chat.dataset.ready = 'true';
+        chat.refresh();
+      }
+      if (event.data === 'taiwan-chat:close') toolDialog.close();
+      return;
+    }
     const frame = toolContent.querySelector('.local-tool-frame[src="translate/#embedded"]');
     if (!frame || event.source !== frame.contentWindow) return;
     if (event.data === 'taiwan-translate:ready') toolDialog.classList.add('translation-tool');

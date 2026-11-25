@@ -77,3 +77,6 @@ main{position:relative;min-width:0;flex:1;display:flex;flex-direction:column;hei
 #image-thumb{height:51px;width:62px;object-fit:cover;border-radius:8px;background:#e5ece0}
 #remove-image{margin-left:auto;font-size:23px;line-height:1}
 .message-image-label{display:block;margin-bottom:5px;color:#496654;font-weight:650}
+
+#close-embedded-chat{background:#eef3ec;color:var(--ink)}
+#close-embedded-chat:hover{background:#e0eadf}

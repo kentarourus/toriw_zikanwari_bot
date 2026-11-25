@@ -245,6 +245,16 @@ if(attachedImage&&!text)text='この画像の内容を教えてください。';
 chat.messages.push({role:'user',content:text,...(attachedImage?{image:true}:{})});if(chat.messages.filter(m=>m.role==='user').length===1)chat.title=text.slice(0,32);chat.updatedAt=Date.now();save();clearLocation();clearPacking();clearImage();$('question').value='';resizeInput();render();await resume(chat);};
 for(const button of document.querySelectorAll('.suggestions button'))button.onclick=()=>{$('question').value=button.dataset.question||button.textContent;resizeInput();$('question').focus();};
 $('question').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)&&!event.isComposing){event.preventDefault();$('chat-form').requestSubmit();}});
+if ('serviceWorker' in navigator && window.parent === window) {
+ navigator.serviceWorker.register(new URL('../sw.js', location.href), {updateViaCache:'none'})
+  .then(registration => registration.update()).catch(() => {});
+}
+if (location.hash === '#embedded' && window.parent !== window) {
+ const closeChat = $('close-embedded-chat');
+ closeChat.hidden = false;
+ closeChat.onclick = () => window.parent.postMessage('taiwan-chat:close', location.origin);
+ window.parent.postMessage('taiwan-chat:ready', location.origin);
+}
 menu(false);render();if(active().pending?.id&&endpoint)resume(active());
 
 api('/provider-status').then(result=>{imageAvailable=result.imageAvailable===true;defaultProvider=result.mode==='copilot-test'?'copilot':'codex';for(const key of alternateModels.keys()){
