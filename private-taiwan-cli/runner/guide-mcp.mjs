@@ -4,6 +4,9 @@ let source;try{source=await fs.readFile(new URL('./trip-guide.md',import.meta.ur
 const pages=new Map([...source.matchAll(/<!-- source-page:(\d+) -->\s*([\s\S]*?)(?=<!-- source-page:|$)/g)].map(m=>[Number(m[1]),m[2].replace(/<a id="source-page-\d+"><\/a>\s*/g,'').replace(/\n---\s*$/,'').trim()]));
 const pageSets={overview:[3],preface:[3],buses:[4],itinerary:[5,14,15,16,18,20,21,22,23,25,26],day1:[14,15,16],day2:[18],day3:[20,21,22,23],day4:[25,26],daily_routine:[16,18,20,23,25],meals:[5],packing:[6,7,8],preparation:[6,7,8],baggage:[7,8],clothing:[7,9],devices:[7,8,10,11],rules:[9,11,12,31],hotel:[3],hotel_rules:[11,12,31],health:[10,12],emergency:[21,28],shopping:[22,23],contacts:[28],language:[31,32],planning:[27],transport:[29],maps:[30],all:Array.from({length:34},(_,i)=>i+1)};
 const topics=Object.keys(pageSets),base='https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/guide/';
+const guideDate='2026-11-13';
+const pageLink=number=>base+'#source-page-'+number;
+const linkImages=text=>text.replace(/!\[([^\]]+)\]\(guide-assets\/([^\)]+)\)/g,(_m,label,file)=>`[${label}（原本の図。本文中の文字情報からは未確認）](https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/guide-assets/${file})`);
 function between(text,start,end){const a=text.indexOf(start);if(a<0)return text;const b=end?text.indexOf(end,a+start.length):-1;return text.slice(a,b<0?undefined:b).trim();}
 export function readGuide(topic){
  if(!Object.hasOwn(pageSets,topic))throw Error('Unknown guide topic');const numbers=pageSets[topic];let text=numbers.map(n=>pages.get(n)).join('\n\n');
@@ -11,8 +14,29 @@ export function readGuide(topic){
  if(topic==='overview')text=between(text,'### ２ 概要',null);
  if(topic==='preface')text=between(text,'### １ はじめに','### ２ 概要');
  // Keep source images as links: their contents are not guessed from filenames.
- text=text.replace(/!\[([^\]]+)\]\(guide-assets\/([^\)]+)\)/g,(_m,label,file)=>`[${label}（原本の図。本文中の文字情報からは未確認）](https://kentarourus.github.io/toriw_zikanwari_bot/taiwan/guide-assets/${file})`);
+ text=linkImages(text);
  return {source:'しおり暫定版の詳細Markdown（個人情報のみ非掲載）。原本の記述を保持し、推測・創作しない。',asOf:'2026-11-13',url:base+'#source-page-'+numbers[0],originalUrl:'https://drive.google.com/file/d/12cX17qVX1fxJbOhnS4W9hcOlcfBWP1nx/view',sourcePages:numbers.map(n=>({pdf:n,printed:n===1?null:n-1,url:base+'#source-page-'+n})),sections:{[topic]:text},notice:'●・後日連絡は未確定の原文表記。記載同士が異なる場合は両方を伝え、勝手に調整しない。個人情報の非掲載箇所は原本で確認する。'};
+}
+export function hydrogenGuideContext(selected, question) {
+ const numbers=new Set(selected.flatMap(topic=>pageSets[topic]??[]));
+ const quotedTerms=[...question.matchAll(/「([^」]{2,36})」|『([^』]{2,36})』/g)].slice(0,3);
+ const normalise=text=>text.normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+ for(const [,japanese,alternate] of quotedTerms){
+  const term=normalise(japanese??alternate);
+  if(term.length<2)continue;
+  const matches=[...pages].filter(([,text])=>normalise(text).includes(term)).slice(0,4);
+  for(const [number] of matches)numbers.add(number);
+ }
+ if(!numbers.size)return null;
+ const onlyHotel=selected.length===1&&selected[0]==='hotel'&&numbers.size===1;
+ return {
+  asOf:guideDate,
+  pages:[...numbers].sort((a,b)=>a-b).map(pdf=>({
+   pdf,
+   url:pageLink(pdf),
+   text:onlyHotel?readGuide('hotel').sections.hotel:linkImages(pages.get(pdf))
+  }))
+ };
 }
 export function readGuides(selected){
  if(selected.length===1)return readGuide(selected[0]);

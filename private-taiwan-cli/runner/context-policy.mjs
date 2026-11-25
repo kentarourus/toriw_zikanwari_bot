@@ -18,9 +18,9 @@ export function selectGuideTopics(messages){
   [/ホテル|宿泊|泊まる|宿舎の名前/,'hotel'],
   [/12月1日|12\/1|初日|1日目|学校.*出発|往路/,'day1'],
   [/12月2日|12\/2|2日目/,'day2'],
-  [/12月3日|12\/3|3日目|班別|定時|現況|帰着/,'day3'],
+  [/12月3日|12\/3|3日目|班別|班行動|定時|現況|帰着/,'day3'],
   [/12月4日|12\/4|4日目|最終日|帰国|復路/,'day4'],
-  [/持ち物|携行品|準備|パスポート|出発前/,'packing'],
+  [/持ち物|携行品|準備|パスポート|出発前|両替/,'packing'],
   [/手荷物|大荷物|荷物.*(重|サイズ)|液体|バッテリー|ヘアアイロン|\bkg\b|\bWh\b/,'baggage'],
   [/服装|制服|パジャマ|館内着|寝間着/,'clothing'],
   [/スマホ|スマートフォン|SNS|撮影|通信|カメラ|機内モード/,'devices'],
@@ -34,11 +34,12 @@ export function selectGuideTopics(messages){
   [/班別.*計画|計画書/,'planning'],
   [/MRT|路線図/,'transport'],
   [/見取り図|平面図/,'maps'],
-  [/規則|注意|禁止|単独|時差|交通ルール/,'rules'],
+  [/規則|注意|禁止|単独|時差|交通ルール|整列/,'rules'],
   [/何泊|何日間|旅行.*いつ|日程|旅程|しおり|研修旅行|修学旅行/,'overview']
  ])if(pattern.test(text))topics.add(topic);
  if(![...topics].some(t=>/^day[1-4]$/.test(t))&&/朝食|点呼|就寝|起床|消灯/.test(text))topics.add('daily_routine');
  if(/食事|昼食|夕食|レストラン/.test(text))topics.add('meals');
+ if(/集合|便名|フライト|搭乗|スケジュール/.test(text)&&![...topics].some(t=>/^day[1-4]$/.test(t)))topics.add('itinerary');
  if(topics.size>1)topics.delete('overview');
  return [...topics];
 }

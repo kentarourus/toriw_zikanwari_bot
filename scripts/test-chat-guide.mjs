@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {handle,readGuide,readGuides} from '../private-taiwan-cli/runner/guide-mcp.mjs';
+import {handle,hydrogenGuideContext,readGuide,readGuides} from '../private-taiwan-cli/runner/guide-mcp.mjs';
 import {webModeFor,selectGuideTopics,guidePolicyFor} from '../private-taiwan-cli/runner/context-policy.mjs';
 test('guide tool returns only requested hotel section, not all itinerary',()=>{
  const data=readGuide('hotel');assert.deepEqual(Object.keys(data.sections),['hotel']);assert.match(data.sections.hotel,/ミッドタウン/);assert.ok(!JSON.stringify(data).includes('06:30'));
@@ -40,4 +40,17 @@ test('only relevant school sections are selected and generic chat has none',()=>
  assert.deepEqual(selectGuideTopics([{role:'user',content:'出発前の準備は？'}]),['packing']);
  assert.deepEqual(selectGuideTopics([{role:'user',content:'班別研修の帰着は何時？'}]),['day3']);
  assert.equal(webModeFor([{role:'user',content:'ホテルのこと。検索はいりません'}]),'disabled');
+});
+
+test('Hydrogen gets the page text and matching source links before answering',()=>{
+ const question='しおりの「5,000円単位」って何？';
+ const selected=selectGuideTopics([{role:'user',content:question}]);
+ const context=hydrogenGuideContext(selected,question);
+ const exchange=context.pages.find(page=>page.pdf===6);
+ assert.match(exchange.text,/5,000円単位/);
+ assert.match(exchange.url,/#source-page-6$/);
+ const hotel=hydrogenGuideContext(['hotel_rules'],'別の階に行っていい？');
+ assert.match(hotel.pages.find(page=>page.pdf===11).text,/別階のフロア/);
+ assert.equal(hydrogenGuideContext([],'こんにちは'),null);
+ assert.equal(hydrogenGuideContext(['all'],'しおり全体を見せて').pages.length,34);
 });

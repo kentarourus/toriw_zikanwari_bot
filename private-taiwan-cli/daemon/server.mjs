@@ -7,7 +7,7 @@ import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {setTimeout as wait} from 'node:timers/promises';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions as instructions} from '../runner/assistant-instructions.mjs';
-import {readGuides} from '../runner/guide-mcp.mjs';
+import {hydrogenGuideContext,readGuides} from '../runner/guide-mcp.mjs';
 import {guidePolicyFor} from '../runner/context-policy.mjs';
 import {CodexProvider} from './codex-provider.mjs';
 import {CopilotProvider} from './copilot-provider.mjs';
@@ -26,20 +26,25 @@ const jobs=new Map();let active=0,providerReady=false;
 
 async function prepare(job,messages){
  const {webMode,topics,needGuideTool,needDirections}=guidePolicyFor(messages);
- let guideContext='';if(topics.length){job.stage='reading';guideContext=JSON.stringify(readGuides(topics));job.guideReads=topics.length;}
+ const usesHydrogen=job.provider==='hydrogen';
+ const question=messages.filter(message=>message.role==='user').at(-1)?.content??'';
+ const guide=usesHydrogen?hydrogenGuideContext(topics,question):topics.length?readGuides(topics):null;
+ if(guide){
+  job.stage='reading';
+  job.guideReads=usesHydrogen?guide.pages.length:topics.length;
+ }
  const weather=await weatherContext(messages);
  const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());
- const usesHydrogen=job.provider==='hydrogen';
  let guideNote='この質問では旅行資料は参照していません。一般会話には資料は不要です。';
  if(needGuideTool&&!usesHydrogen)guideNote='旅行資料が必要な場合だけread_trip_guideを使ってください。';
- if(guideContext){
+ if(guide){
   const supplemental=usesHydrogen?'':'該当する記述が見つからなければread_trip_guideで関連項目を追加確認してください。';
-  guideNote='以下は質問から事前に選んだしおりの一部です。しおり全文ではありません。'+supplemental+'\n'+guideContext;
+  guideNote='以下は質問に対応して取得したしおりMarkdownのページです。'+supplemental+'\n'+JSON.stringify(guide);
  }
  const noWeather=usesHydrogen?'この質問では取得を省略。':'この質問では取得を省略。必要時のみWeb検索してください。';
  const prompt=`現在（台湾時間）: ${now}\n${guideNote}\n最新の天気資料:\n${weather||noWeather}\n会話(JSON):\n${JSON.stringify(messages)}`;
  return {webMode,needGuideTool,needDirections,prompt,instructions:usesHydrogen
-  ? instructions+'\nHydrogenではツールを使わず、ここに提示された資料と会話を使って回答してください。実際に確認していない検索結果や情報を提示しないでください。'
+  ? instructions+'\nHydrogenではツールの指示に代えて、以下を優先してください。回答前に提示されたしおりの各ページを確認し、実際に根拠にしたページのurlをMarkdownリンクで添えてください。学校の決まりや時間は本文に沿って答え、資料の抜粋だけで分からないことはその範囲を明示し、しおり全体を確認したとは述べないでください。外部検索やツールで確認したと述べないでください。'
   : instructions};
 }
 async function answer(job,messages){
