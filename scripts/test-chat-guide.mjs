@@ -62,3 +62,14 @@ test('a hotel neighborhood question keeps the accommodation address available fo
  assert.ok(policy.topics.includes('hotel'));
  assert.ok(readGuidePages(policy.topics,messages[0].content).pages.some(page=>page.pdf===3));
 });
+
+test('departure, meeting and clothing use only the relevant pages and full itineraries stay available',()=>{
+ const question='出発日時、集合場所、服装の注意（P.●参照）は何ですか？';
+ const pagesFor=q=>readGuidePages(selectGuideTopics([{role:'user',content:q}]),q).pages;
+ const pages=pagesFor(question);
+ assert.deepEqual(pages.map(page=>page.pdf),[7,9,14]);
+ assert.match(pages.find(page=>page.pdf===14).text,/6:30 学校発/);
+ assert.match(pages.find(page=>page.pdf===9).text,/宿舎外/);
+ assert.ok(pagesFor('12月1日の日程、空港と夕食は？').some(page=>page.pdf===15));
+ assert.equal(pagesFor('全日程を確認したい').length,34);
+});

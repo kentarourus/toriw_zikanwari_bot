@@ -9,7 +9,7 @@ import {formatChatPrompt} from '../runner/prompt-context.mjs';
 import {maxImageBase64Length,maxTextRequestLength,validChatImage} from '../runner/chat-image.mjs';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions,antigravityInstructions} from '../runner/assistant-instructions.mjs';
-import {readGuidePages,readGuides} from '../runner/guide-mcp.mjs';
+import {readGuidePages} from '../runner/guide-mcp.mjs';
 import {guidePolicyFor} from '../runner/context-policy.mjs';
 import {openUsage} from './daily-usage.mjs';
 import {CodexProvider} from './codex-provider.mjs';
@@ -38,10 +38,10 @@ async function prepare(job,messages,image){
  const {webMode,topics,needGuideTool,needDirections}=guidePolicyFor(messages);
  const usesAntigravity=isAntigravity(job.provider);
  const question=messages.filter(message=>message.role==='user').at(-1)?.content??'';
- const guide=usesAntigravity?readGuidePages(topics,question):topics.length?readGuides(topics):null;
+ const guide=readGuidePages(topics,question);
  if(guide){
   job.stage='reading';
-  job.guideReads=usesAntigravity?guide.pages.length:topics.length;
+  job.guideReads=guide.pages.length;
  }
  const weather=await weatherContext(messages);
  const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());

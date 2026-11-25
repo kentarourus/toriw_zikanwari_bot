@@ -34,12 +34,19 @@ export function selectGuideTopics(messages){
   [/班別.*計画|計画書/,'planning'],
   [/MRT|路線図/,'transport'],
   [/見取り図|平面図/,'maps'],
-  [/規則|注意|禁止|単独|時差|交通ルール|整列/,'rules'],
   [/何泊|何日間|旅行.*いつ|日程|旅程|しおり|研修旅行|修学旅行/,'overview']
  ])if(pattern.test(text))topics.add(topic);
+ // A clothing question containing 「注意」 does not also request every conduct rule.
+ if(/規則|注意|禁止|単独|時差|交通ルール|整列/.test(text.replace(/服装(?:について|の)?[の・、 ]*注意(?:事項|点)?/g,'')))topics.add('rules');
+ // School departure is a separate question from the full first-day itinerary.
+ if(topics.has('day1')&&/学校.{0,12}(?:発|集合)|出発日時|出発日の集合/.test(text)
+    &&!/丸一日|一日の流れ|予定|日程|行程|スケジュール|飛行機|空港|便名|フライト|搭乗|夕食|夜|チェックイン/.test(text)){
+  topics.delete('day1');
+  topics.add('departure');
+ }
  if(![...topics].some(t=>/^day[1-4]$/.test(t))&&/朝食|点呼|就寝|起床|消灯/.test(text))topics.add('daily_routine');
  if(/食事|昼食|夕食|レストラン/.test(text))topics.add('meals');
- if(/集合|出発時刻|便名|フライト|搭乗|スケジュール/.test(text)&&![...topics].some(t=>/^day[1-4]$/.test(t)))topics.add('itinerary');
+ if(/集合|出発時刻|便名|フライト|搭乗|スケジュール/.test(text)&&![...topics].some(t=>t==='departure'||/^day[1-4]$/.test(t)))topics.add('itinerary');
  if(topics.size>1)topics.delete('overview');
  return [...topics];
 }

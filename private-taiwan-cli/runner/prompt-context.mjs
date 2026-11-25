@@ -1,7 +1,11 @@
 export function formatChatPrompt({guide, messages, now, weather}) {
   const parts = [];
   // Keep public material before request-specific context so matching prefixes can be reused.
-  if (guide) parts.push('しおり（関連ページ）:\n' + JSON.stringify(guide));
+  if (guide) {
+    const pages = guide.pages.map(({pdf, url, text}) =>
+      `PDF ${pdf} | ${url}\n${text.replace(/\n[ \t]*\n+/g,'\n')}`);
+    parts.push([`しおり（${guide.asOf}版）`, ...pages].join('\n\n'));
+  }
 
   const history = messages.slice(0, -1);
   const format = ({role, content}) => JSON.stringify([role, content]);
