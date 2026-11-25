@@ -5,7 +5,7 @@ export default {async fetch(request,env){
  const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
  const privateRoute=!!env.ACCESS_PATH&&url.pathname.startsWith('/'+env.ACCESS_PATH+'/');
  const publicRoute=url.pathname.startsWith('/chat/');
- if(!privateRoute&&!publicRoute)return reply({error:'Not found'},404);
+ if(!privateRoute&&!publicRoute&&url.pathname!=='/admin/usage')return reply({error:'Not found'},404);
  const registry=()=>env.RUNNER_REGISTRY?.get(env.RUNNER_REGISTRY.idFromName('personal-runner'));
  if(request.method==='POST'&&url.pathname.endsWith('/runner/register')){
   if(!privateRoute)return reply({error:'Not found'},404);
@@ -16,6 +16,29 @@ export default {async fetch(request,env){
  }
  const localURL=async()=>{if(!registry())return null;return (await (await registry().fetch('https://registry/url')).json()).endpoint;};
  const local=async(path,options={})=>{const endpoint=await localURL();if(!endpoint)return null;const response=await fetch(endpoint+path,{...options,headers:{Authorization:'Bearer '+env.LOCAL_RUNNER_TOKEN,'Content-Type':'application/json'},signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error('local unavailable');return response.json();};
+ if(url.pathname==='/admin/usage'){
+  headers['Access-Control-Allow-Headers']='Authorization';
+  headers['Access-Control-Allow-Methods']='GET,OPTIONS';
+  if(origin!==env.ALLOWED_ORIGIN)return reply({error:'Origin not allowed'},403);
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
+  if(request.method!=='GET')return reply({error:'Method not allowed'},405);
+  if(!/^[a-f0-9]{64}$/.test(env.ADMIN_USAGE_DIGEST??''))return reply({error:'管理画面の設定が完了していません。'},503);
+  const key=/^Bearer ([a-f0-9]{64})$/.exec(request.headers.get('Authorization')??'')?.[1];
+  if(key){
+   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key));
+   const expected=Uint8Array.from(env.ADMIN_USAGE_DIGEST.match(/../g),hex=>parseInt(hex,16));
+   if(crypto.subtle.timingSafeEqual(digest,expected)){
+    const days=url.searchParams.get('days')??'7';
+    if(!['7','30','90'].includes(days))return reply({error:'集計期間が無効です。'},400);
+    try{
+     const result=await local('/admin/usage?days='+days);
+     if(result)return reply(result);
+    }catch{}
+    return reply({error:'常駐サーバーから集計を取得できませんでした。'},503);
+   }
+  }
+  return reply({error:'管理キーを確認してください。'},401);
+ }
  if(origin!==env.ALLOWED_ORIGIN)return reply({error:'Origin not allowed'},403);
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
  if(request.method==='GET'&&url.pathname.endsWith('/provider-status')){try{return reply(await local('/provider-status')||{mode:'legacy',label:'Luna medium'});}catch{return reply({error:'常駐PCに接続できません。'},503);}}

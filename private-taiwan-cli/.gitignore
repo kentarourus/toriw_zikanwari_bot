@@ -7,3 +7,6 @@ node_modules/
 credentials.json
 authorize-url.txt
 service.json
+
+admin-usage.json
+admin-usage.json.tmp

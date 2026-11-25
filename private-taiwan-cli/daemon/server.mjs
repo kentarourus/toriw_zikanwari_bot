@@ -9,12 +9,18 @@ import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions,antigravityInstructions} from '../runner/assistant-instructions.mjs';
 import {readGuidePages,readGuides} from '../runner/guide-mcp.mjs';
 import {guidePolicyFor} from '../runner/context-policy.mjs';
+import {openUsage} from './daily-usage.mjs';
 import {CodexProvider} from './codex-provider.mjs';
 import {CopilotProvider} from './copilot-provider.mjs';
 import {runWithFallback,providerLabel} from './provider-routing.mjs';
 import {antigravityExecutable,runAntigravity,stopAntigravity,warmAntigravity} from './antigravity-provider.mjs';
 const root=path.resolve(process.env.TAIWAN_RUNNER_ROOT||'.');
 const config=JSON.parse(await fs.readFile(path.join(root,'runtime.json'),'utf8'));
+const usage=await openUsage(path.join(root,'admin-usage.json')).catch(()=>{
+ console.error('Usage storage could not be opened');
+ return null;
+});
+let usageWriteFailed=false;
 const mode=process.env.TAIWAN_PROVIDER_MODE||config.providerMode||'auto';
 const port=Number(process.env.TAIWAN_CHAT_PORT||8793);
 const plan=new ChatgptPlanProvider({root});
@@ -54,7 +60,14 @@ async function answer(job,messages){
  }catch(error){
   job.status='failed';job.error=isAntigravity(job.provider)?'選択したモデルで回答できませんでした。再試行するか、標準モデルへ切り替えてください。':error.code==='COPILOT_AUTH_REQUIRED'?'Copilotへのログインが必要です。':job.provider==='copilot'?'Copilotで回答できませんでした。利用枠とログイン状態を確認してください。':'回答を作成できませんでした。もう一度お試しください。';
   job.completedAt=Date.now();
- }finally{clearTimeout(timer);active--;}
+ }finally{
+  clearTimeout(timer);
+  active--;
+  await usage?.record(job).catch(()=>{
+   usageWriteFailed=true;
+   console.error('Usage could not be recorded');
+  });
+ }
 }
 const server=http.createServer(async(req,res)=>{
  const reply=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
@@ -62,6 +75,11 @@ const server=http.createServer(async(req,res)=>{
  if(auth.length!==expected.length||!timingSafeEqual(auth,expected))return reply({error:'Not allowed'},403);
  try{
   if(req.method==='GET'&&req.url==='/health')return reply({ready:providerReady,active,mode});
+  const usageRange=req.method==='GET'&&/^\/admin\/usage\?days=(7|30|90)$/.exec(req.url);
+  if(usageRange){
+   if(!usage)return reply({error:'集計を利用できません。'},503);
+   return reply({...await usage.report(Number(usageRange[1])),active,usageWriteFailed});
+  }
   if(req.method==='GET'&&req.url==='/provider-status')return reply({mode,label:providerLabel(mode),hydrogenAvailable:antigravityAvailable,sonnetAvailable:antigravityAvailable});
   if(req.method==='GET'&&req.url==='/models'){
    if(mode==='copilot-test'){await copilot.start();return reply({data:await copilot.client.listModels()});}
@@ -93,4 +111,4 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(port,'127.0.0.1',()=>console.log('Local chat service ready'));
 setInterval(()=>{for(const [id,job] of jobs)if(Date.now()-job.createdAt>86400000)jobs.delete(id);},3600000).unref();
-process.on('SIGTERM',async()=>{stopAntigravity();await Promise.allSettled([codex.stop(),copilot.stop()]);server.close(()=>process.exit(0));});
+process.on('SIGTERM',async()=>{stopAntigravity();await Promise.allSettled([codex.stop(),copilot.stop(),usage?.flush()]);server.close(()=>process.exit(0));});

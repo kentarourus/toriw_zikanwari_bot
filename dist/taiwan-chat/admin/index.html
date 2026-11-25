@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://taiwan-private-cli-bridge.ai-news-webhook-relay.workers.dev; base-uri 'none'; form-action 'none'">
+  <title>丹陽さんの利用状況</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="admin.js" type="module"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <div><a href="../">← 丹陽さん</a><h1>利用状況</h1></div>
+      <button type="button" id="lock" hidden>ロック</button>
+    </header>
+
+    <form id="unlock">
+      <h2>管理者用</h2>
+      <label for="key">管理キー</label>
+      <div class="unlock-row">
+        <input id="key" type="password" required minlength="64" maxlength="64" autocomplete="current-password" spellcheck="false">
+        <button type="submit">表示する</button>
+      </div>
+    </form>
+    <p id="status" role="status" hidden></p>
+
+    <section id="dashboard" aria-label="利用状況の集計" hidden>
+      <div class="toolbar">
+        <label>期間
+          <select id="period">
+            <option value="7">過去7日</option>
+            <option value="30">過去30日</option>
+            <option value="90">過去90日</option>
+          </select>
+        </label>
+        <button type="button" id="refresh">更新</button>
+        <p id="updated"></p>
+      </div>
+      <div id="summary" class="summary"></div>
+
+      <section class="card">
+        <div class="section-heading">
+          <h2>日ごとの推移</h2>
+          <label class="sr-only" for="metric">グラフの表示項目</label>
+          <select id="metric">
+            <option value="requests">リクエスト件数</option>
+            <option value="tokens">計測済みトークン</option>
+          </select>
+        </div>
+        <p id="chart-empty" hidden></p>
+        <div id="chart" aria-hidden="true"></div>
+        <div id="chart-dates" aria-hidden="true"></div>
+        <details id="daily">
+          <summary>日ごとの数値</summary>
+          <div class="table-wrap"><table aria-label="日ごとの利用状況">
+            <thead><tr><th scope="col">日付</th><th scope="col">完了</th><th scope="col">失敗</th><th scope="col">入力</th><th scope="col">出力</th><th scope="col">使用量未取得</th></tr></thead>
+            <tbody id="by-day"></tbody>
+          </table></div>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>モデル別</h2>
+        <div class="table-wrap"><table aria-label="モデル別の利用状況">
+          <thead><tr><th scope="col">モデル</th><th scope="col">完了</th><th scope="col">失敗</th><th scope="col">入力</th><th scope="col">出力</th><th scope="col">キャッシュ入力</th><th scope="col">使用量未取得</th></tr></thead>
+          <tbody id="by-model"></tbody>
+        </table></div>
+        <p id="coverage"></p>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
