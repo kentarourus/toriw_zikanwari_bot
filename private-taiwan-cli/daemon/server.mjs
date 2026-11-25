@@ -5,6 +5,7 @@ import {constants} from 'node:fs';
 import path from 'node:path';
 import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {setTimeout as wait} from 'node:timers/promises';
+import {formatChatPrompt} from '../runner/prompt-context.mjs';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions,antigravityInstructions} from '../runner/assistant-instructions.mjs';
 import {readGuidePages,readGuides} from '../runner/guide-mcp.mjs';
@@ -42,11 +43,8 @@ async function prepare(job,messages){
  }
  const weather=await weatherContext(messages);
  const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());
- const context=[`台湾時間: ${now}`];
- if(guide)context.push('しおり（関連ページ）:\n'+JSON.stringify(guide));
- if(weather)context.push('天気資料:\n'+weather);
- context.push('会話（最後の質問に回答）:\n'+JSON.stringify(messages.map(({role,content})=>[role,content])));
- return {webMode,needGuideTool,needDirections,prompt:context.join('\n'),instructions:usesAntigravity?antigravityInstructions:assistantInstructions};
+ const prompt=formatChatPrompt({guide,messages,now,weather});
+ return {webMode,needGuideTool,needDirections,prompt,instructions:usesAntigravity?antigravityInstructions:assistantInstructions};
 }
 async function answer(job,messages){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),210000);
