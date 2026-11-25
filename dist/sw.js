@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v64';
+const CACHE = 'timetable-v65';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
@@ -84,7 +84,7 @@ const APP_FILES = [
     [`${tool}.webmanifest`, `${tool}-192.png`, `${tool}-512.png`].map(file => './taiwan/apps/' + file)),
   './taiwan/style.css?v=38',
   './taiwan/app.js?v=packing-edit-6',
-  './taiwan/travel-ui.js?v=14',
+  './taiwan/travel-ui.js?v=15',
   './taiwan/arrival-card.js?v=1',
   './taiwan/weather.js?v=3',
   './taiwan/currency.js?v=3',

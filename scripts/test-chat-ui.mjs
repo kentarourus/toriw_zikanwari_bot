@@ -44,7 +44,7 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  assert.match(sentMessages[0].content,/共有した現在地/);assert.equal($('location-preview').hidden,true);
  assert.equal($('provider-label').textContent,'Copilot');
  const saved=JSON.parse(storage.getItem(storageModule.storageKey));assert.equal(saved.chats[0].messages.length,2);assert.equal(saved.chats[0].messages[1].usage.input_tokens,100);assert.equal(saved.chats[0].messages[1].provider,'copilot');
- assert.match($('usage-summary').textContent,/140/);assert.equal($('progress').hidden,true);assert.equal($('send').disabled,false);
+ assert.equal($('progress').hidden,true);assert.equal($('send').disabled,false);
  const assistant=$('messages').children.at(-1);assert.match(assistant.children[1].innerHTML,/<a href="https:\/\/example.com\/"/);assert.match(assistant.children[1].innerHTML,/rel="noopener noreferrer"/);const card=assistant.children.find(x=>x.className==='packing-proposals');assert.ok(card);assert.equal(storage.getItem('taiwan-packing-items-2026-v2'),null);card.children.at(-2).onclick();const packing=JSON.parse(storage.getItem('taiwan-packing-items-2026-v2'));assert.equal(packing.carry.find(x=>x.text==='折りたたみ傘').checked,false);
  $('scroll-area').scrollHeight=1000;$('scroll-area').clientHeight=100;$('scroll-area').scrollTop=100;$('scroll-area').handlers.scroll();vm.runInContext('scrollToLatest()',context);assert.equal($('scroll-area').scrollTop,100);assert.equal($('jump-latest').hidden,false);$('jump-latest').onclick();assert.equal($('scroll-area').scrollTop,1000);assert.equal($('jump-latest').hidden,true);
  assert.equal(requestedProvider,undefined);

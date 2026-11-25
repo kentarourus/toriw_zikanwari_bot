@@ -74,9 +74,11 @@ function getPanel(key, title, fallback) {
       if (online && !frame.hasAttribute('src')) frame.src = embeds[key];
       frame.hidden = !online;
       offline.hidden = online;
-      externalToolLink.href = fallback;
-      externalToolLink.textContent = key === 'map' ? '地図で開く ↗' : '別タブで開く ↗';
-      externalToolLink.hidden = !online;
+      if (key === 'map') {
+        externalToolLink.href = fallback;
+        externalToolLink.textContent = '地図で開く ↗';
+        externalToolLink.hidden = !online;
+      }
     };
     panel.className = 'tool-embed';
     panel.append(frame, offline);
