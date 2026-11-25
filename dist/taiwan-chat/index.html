@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8faf7">
   <title>丹陽さん</title>
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
 <div class="app">
@@ -56,15 +56,30 @@
           <div id="attach-menu" hidden><p class="menu-heading">相談に添付する</p><button id="share-location" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong>現在地</strong><small>天気や近くの場所を相談</small></span></button><button id="share-packing" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg><span><strong>持ち物チェック</strong><small>この端末のチェック状況を共有</small></span></button><a class="packing-open" href="../taiwan/#packing" target="_blank" rel="noopener">持ち物チェックを開く ↗</a></div>
         </div>
         <label class="sr-only" for="question">メッセージ</label><textarea id="question" rows="1" maxlength="1500" placeholder="丹陽さんにメッセージ…"></textarea>
-        <div class="model-picker">
-          <svg class="model-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m10 2 1.9 6.1L18 10l-6.1 1.9L10 18l-1.9-6.1L2 10l6.1-1.9Z"/></svg>
-          <span id="model-short-name" aria-hidden="true">Luna</span>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
-          <select id="model-select" aria-label="回答に使うモデル">
-            <option id="model-standard" value="standard">GPT-6 Luna</option>
-            <option id="model-hydrogen" value="hydrogen" disabled>Gemini 4 Hydrogen</option>
-            <option id="model-sonnet" value="sonnet" disabled>Claude Sonnet 5.5</option>
-          </select>
+        <div id="model-picker">
+          <button id="model-toggle" type="button" aria-label="回答に使うモデル（GPT-6 Luna）" aria-expanded="false" aria-controls="model-options">
+            <img id="model-current-icon" src="model-icons/openai.ico" alt="" width="17" height="17">
+            <span id="model-short-name" aria-hidden="true">Luna</span>
+            <svg class="model-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 7 4 4 4-4"/></svg>
+          </button>
+          <div id="model-options" role="group" aria-labelledby="model-menu-title" hidden>
+            <p id="model-menu-title">回答に使うモデル</p>
+            <button class="model-option" id="model-standard" type="button" aria-pressed="true">
+              <span class="model-logo-tile"><img id="model-standard-icon" src="model-icons/openai.ico" alt="" width="21" height="21"></span>
+              <span class="model-option-text"><strong id="model-standard-name">GPT-6 Luna</strong><small id="model-standard-brand">OpenAI</small></span>
+              <svg class="model-check" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 10 3.5 3.5 7.5-7.5"/></svg>
+            </button>
+            <button class="model-option" id="model-hydrogen" type="button" aria-pressed="false" disabled>
+              <span class="model-logo-tile"><img id="model-hydrogen-icon" src="model-icons/google.ico" alt="" width="21" height="21"></span>
+              <span class="model-option-text"><strong id="model-hydrogen-name">Gemini 4 Hydrogen</strong><small id="model-hydrogen-brand">Google</small></span>
+              <svg class="model-check" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 10 3.5 3.5 7.5-7.5"/></svg>
+            </button>
+            <button class="model-option" id="model-sonnet" type="button" aria-pressed="false" disabled>
+              <span class="model-logo-tile"><img id="model-sonnet-icon" src="model-icons/anthropic.svg" alt="" width="21" height="21"></span>
+              <span class="model-option-text"><strong id="model-sonnet-name">Claude Sonnet 5.5</strong><small id="model-sonnet-brand">Anthropic</small></span>
+              <svg class="model-check" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 10 3.5 3.5 7.5-7.5"/></svg>
+            </button>
+          </div>
         </div>
         <button id="send" type="submit" aria-label="送信" title="メッセージを送信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 10 6-6 6 6M12 4v16"/></svg></button>
       </form>
@@ -73,5 +88,5 @@
     </div>
   </main>
 </div>
-<script type="module" src="chat.js?v=23"></script>
+<script type="module" src="chat.js?v=24"></script>
 </body></html>

@@ -6,10 +6,14 @@ import {renderMarkdown} from '../dist/taiwan-chat/markdown.js';
 import * as storageModule from '../dist/taiwan-chat/chat-store.js';import * as progressModule from '../dist/taiwan-chat/progress.js';import * as usageModule from '../dist/taiwan-chat/usage.js';
 class Element{
  remove(){} constructor(){this.style={};this.handlers={};this.scrollHeight=44;this.clientHeight=44;this.children=[];this.hidden=false;this.value='';this.attributes={};const values=new Set();this.classList={toggle:(key,flag)=>{if(flag??!values.has(key))values.add(key);else values.delete(key);},contains:key=>values.has(key)};}
- append(...nodes){this.children.push(...nodes)}replaceChildren(...nodes){this.children=nodes}setAttribute(key,value){this.attributes[key]=value}removeAttribute(key){delete this.attributes[key]}focus(){}addEventListener(event,handler){this.handlers[event]=handler;}
+ append(...nodes){this.children.push(...nodes)}replaceChildren(...nodes){this.children=nodes}setAttribute(key,value){this.attributes[key]=value}getAttribute(key){return this.attributes[key]??null}removeAttribute(key){delete this.attributes[key]}focus(){}addEventListener(event,handler){this.handlers[event]=handler;}
 }
 test('a real chat submission saves usage and sidebar can be tucked away without losing history',async()=>{
- const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id)};const app=new Element();$('progress-steps').children=Array.from({length:4},()=>new Element());
+ const nodes=new Map();const $=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id)};const app=new Element();
+ $('model-options').hidden=true;
+ $('model-hydrogen-icon').setAttribute('src','model-icons/google.ico');
+ $('model-sonnet-icon').setAttribute('src','model-icons/anthropic.svg');
+ $('progress-steps').children=Array.from({length:4},()=>new Element());
  let geolocationCalls=0,fetchCalls=0,sentMessages,requestedProvider,confirmation,pollUrl;
  let allowDelete=false;
  const navigator={geolocation:{getCurrentPosition:success=>{geolocationCalls++;success({coords:{latitude:25.03,longitude:121.56,accuracy:25},timestamp:1794800000000});}}};
@@ -45,8 +49,10 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  $('scroll-area').scrollHeight=1000;$('scroll-area').clientHeight=100;$('scroll-area').scrollTop=100;$('scroll-area').handlers.scroll();vm.runInContext('scrollToLatest()',context);assert.equal($('scroll-area').scrollTop,100);assert.equal($('jump-latest').hidden,false);$('jump-latest').onclick();assert.equal($('scroll-area').scrollTop,1000);assert.equal($('jump-latest').hidden,true);
  assert.equal(requestedProvider,undefined);
  assert.equal($('model-hydrogen').disabled,false);
- $('model-select').value='hydrogen';$('model-select').onchange();
- assert.equal($('model-select').value,'hydrogen');
+ $('model-toggle').onclick();$('model-hydrogen').onclick();
+ assert.equal($('model-hydrogen').getAttribute('aria-pressed'),'true');
+ assert.equal($('model-current-icon').getAttribute('src'),'model-icons/google.ico');
+ assert.equal($('model-options').hidden,true);
  assert.equal($('provider-label').textContent,'Gemini 4 Hydrogen');
  $('question').value='続けて質問';await $('chat-form').onsubmit({preventDefault(){}});
  assert.equal(requestedProvider,'hydrogen');
@@ -54,17 +60,17 @@ test('a real chat submission saves usage and sidebar can be tucked away without 
  assert.equal(sentMessages.length,3);
  assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'gemini-4-hydrogen-low');
  assert.equal($('model-sonnet').disabled,false);
- $('model-select').value='sonnet';$('model-select').onchange();
+ $('model-toggle').onclick();$('model-sonnet').onclick();
  assert.equal(storage.getItem('taiwan-chat-model'),'sonnet');
  assert.equal($('provider-label').textContent,'Claude Sonnet 5.5');
  assert.equal($('model-short-name').textContent,'Sonnet');
  $('question').value='しおりも確認';await $('chat-form').onsubmit({preventDefault(){}});
  assert.equal(requestedProvider,'sonnet');
  assert.equal(JSON.parse(storage.getItem(storageModule.storageKey)).chats[0].messages.at(-1).model,'claude-sonnet-5-5-low');
- $('model-select').value='standard';$('model-select').onchange();
- assert.equal($('model-select').value,'standard');
+ $('model-toggle').onclick();$('model-standard').onclick();
+ assert.equal($('model-standard').getAttribute('aria-pressed'),'true');
  assert.equal($('provider-label').textContent,'GPT-6 Luna');
- assert.equal($('model-standard').textContent,'GPT-6 Luna');
+ assert.equal($('model-standard-name').textContent,'GPT-6 Luna');
  vm.runInContext("store.chats.push({id:'other',title:'別の会話',messages:[{role:'user',content:'別の質問'}],updatedAt:0});renderList()",context);
  const remove=$('conversations').children[1].children[1];
  assert.equal(remove.attributes['aria-label'],'「別の会話」を削除');
