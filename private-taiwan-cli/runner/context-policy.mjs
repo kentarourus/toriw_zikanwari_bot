@@ -1,7 +1,7 @@
 const hotelRules = /ホテル.*(?:ルール|規則|備付|設備|階|フロア|移動|行き来|部屋|客室|出入|生活|していい)|宿舎|館内|客室|別(?:の)?階|他の階|階を(?:また|跨|移|変)|階間|上下階|フロア|エレベーター|金庫|セキュリティ|タオル|階段|外出|スリッパ|モーニングコール|他の部屋|部屋.*(?:行き来|遊び|訪問)/;
 export function webModeFor(messages){
  const latest=messages.filter(m=>m.role==='user').at(-1)?.content||'';
- if(/(?:Web検索|検索)(?:は|を)?(?:いりません|不要|しないで|しなくていい)/i.test(latest))return 'disabled';
+ if(/(?:Web検索|検索)(?:は|を)?(?:いりません|不要|しないで|しなくていい)/i.test(latest)||latest==='この画像の内容を教えてください。')return 'disabled';
  const external=/検索|調べ|公式|最新|営業時間|料金|運賃|行き方|アクセス|周辺|近く|おすすめ|観光|レストラン|食べ|グルメ|台風|警報|天気|気温|予報|雨|weather/i;
  if(hotelRules.test(latest)&&!/検索|調べ|最新|公式|周辺|近く|観光/.test(latest))return 'disabled';
  if(external.test(latest))return 'live';
@@ -16,7 +16,7 @@ export function selectGuideTopics(messages){
  if(/しおり.*(全部|全体)|全日程/.test(text))return ['all'];
  for(const [pattern,topic] of [
   [/ホテル|宿泊|泊まる|宿舎の名前/,'hotel'],
-  [/12月1日|12\/1|初日|1日目|学校.*出発|往路/,'day1'],
+  [/12月1日|12\/1|初日|1日目|学校.*出発|出発日(?:時)?|往路/,'day1'],
   [/12月2日|12\/2|2日目/,'day2'],
   [/12月3日|12\/3|3日目|班別|班行動|定時|現況|帰着/,'day3'],
   [/12月4日|12\/4|4日目|最終日|帰国|復路/,'day4'],
@@ -39,7 +39,7 @@ export function selectGuideTopics(messages){
  ])if(pattern.test(text))topics.add(topic);
  if(![...topics].some(t=>/^day[1-4]$/.test(t))&&/朝食|点呼|就寝|起床|消灯/.test(text))topics.add('daily_routine');
  if(/食事|昼食|夕食|レストラン/.test(text))topics.add('meals');
- if(/集合|便名|フライト|搭乗|スケジュール/.test(text)&&![...topics].some(t=>/^day[1-4]$/.test(t)))topics.add('itinerary');
+ if(/集合|出発時刻|便名|フライト|搭乗|スケジュール/.test(text)&&![...topics].some(t=>/^day[1-4]$/.test(t)))topics.add('itinerary');
  if(topics.size>1)topics.delete('overview');
  return [...topics];
 }

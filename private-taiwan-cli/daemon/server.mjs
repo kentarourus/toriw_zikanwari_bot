@@ -6,6 +6,7 @@ import path from 'node:path';
 import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {setTimeout as wait} from 'node:timers/promises';
 import {formatChatPrompt} from '../runner/prompt-context.mjs';
+import {maxImageBase64Length,maxTextRequestLength,validChatImage} from '../runner/chat-image.mjs';
 import {weatherContext} from '../runner/weather.mjs';
 import {assistantInstructions,antigravityInstructions} from '../runner/assistant-instructions.mjs';
 import {readGuidePages,readGuides} from '../runner/guide-mcp.mjs';
@@ -23,6 +24,7 @@ const usage=await openUsage(path.join(root,'admin-usage.json')).catch(()=>{
 });
 let usageWriteFailed=false;
 const mode=process.env.TAIWAN_PROVIDER_MODE||config.providerMode||'auto';
+const imageAvailable=mode==='auto'||mode==='codex';
 const port=Number(process.env.TAIWAN_CHAT_PORT||8793);
 const plan=new ChatgptPlanProvider({root});
 const codex=new CodexProvider({root}),copilot=new CopilotProvider({root});
@@ -32,7 +34,7 @@ if(antigravityAvailable)warmAntigravity('hydrogen');
 const jobs=new Map();let active=0,providerReady=false;
 (mode==='chatgpt-plan'?plan:mode==='copilot-test'?copilot:codex).start().then(()=>{providerReady=true;console.log('Chat provider ready');}).catch(()=>console.error('Chat provider is not ready'));
 
-async function prepare(job,messages){
+async function prepare(job,messages,image){
  const {webMode,topics,needGuideTool,needDirections}=guidePolicyFor(messages);
  const usesAntigravity=isAntigravity(job.provider);
  const question=messages.filter(message=>message.role==='user').at(-1)?.content??'';
@@ -44,13 +46,13 @@ async function prepare(job,messages){
  const weather=await weatherContext(messages);
  const now=new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Taipei',dateStyle:'full',timeStyle:'short'}).format(new Date());
  const prompt=formatChatPrompt({guide,messages,now,weather});
- return {webMode,needGuideTool,needDirections,prompt,instructions:usesAntigravity?antigravityInstructions:assistantInstructions};
+ return {webMode,needGuideTool,needDirections,prompt,image,instructions:usesAntigravity?antigravityInstructions:assistantInstructions};
 }
-async function answer(job,messages){
+async function answer(job,messages,image){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),210000);
  try{
-  const prepared=await prepare(job,messages);
-  const result=isAntigravity(job.provider)?await runAntigravity(job,prepared,{signal:controller.signal}):mode==='chatgpt-plan'?await plan.run(job,prepared,{signal:controller.signal}).catch(async()=>{if(controller.signal.aborted)throw Error('Timeout');job.switchedFrom='chatgpt-plan';job.provider='copilot';job.partial='';job.answer='';job.usage=null;job.firstTokenAt=null;job.stage='switching';return copilot.run(job,prepared,{signal:controller.signal});}):await runWithFallback({mode,codex:()=>codex.run(job,prepared,{signal:controller.signal}),copilot:()=>copilot.run(job,prepared,{signal:controller.signal}),onSwitch:()=>{
+  const prepared=await prepare(job,messages,image);
+  const result=image?await codex.run(job,prepared,{signal:controller.signal}):isAntigravity(job.provider)?await runAntigravity(job,prepared,{signal:controller.signal}):mode==='chatgpt-plan'?await plan.run(job,prepared,{signal:controller.signal}).catch(async()=>{if(controller.signal.aborted)throw Error('Timeout');job.switchedFrom='chatgpt-plan';job.provider='copilot';job.partial='';job.answer='';job.usage=null;job.firstTokenAt=null;job.stage='switching';return copilot.run(job,prepared,{signal:controller.signal});}):await runWithFallback({mode,codex:()=>codex.run(job,prepared,{signal:controller.signal}),copilot:()=>copilot.run(job,prepared,{signal:controller.signal}),onSwitch:()=>{
    job.stage='switching';job.provider='copilot';job.switchedFrom='codex';job.partial='';job.answer='';job.usage=null;job.firstTokenAt=null;
   }});
   job.answer=result.answer;job.usage=result.usage;job.provider=result.provider;job.model=result.model;
@@ -78,19 +80,21 @@ const server=http.createServer(async(req,res)=>{
    if(!usage)return reply({error:'集計を利用できません。'},503);
    return reply({...await usage.report(Number(usageRange[1])),active,usageWriteFailed});
   }
-  if(req.method==='GET'&&req.url==='/provider-status')return reply({mode,label:providerLabel(mode),hydrogenAvailable:antigravityAvailable,sonnetAvailable:antigravityAvailable});
+  if(req.method==='GET'&&req.url==='/provider-status')return reply({mode,label:providerLabel(mode),hydrogenAvailable:antigravityAvailable,sonnetAvailable:antigravityAvailable,imageAvailable});
   if(req.method==='GET'&&req.url==='/models'){
    if(mode==='copilot-test'){await copilot.start();return reply({data:await copilot.client.listModels()});}
    await codex.start();return reply(await codex.rpc('model/list',{includeHidden:true}));
   }
   if(req.method==='POST'&&req.url==='/jobs'){
-   let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>14000)return reply({error:'質問が長すぎます。'},400);}
-   const {messages,provider}=JSON.parse(raw);
+   let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>maxTextRequestLength+maxImageBase64Length+64)return reply({error:'質問が長すぎます。'},400);}
+   const {messages,provider,image}=JSON.parse(raw);
+   if(image!==undefined&&(!validChatImage(image)||!imageAvailable||provider!==undefined))return reply({error:'画像はGPT-6 Lunaで送信してください。'},400);
+   if(JSON.stringify(messages)?.length>maxTextRequestLength)return reply({error:'質問が長すぎます。'},400);
    if(!Array.isArray(messages)||!messages.length||messages.length>8||messages.some(m=>!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>1500))return reply({error:'質問を確認してください。'},400);
    if(active>=2)return reply({error:'処理中です。少し待って送信してください。'},429);
    if(isAntigravity(provider)&&!antigravityAvailable)return reply({error:'選択したモデルに接続できません。'},503);
    const job={id:'pc-'+randomUUID(),status:'in_progress',stage:'preparing',createdAt:Date.now(),partial:'',usage:null,webSearches:0,guideReads:0,provider:isAntigravity(provider)?provider:mode==='chatgpt-plan'?'chatgpt-plan':mode==='copilot-test'?'copilot':'codex'};
-   jobs.set(job.id,job);active++;reply({id:job.id,backend:'pc',provider:job.provider});answer(job,messages);return;
+   jobs.set(job.id,job);active++;reply({id:job.id,backend:'pc',provider:job.provider});answer(job,messages,image);return;
   }
   const jobRequest=req.method==='GET'&&/^\/jobs\/(pc-[-a-f0-9]{36})(\?wait=first)?$/.exec(req.url);
   if(jobRequest){

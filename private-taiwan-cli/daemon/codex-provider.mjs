@@ -103,7 +103,9 @@ export class CodexProvider {
     signal?.addEventListener('abort', abort, {once: true});
     try {
       job.stage = 'answering';
-      await this.rpc('turn/start', {threadId, effort: 'medium', input: [{type: 'text', text: prepared.prompt, text_elements: []}]});
+      const input = [{type: 'text', text: prepared.prompt, text_elements: []}];
+      if (prepared.image) input.push({type: 'image', url: 'data:image/jpeg;base64,' + prepared.image});
+      await this.rpc('turn/start', {threadId, effort: 'medium', input});
       return await done;
     } finally {
       signal?.removeEventListener('abort', abort);

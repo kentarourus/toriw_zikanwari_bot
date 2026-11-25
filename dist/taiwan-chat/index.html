@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#f8faf7">
   <title>丹陽さん</title>
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 <div class="app">
@@ -47,13 +47,15 @@
       <section id="progress" aria-label="回答の進行状況" hidden><span id="progress-label" role="status" aria-live="polite" aria-atomic="true"></span></section>
       <div class="status-row"><p id="status" role="status" aria-live="polite"></p><button id="retry" type="button" hidden>再試行</button></div>
       <div class="attachment-previews">
+        <div id="image-preview" hidden><img id="image-thumb" alt="添付画像のプレビュー"><span>画像を添付</span><button id="remove-image" class="icon-button" type="button" aria-label="画像の添付を取り消す">×</button></div>
         <div id="packing-preview" hidden><details><summary id="packing-preview-label"></summary><pre id="packing-preview-text"></pre></details><button id="remove-packing" type="button" class="icon-button" aria-label="持ち物チェックの添付を取り消す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
         <div id="location-preview" hidden><div><a id="location-map" target="_blank" rel="noopener noreferrer"></a><small>送信すると丹陽さんに共有され、会話の履歴にも保存されます。</small></div><button id="remove-location" type="button" class="icon-button" aria-label="現在地の添付を取り消す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
       </div>
       <form id="chat-form">
         <div id="attachment-tools">
-          <button id="add-attachment" type="button" aria-label="現在地や持ち物を添付" title="現在地や持ち物を添付" aria-expanded="false" aria-controls="attach-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-          <div id="attach-menu" hidden><p class="menu-heading">相談に添付する</p><button id="share-location" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong>現在地</strong><small>天気や近くの場所を相談</small></span></button><button id="share-packing" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg><span><strong>持ち物チェック</strong><small>この端末のチェック状況を共有</small></span></button><a class="packing-open" href="../taiwan/#packing" target="_blank" rel="noopener">持ち物チェックを開く ↗</a></div>
+          <button id="add-attachment" type="button" aria-label="画像、現在地、持ち物を添付" title="画像、現在地、持ち物を添付" aria-expanded="false" aria-controls="attach-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          <input id="image-file" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+          <div id="attach-menu" hidden><p class="menu-heading">相談に添付する</p><button id="choose-image" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 4-4 3 3 5-6 4 6"/></svg><span><strong>画像</strong><small>写真やスクリーンショット · GPT-6 Luna</small></span></button><button id="share-location" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong>現在地</strong><small>天気や近くの場所を相談</small></span></button><button id="share-packing" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 2 2 5-5m-7 9h8"/></svg><span><strong>持ち物チェック</strong><small>この端末のチェック状況を共有</small></span></button><a class="packing-open" href="../taiwan/#packing" target="_blank" rel="noopener">持ち物チェックを開く ↗</a></div>
         </div>
         <label class="sr-only" for="question">メッセージ</label><textarea id="question" rows="1" maxlength="1500" placeholder="丹陽さんにメッセージ…"></textarea>
         <div id="model-picker">
@@ -88,5 +90,5 @@
     </div>
   </main>
 </div>
-<script type="module" src="chat.js?v=24"></script>
+<script type="module" src="chat.js?v=25"></script>
 </body></html>

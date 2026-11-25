@@ -1,3 +1,4 @@
+import {prepareChatImage} from './chat-image.js';
 import {createSmoothText} from './smooth-text.js?v=1';
 import {packingSnapshot,packingProposals,addPackingItems} from './packing.js';
 import {locationAttachment} from './location.js';
@@ -14,6 +15,37 @@ let followLatest=true;
 function scrollToLatest(force=false){requestAnimationFrame(()=>{if(force||followLatest){$('scroll-area').scrollTop=$('scroll-area').scrollHeight;$('jump-latest').hidden=true;}});}
 $('scroll-area').addEventListener('scroll',()=>{const area=$('scroll-area');followLatest=area.scrollHeight-area.scrollTop-area.clientHeight<100;$('jump-latest').hidden=followLatest;});
 $('jump-latest').onclick=()=>{followLatest=true;scrollToLatest(true);};
+let imageAvailable=false,attachedImage=null,imageForRetry=null,imageTicket=0;
+function clearImage(){
+ imageTicket++;
+ attachedImage=null;
+ $('image-file').value='';
+ $('image-thumb').removeAttribute('src');
+ $('image-preview').hidden=true;
+}
+$('remove-image').onclick=clearImage;
+$('choose-image').onclick=()=>{
+ attachmentMenu(false);
+ if(!imageAvailable||selectedProvider()!=='codex'){
+  $('status').textContent='画像を添付するにはGPT-6 Lunaに切り替えてください。';
+  return;
+ }
+ $('image-file').click();
+};
+$('image-file').onchange=async()=>{
+ const file=$('image-file').files[0];
+ if(!file)return;
+ clearImage();
+ const ticket=imageTicket;
+ try{
+  const image=await prepareChatImage(file);
+  if(ticket!==imageTicket||busy)return;
+  attachedImage=image;
+  $('image-thumb').setAttribute('src',image.url);
+  $('image-preview').hidden=false;
+  $('status').textContent='';
+ }catch(error){if(ticket===imageTicket)$('status').textContent=error.message||'画像を開けませんでした。';}
+};
 let attachedPacking=null;
 function clearPacking(){attachedPacking=null;$('packing-preview').hidden=true;}
 $('share-packing').onclick=()=>{attachmentMenu(false);try{attachedPacking=packingSnapshot(localStorage);$('packing-preview-label').textContent=`持ち物チェック ${attachedPacking.total}件（済 ${attachedPacking.checked} / 未 ${attachedPacking.unchecked}）`;$('packing-preview-text').textContent=attachedPacking.content;$('packing-preview').hidden=false;$('status').textContent='送信時に持ち物チェックを共有します。';}catch{$('status').textContent='持ち物チェックを読み込めませんでした。';}};
@@ -75,7 +107,7 @@ function renderList(){
   open.title=chat.title;
   open.disabled=busy;
   if(chat.id===store.active)open.setAttribute('aria-current','page');
-  open.onclick=()=>{clearLocation();clearPacking();followLatest=true;store.active=chat.id;save();render();menu(false);if(chat.pending?.id)resume(chat);};
+  open.onclick=()=>{clearLocation();clearPacking();clearImage();followLatest=true;store.active=chat.id;save();render();menu(false);if(chat.pending?.id)resume(chat);};
   const remove=document.createElement('button');
   remove.className='history-delete';
   remove.type='button';
@@ -96,6 +128,7 @@ function deleteConversation(chat){
  if(wasActive){
   clearLocation();
   clearPacking();
+ clearImage();
   followLatest=true;
   if(!store.chats.length)store.chats.push(createChat());
   store.active=store.chats[0].id;
@@ -171,12 +204,12 @@ for(const [key,row] of modelRows)row.onclick=()=>{
  modelMenu(false,true);
  updateProviderLabel(active(),selectedProvider());
 };
-function render(){const chat=active();updateProviderLabel(chat);document.title=chat.title+' · 丹陽さん';$('chat-title').textContent=chat.messages.length?chat.title:'丹陽さん';$('chat-title').title=chat.title;$('welcome').hidden=chat.messages.length>0;$('messages').replaceChildren();for(const item of chat.messages){const row=document.createElement('article');row.className='message '+item.role;const label=document.createElement('small');label.textContent=item.role==='user'?'あなた':'丹陽さん';const text=document.createElement('div');const proposal=item.role==='assistant'?packingProposals(item.content):{text:item.content,suggestions:[]};text.innerHTML=renderMarkdown(proposal.text);row.append(label,text);if(proposal.suggestions.length)row.append(proposalCard(proposal.suggestions));if(item.role==='assistant'){const usage=normaliseUsage(item.usage);const info=document.createElement('details');info.className='message-usage';info.hidden=!usage;const usageTitle=document.createElement('summary'),usageBody=document.createElement('p');usageTitle.textContent=usage?'使用量 '+(usage.input_tokens+usage.output_tokens).toLocaleString('ja-JP')+' トークン':'使用量';usageBody.textContent=usage?`入力 ${usage.input_tokens.toLocaleString('ja-JP')} / 出力 ${usage.output_tokens.toLocaleString('ja-JP')}${usage.cached_input_tokens!=null?' / キャッシュ報告値 '+usage.cached_input_tokens.toLocaleString('ja-JP'):''} トークン`:'';info.append(usageTitle,usageBody);row.append(info);}$('messages').append(row);}$('retry').hidden=!chat.error||busy;$('status').textContent=chat.error||(storageError?'この端末に履歴を保存できません。':!endpoint?'専用の起動リンクから開いてください。':'');renderUsage(chat);renderList();scrollToLatest();}
+function render(){const chat=active();updateProviderLabel(chat);document.title=chat.title+' · 丹陽さん';$('chat-title').textContent=chat.messages.length?chat.title:'丹陽さん';$('chat-title').title=chat.title;$('welcome').hidden=chat.messages.length>0;$('messages').replaceChildren();for(const item of chat.messages){const row=document.createElement('article');row.className='message '+item.role;const label=document.createElement('small');label.textContent=item.role==='user'?'あなた':'丹陽さん';const text=document.createElement('div');const proposal=item.role==='assistant'?packingProposals(item.content):{text:item.content,suggestions:[]};text.innerHTML=renderMarkdown(proposal.text);row.append(label);if(item.image){const marker=document.createElement('span');marker.className='message-image-label';marker.textContent='画像を添付';row.append(marker);}row.append(text);if(proposal.suggestions.length)row.append(proposalCard(proposal.suggestions));if(item.role==='assistant'){const usage=normaliseUsage(item.usage);const info=document.createElement('details');info.className='message-usage';info.hidden=!usage;const usageTitle=document.createElement('summary'),usageBody=document.createElement('p');usageTitle.textContent=usage?'使用量 '+(usage.input_tokens+usage.output_tokens).toLocaleString('ja-JP')+' トークン':'使用量';usageBody.textContent=usage?`入力 ${usage.input_tokens.toLocaleString('ja-JP')} / 出力 ${usage.output_tokens.toLocaleString('ja-JP')}${usage.cached_input_tokens!=null?' / キャッシュ報告値 '+usage.cached_input_tokens.toLocaleString('ja-JP'):''} トークン`:'';info.append(usageTitle,usageBody);row.append(info);}$('messages').append(row);}$('retry').hidden=!chat.error||busy;$('status').textContent=chat.error||(storageError?'この端末に履歴を保存できません。':!endpoint?'専用の起動リンクから開いてください。':'');renderUsage(chat);renderList();scrollToLatest();}
 function setBusy(value){busy=value;modelMenu(false);$('add-attachment').disabled=value||locating;attachmentMenu(false);$('send').disabled=value;$('question').disabled=value;$('new-chat').disabled=value;$('retry').hidden=value||!active().error;renderList();}
 async function api(path,options={}){const r=await fetch(endpoint+path,{...options,referrerPolicy:'no-referrer',signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok||data.error)throw Error(data.error||'接続できませんでした。');return data;}
 function showPartial(content){let row=document.getElementById('live-answer');if(!row){row=document.createElement('article');row.id='live-answer';row.className='message assistant';$('messages').append(row);}if(!row._streamBody){const label=document.createElement('small');label.textContent='丹陽さん';row._streamBody=document.createElement('div');row.append(label,row._streamBody);row.setAttribute('aria-busy','true');}let visible=packingProposals(content).text;const pendingFence=visible.indexOf('```packing-suggestions');if(pendingFence>=0)visible=visible.slice(0,pendingFence);row._streamBody.innerHTML=renderMarkdown(visible);scrollToLatest();}
 const smoothText=createSmoothText({write:showPartial,reducedMotion:()=>Boolean(document.hidden)||matchMedia('(prefers-reduced-motion: reduce)').matches});
-async function poll(chat){let awaitingFirst=true;let delay=0;for(let attempt=0;attempt<720;attempt++){if(delay)await new Promise(resolve=>setTimeout(resolve,delay));const waitForFirst=awaitingFirst&&chat.pending.backend==='pc'&&chat.pending.provider==='codex'?'?wait=first':'';const result=await api('/jobs/'+chat.pending.id+waitForFirst);if(result.partial)awaitingFirst=false;delay=chat.pending.backend!=='pc'?2500:waitForFirst&&result.stage==='answering'?100:500;if(result.provider&&chat.pending.provider!==result.provider){smoothText.reset();document.getElementById('live-answer')?.remove();chat.pending.provider=result.provider;}updateProviderLabel(chat);if(result.status==='completed'){if(typeof result.answer!=='string'||!result.answer.trim())throw Error('回答を取得できませんでした。');await smoothText.finish(result.answer);chat.messages.push({role:'assistant',content:result.answer,usage:normaliseUsage(result.usage),provider:result.provider,model:result.model,requestId:chat.pending.id});chat.pending=null;chat.error='';chat.updatedAt=Date.now();save();render();$('status').textContent=storageError?'履歴を端末に保存できませんでした。':'';return}if(result.status==='failed'){chat.pending=null;throw Error(result.error||'実行に失敗しました。');}updateProgress(stageFor(result));if(result.partial)smoothText.update(result.partial);$('status').textContent='';}throw Error('まだ実行が終わっていません。「再試行」で回答の取得を再開できます。');}
+async function poll(chat){let awaitingFirst=true;let delay=0;for(let attempt=0;attempt<720;attempt++){if(delay)await new Promise(resolve=>setTimeout(resolve,delay));const waitForFirst=awaitingFirst&&chat.pending.backend==='pc'&&chat.pending.provider==='codex'?'?wait=first':'';const result=await api('/jobs/'+chat.pending.id+waitForFirst);if(result.partial)awaitingFirst=false;delay=chat.pending.backend!=='pc'?2500:waitForFirst&&result.stage==='answering'?100:500;if(result.provider&&chat.pending.provider!==result.provider){smoothText.reset();document.getElementById('live-answer')?.remove();chat.pending.provider=result.provider;}updateProviderLabel(chat);if(result.status==='completed'){if(typeof result.answer!=='string'||!result.answer.trim())throw Error('回答を取得できませんでした。');await smoothText.finish(result.answer);chat.messages.push({role:'assistant',content:result.answer,usage:normaliseUsage(result.usage),provider:result.provider,model:result.model,requestId:chat.pending.id});chat.pending=null;if(imageForRetry?.chatId===chat.id)imageForRetry=null;chat.error='';chat.updatedAt=Date.now();save();render();$('status').textContent=storageError?'履歴を端末に保存できませんでした。':'';return}if(result.status==='failed'){chat.pending=null;throw Error(result.error||'実行に失敗しました。');}updateProgress(stageFor(result));if(result.partial)smoothText.update(result.partial);$('status').textContent='';}throw Error('まだ実行が終わっていません。「再試行」で回答の取得を再開できます。');}
 async function resume(chat){
  if(busy||!endpoint)return;
  const selected=selectedProvider();
@@ -189,6 +222,11 @@ async function resume(chat){
   if(!chat.pending?.id){
    $('status').textContent='';
    const payload={messages:contextFor(chat)};
+   if(chat.messages.at(-1)?.image){
+    if(imageForRetry?.chatId!==chat.id)throw Error('画像をもう一度添付して送信してください。');
+    if(!imageAvailable||selected!=='codex')throw Error('画像の送信にはGPT-6 Lunaを使ってください。');
+    payload.image=imageForRetry.data;
+   }
    if(alternateModels.has(selected))payload.provider=selected;
    const {id,backend,provider}=await api('/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    if(alternateModels.has(selected)&&provider!==selected)throw Error('選択したモデルに接続できませんでした。');
@@ -200,13 +238,16 @@ async function resume(chat){
  }catch(error){chat.error=error.message;save();$('status').textContent=chat.error;}
  finally{smoothText.reset();stopProgress();setBusy(false);updateProviderLabel(chat);if(followLatest&&matchMedia('(pointer:fine)').matches)$('question').focus();}
 }
-$('new-chat').onclick=()=>{if(busy)return;clearLocation();clearPacking();followLatest=true;const current=active();if(!current.messages.length){menu(false);return;}const chat=createChat();store.chats.push(chat);store.active=chat.id;save();render();menu(false);$('question').focus();};
+$('new-chat').onclick=()=>{if(busy)return;clearLocation();clearPacking();clearImage();followLatest=true;const current=active();if(!current.messages.length){menu(false);return;}const chat=createChat();store.chats.push(chat);store.active=chat.id;save();render();menu(false);$('question').focus();};
 $('retry').onclick=()=>resume(active());
-$('chat-form').onsubmit=async event=>{event.preventDefault();if(busy)return;if(!endpoint){$('status').textContent='専用の起動リンクから開いてください。';return;}let text=$('question').value.trim();if(!text&&!attachedLocation&&!attachedPacking)return;if(attachedPacking)text=(text||'持ち物チェックを確認して、不足するものを提案してください。')+'\n\n'+attachedPacking.content;if(attachedLocation)text=(text||'この現在地を参考に案内してください。')+'\n\n'+attachedLocation.content;if(text.length>1500){$('status').textContent='添付情報を含めて1500文字以内になるよう、メッセージを短くしてください。';return;}const chat=active();if(chat.pending?.id){$('status').textContent='前の回答を「再試行」で取得してから送信してください。';return;}chat.error='';followLatest=true;chat.messages.push({role:'user',content:text});if(chat.messages.filter(m=>m.role==='user').length===1)chat.title=text.slice(0,32);chat.updatedAt=Date.now();save();clearLocation();clearPacking();$('question').value='';resizeInput();render();await resume(chat);};
+$('chat-form').onsubmit=async event=>{event.preventDefault();if(busy)return;if(!endpoint){$('status').textContent='専用の起動リンクから開いてください。';return;}let text=$('question').value.trim();if(!text&&!attachedLocation&&!attachedPacking&&!attachedImage)return;
+if(attachedImage&&(!imageAvailable||selectedProvider()!=='codex')){$('status').textContent='画像の送信にはGPT-6 Lunaを使ってください。';return;}
+if(attachedImage&&!text)text='この画像の内容を教えてください。';if(attachedPacking)text=(text||'持ち物チェックを確認して、不足するものを提案してください。')+'\n\n'+attachedPacking.content;if(attachedLocation)text=(text||'この現在地を参考に案内してください。')+'\n\n'+attachedLocation.content;if(text.length>1500){$('status').textContent='添付情報を含めて1500文字以内になるよう、メッセージを短くしてください。';return;}const chat=active();if(chat.pending?.id){$('status').textContent='前の回答を「再試行」で取得してから送信してください。';return;}chat.error='';followLatest=true;if(attachedImage)imageForRetry={chatId:chat.id,data:attachedImage.data};
+chat.messages.push({role:'user',content:text,...(attachedImage?{image:true}:{})});if(chat.messages.filter(m=>m.role==='user').length===1)chat.title=text.slice(0,32);chat.updatedAt=Date.now();save();clearLocation();clearPacking();clearImage();$('question').value='';resizeInput();render();await resume(chat);};
 for(const button of document.querySelectorAll('.suggestions button'))button.onclick=()=>{$('question').value=button.dataset.question||button.textContent;resizeInput();$('question').focus();};
 $('question').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)&&!event.isComposing){event.preventDefault();$('chat-form').requestSubmit();}});
 menu(false);render();if(active().pending?.id&&endpoint)resume(active());
 
-api('/provider-status').then(result=>{defaultProvider=result.mode==='copilot-test'?'copilot':'codex';for(const key of alternateModels.keys()){
+api('/provider-status').then(result=>{imageAvailable=result.imageAvailable===true;defaultProvider=result.mode==='copilot-test'?'copilot':'codex';for(const key of alternateModels.keys()){
  if(result[key+'Available']===true)availableModels.add(key);
 }updateProviderLabel(active());}).catch(()=>{});
