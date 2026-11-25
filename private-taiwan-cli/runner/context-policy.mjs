@@ -15,7 +15,7 @@ export function selectGuideTopics(messages){
  const topics=new Set();
  if(/しおり.*(全部|全体)|全日程/.test(text))return ['all'];
  for(const [pattern,topic] of [
-  [/ホテル|宿泊|泊まる|宿舎の名前/,'hotel'],
+  [/ホテル|宿泊|泊まる|宿舎(?:の名前|周辺|付近|の近く|から)/,'hotel'],
   [/12月1日|12\/1|初日|1日目|学校.*出発|出発日(?:時)?|往路/,'day1'],
   [/12月2日|12\/2|2日目/,'day2'],
   [/12月3日|12\/3|3日目|班別|班行動|定時|現況|帰着/,'day3'],

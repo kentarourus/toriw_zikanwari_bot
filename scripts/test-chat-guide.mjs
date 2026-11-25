@@ -54,3 +54,11 @@ test('Hydrogen gets the page text and matching source links before answering',()
  assert.equal(readGuidePages([],'こんにちは'),null);
  assert.equal(readGuidePages(['all'],'しおり全体を見せて').pages.length,34);
 });
+
+test('a hotel neighborhood question keeps the accommodation address available for a web lookup', () => {
+ const messages=[{role:'user',content:'宿舎周辺の安い果物店をGoogle検索して'}];
+ const policy=guidePolicyFor(messages);
+ assert.equal(policy.webMode,'live');
+ assert.ok(policy.topics.includes('hotel'));
+ assert.ok(readGuidePages(policy.topics,messages[0].content).pages.some(page=>page.pdf===3));
+});
