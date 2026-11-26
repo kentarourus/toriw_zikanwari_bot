@@ -92,6 +92,9 @@ h3 { margin: 0 0 10px; font-size: 1rem; }
 .day-time { color: var(--green); font-weight: 750; font-size: .87rem; font-variant-numeric: tabular-nums; }
 .day-content small { display: block; margin-top: 2px; color: var(--muted); font-size: .8rem; }
 .day-zone { margin: 12px 0 0; padding: 6px 8px; background: var(--row-tint); border-radius: 6px; color: var(--muted); font-size: .82rem; }
+.day-pickup { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: var(--row-tint); }
+.day-pickup h4 { margin: 0 0 4px; font-size: .93rem; }
+.day-content .day-pickup p { margin: 5px 0; color: var(--ink); }
 .day-sources { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .prep-grid, .check-grid { display: grid; gap: 10px; }
 .prep-grid { grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 12px; }
