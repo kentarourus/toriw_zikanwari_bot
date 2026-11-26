@@ -21,7 +21,7 @@
       <h2>管理者用</h2>
       <label for="key">管理キー</label>
       <div class="unlock-row">
-        <input id="key" type="password" required minlength="64" maxlength="64" autocomplete="current-password" spellcheck="false">
+        <input id="key" type="password" required pattern="[0-9]{8}|[0-9a-f]{64}" maxlength="64" autocomplete="current-password" spellcheck="false">
         <button type="submit">表示する</button>
       </div>
     </form>

@@ -24,8 +24,13 @@ export default {async fetch(request,env){
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(request.method!=='GET')return reply({error:'Method not allowed'},405);
   if(!/^[a-f0-9]{64}$/.test(env.ADMIN_USAGE_DIGEST??''))return reply({error:'管理画面の設定が完了していません。'},503);
-  const key=/^Bearer ([a-f0-9]{64})$/.exec(request.headers.get('Authorization')??'')?.[1];
+  const key=/^Bearer (\d{8}|[a-f0-9]{64})$/.exec(request.headers.get('Authorization')??'')?.[1];
   if(key){
+   const ip=request.headers.get('CF-Connecting-IP')||'unknown';
+   if(!env.REQUEST_LIMIT)return reply({error:'管理画面の設定が完了していません。'},503);
+   if(!(await env.REQUEST_LIMIT.limit({key:`admin-usage:${ip}`})).success){
+    return reply({error:'時間をおいてから再試行してください。'},429);
+   }
    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key));
    const expected=Uint8Array.from(env.ADMIN_USAGE_DIGEST.match(/../g),hex=>parseInt(hex,16));
    if(crypto.subtle.timingSafeEqual(digest,expected)){
