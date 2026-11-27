@@ -1,4 +1,4 @@
-const CACHE = 'timetable-v70';
+const CACHE = 'timetable-v71';
 const VOICE_CACHE = 'taiwan-local-voice-v1';
 const VOICE_READY = new URL('taiwan/translate/voice-pack-ready', self.registration.scope).href;
 const VOICE_ASSETS = [
