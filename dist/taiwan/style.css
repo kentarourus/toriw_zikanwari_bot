@@ -100,7 +100,16 @@ h3 { margin: 0 0 10px; font-size: 1rem; }
 .prep-grid { grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 12px; }
 .check-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .prep-grid article, .check-grid article { padding: 15px 17px; }
-.prep-grid p { font-size: .9rem; }
+.prep-grid p, .prep-alert p { font-size: .9rem; }
+.prep-alert { margin-top: 12px; padding: 14px 16px; border-inline-start: 3px solid #ad6932; border-radius: 12px; background: #fbf3e5; }
+.prep-alert h3 { margin: 0; }
+.prep-alert p { margin-block: 7px; }
+.prepare article > small { display: block; margin-top: 8px; color: var(--muted); font-size: .8rem; }
+.prep-details { margin-top: 8px; }
+.prep-details summary { cursor: pointer; font-weight: 650; }
+.prep-list { margin: 8px 0 0; font-size: .85rem; }
+.prep-list div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 12px; padding: 6px 0; border-top: 1px solid var(--line); }
+.prep-list dd { margin: 0; font-weight: 650; }
 .packing-progress { margin-bottom: 14px; }
 .packing-progress p { margin: 0 0 4px; color: var(--muted); font-size: .88rem; }
 .packing-progress progress { display: block; width: 100%; height: 12px; accent-color: var(--green); }
